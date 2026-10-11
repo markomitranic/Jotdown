@@ -6,7 +6,6 @@ import { cn } from "cn";
 import {
   Archive,
   Bot,
-  Check,
   CircleAlert,
   Clock,
   FolderTree,
@@ -17,16 +16,10 @@ import {
   Sparkles,
   Triangle,
 } from "lucide-react";
-import { Button } from "@jotdown/core/components/ui/button";
+import { Checkbox } from "@jotdown/core/components/ui/checkbox";
 import { GitHubMark } from "@jotdown/core/components/brand-icons";
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from "@jotdown/core/components/ui/item";
+import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@jotdown/core/components/ui/item";
+import { Label } from "@jotdown/core/components/ui/label";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@jotdown/core/components/ui/field";
 import { Input } from "@jotdown/core/components/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@jotdown/core/components/ui/input-group";
@@ -168,23 +161,18 @@ function Holding({
           {folder ? "already holds files" : "already exists"}
         </ItemTitle>
         <ItemDescription className="line-clamp-none">
-          {state.entries.join(", ")}
-          {more > 0 && ` and ${more} more`}. Docs cannot be set up on top of them. Pro tip: move them into{" "}
-          <Path>{old}</Path> first, and ask your agent to port what is worth keeping later.
+          {folder
+            ? `${state.entries.join(", ")}${more > 0 ? ` and ${more} more` : ""}. Docs cannot be set up on top of them.`
+            : "Docs cannot be set up on top of it."}
         </ItemDescription>
+        <Label className="mt-2 cursor-pointer items-start gap-2.5 font-normal text-foreground leading-snug">
+          <Checkbox checked={moveOld} onCheckedChange={(checked) => onMoveOld(checked === true)} className="mt-px" />
+          <span>
+            Move {folder ? "them" : "it"} into <Path>{old}</Path> first, and ask your agent to port what is worth
+            keeping later.
+          </span>
+        </Label>
       </ItemContent>
-      <ItemActions>
-        <Button
-          type="button"
-          size="sm"
-          variant={moveOld ? "outline" : "default"}
-          aria-pressed={moveOld}
-          onClick={() => onMoveOld(!moveOld)}
-        >
-          {moveOld ? <Check data-icon="inline-start" /> : null}
-          {moveOld ? `Moving to ${OLD_FOLDER}/` : `Move into ${OLD_FOLDER}/`}
-        </Button>
-      </ItemActions>
     </Item>
   );
 }
