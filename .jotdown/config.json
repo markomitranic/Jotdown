@@ -3,6 +3,7 @@
   "title": "Jotdown",
   "description": "How to write, edit and publish with Jotdown.",
   "repository": "https://github.com/markomitranic/Jotdown",
+  "url": "https://jotdown-blue.vercel.app",
   "branch": "main",
   "logo": {
     "alt": "Jotdown",
