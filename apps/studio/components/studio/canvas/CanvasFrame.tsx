@@ -8,6 +8,7 @@ import { CloudOff, FileQuestion, History, Unplug } from "lucide-react";
 import { fetchJson, postJson } from "@jotdown/core/lib/fetch-json";
 import {
   CANVAS_PROTOCOL,
+  colourMode,
   fromCanvas,
   type CanvasHello,
   type CanvasLoad,
@@ -57,7 +58,7 @@ export function CanvasFrame({ src, project }: Props) {
   const origin = new URL(src).origin;
   const router = useRouter();
   const pathname = usePathname();
-  const { resolvedTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const queries = useQueryClient();
 
   const slug = pathname.startsWith(project.base) ? pathname.slice(project.base.length).replace(/^\//, "") : "";
@@ -84,6 +85,7 @@ export function CanvasFrame({ src, project }: Props) {
       return;
     }
     if (data.type === "navigate") return router.push(data.url);
+    if (data.type === "theme") return setTheme(data.mode);
     if (data.type === "drag") return moveWindow(data.phase);
     if (data.type === "shortcut")
       return window.dispatchEvent(
@@ -128,8 +130,9 @@ export function CanvasFrame({ src, project }: Props) {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: the mode is sent again whenever it or the canvas changes
   useEffect(() => {
-    if (hello && (resolvedTheme === "light" || resolvedTheme === "dark")) post({ type: "theme", mode: resolvedTheme });
-  }, [hello, resolvedTheme]);
+    const mode = colourMode.safeParse(theme);
+    if (hello && mode.success) post({ type: "theme", mode: mode.data });
+  }, [hello, theme]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: a canvas learns once, as it says hello, whether the app frames it
   useEffect(() => {

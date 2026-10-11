@@ -32,8 +32,8 @@ in the browser with the same remark chain the build uses.
 all three and answers with a `load`. Every request the canvas's editor makes
 travels up as a `request` and is answered from the studio's own editing
 endpoints, so a save from a canvas is the same save as one from the studio and
-the storage code never knew. Either side can `navigate`, and the studio sets
-the colour mode. The canvas accepts any loopback studio, since the app's port
+the storage code never knew. Either side can `navigate` and set the colour
+mode, so a mode picked on the canvas is the studio's too. The canvas accepts any loopback studio, since the app's port
 changes, and holds nothing it was not given; the studio accepts only the
 origin it framed.
 

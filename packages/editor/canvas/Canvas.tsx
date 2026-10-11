@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { useTheme } from "next-themes";
 import { useQuery } from "@tanstack/react-query";
 import { FrameworkProvider } from "fumadocs-core/framework";
@@ -12,7 +12,14 @@ import { TitleBarControls, WindowTitleBar } from "@jotdown/core/components/Windo
 import { SHORTCUTS, pressed } from "@jotdown/core/components/shortcuts";
 import { DocCardList } from "@jotdown/core/components/blocks/DocCardList";
 import { compileInBrowser } from "@jotdown/core/lib/browser-page";
-import { CANVAS_PROTOCOL, fromStudio, isLoopback, type CanvasLoad, type FromCanvas } from "@jotdown/core/lib/canvas";
+import {
+  CANVAS_PROTOCOL,
+  colourMode,
+  fromStudio,
+  isLoopback,
+  type CanvasLoad,
+  type FromCanvas,
+} from "@jotdown/core/lib/canvas";
 import { deserializeTree } from "@jotdown/core/lib/serial-tree";
 import { sectionTabs } from "@jotdown/core/lib/sections";
 import { Article } from "@jotdown/editor/components/Article";
@@ -56,8 +63,9 @@ type Drawing = Omit<Props, "project" | "framework">;
  * makes back to that studio. A link inside it asks the studio for the page
  * rather than leaving, and the studio's own shortcuts are handed back to it.
  * Framed by the desktop app, it lays itself out as the app's window does, and
- * a press on its title bar moves the window. Opened on its own, outside the
- * studio, it says what it is.
+ * a press on its title bar moves the window. The colour mode is the studio's,
+ * and a mode picked on the canvas is handed up for the studio to keep. Opened
+ * on its own, outside the studio, it says what it is.
  *
  * @example <Canvas title={title} project={{ title: "Notes" }} site={site} layout="docs" blocks={{ Hero }} layouts={{}} framework="0.3.0" />
  */
@@ -65,7 +73,13 @@ export function Canvas({ project, framework, ...drawing }: Props) {
   const [studio, setStudio] = useState<string | null>(null);
   const [load, setLoad] = useState<CanvasLoad | null>(null);
   const [alone, setAlone] = useState(false);
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const studioMode = useRef<string | null>(null);
+
+  const followStudio = useEffectEvent((mode: string) => {
+    studioMode.current = mode;
+    setTheme(mode);
+  });
 
   useEffect(() => {
     if (window.parent === window) return setAlone(true);
@@ -84,16 +98,23 @@ export function Canvas({ project, framework, ...drawing }: Props) {
         setStudio(origin);
       }
       if (message.data.type === "load") setLoad(message.data);
-      if (message.data.type === "theme") setTheme(message.data.mode);
+      if (message.data.type === "theme") followStudio(message.data.mode);
       if (message.data.type === "window") document.documentElement.toggleAttribute("data-app", message.data.app);
     }
 
     window.addEventListener("message", listen);
     post(window.parent, "*", { type: "hello", protocol: CANVAS_PROTOCOL, framework, project });
     return () => window.removeEventListener("message", listen);
-  }, [framework, project, setTheme]);
+  }, [framework, project]);
 
   useStudioHandoffs(studio);
+
+  useEffect(() => {
+    const mode = colourMode.safeParse(theme);
+    if (!studio || !studioMode.current || !mode.success || mode.data === studioMode.current) return;
+    studioMode.current = mode.data;
+    post(window.parent, studio, { type: "theme", mode: mode.data });
+  }, [studio, theme]);
 
   if (alone) return <Alone title={project.title} />;
   if (!load) return null;

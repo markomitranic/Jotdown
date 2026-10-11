@@ -6,9 +6,9 @@ import { z } from "zod";
  * The canvas announces itself with `hello`. The studio answers with `load`,
  * the page to draw and everything around it, and the canvas sends every
  * request its editor makes as a `request`, which the studio answers from its
- * own editing endpoints as a `response`. Either side can `navigate`, the
- * studio sets the colour mode with `theme` and says with `window` whether it
- * is the desktop app, and the canvas hands back the studio's own shortcuts as
+ * own editing endpoints as a `response`. Either side can `navigate` and set
+ * the colour mode with `theme`, the studio says with `window` whether it is
+ * the desktop app, and the canvas hands back the studio's own shortcuts as
  * `shortcut` and a press on its title bar as `drag`, for the app to move the
  * window. A message one side does not know is ignored, so adding one is not a
  * new protocol.
@@ -79,14 +79,17 @@ const load = z.object({
 /** The studio's answer to one `request`, with the status and body its endpoint gave. */
 const response = z.object({ type: z.literal("response"), id: z.string(), status: z.number().int(), body: z.unknown() });
 
-/** The colour mode the studio is in. */
-const theme = z.object({ type: z.literal("theme"), mode: z.enum(["light", "dark"]) });
+/** A colour mode as the reader chooses it, with system following the machine. */
+export const colourMode = z.enum(["light", "system", "dark"]);
+
+/** The colour mode the reader chose, in the studio or on the canvas, which the other side follows. */
+const theme = z.object({ type: z.literal("theme"), mode: colourMode });
 
 /** Whether the studio is the desktop app, whose window has no title bar but the one the page draws. */
 const appWindow = z.object({ type: z.literal("window"), app: z.boolean() });
 
 /** Anything a canvas may send. */
-export const fromCanvas = z.discriminatedUnion("type", [hello, request, navigate, shortcut, drag]);
+export const fromCanvas = z.discriminatedUnion("type", [hello, request, navigate, theme, shortcut, drag]);
 
 /** Anything the studio may send. */
 export const fromStudio = z.discriminatedUnion("type", [load, response, navigate, theme, appWindow]);
