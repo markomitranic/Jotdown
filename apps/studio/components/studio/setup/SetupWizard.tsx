@@ -163,6 +163,7 @@ export function SetupWizard({ start = null, onClose, onOpenProject, api = setupA
             target={draft.target}
             inspection={inspection.data ?? null}
             publishing={draft.publishing}
+            moved={draft.moveOld ? draft.content : null}
             onOpenProject={() => onOpenProject(created.key, created.title, draft.target?.kind === "github")}
           />
         </WizardBody>

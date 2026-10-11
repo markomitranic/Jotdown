@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { http, HttpResponse } from "msw";
-import { expect, fn, userEvent, waitFor, within } from "storybook/test";
+import { expect, fn, spyOn, userEvent, waitFor, within } from "storybook/test";
 import preview from "@/.storybook/preview";
 import type { Inspection, SetupPlan, SetupTarget } from "@/lib/setup";
 import type { FolderListing } from "../folders";
@@ -54,7 +54,7 @@ const LISTING: FolderListing = {
   ],
 };
 
-type Answer = "found" | "unreachable" | "configured" | "failing";
+type Answer = "found" | "unreachable" | "configured" | "occupied" | "failing";
 
 /** The wizard's server, answering from memory a moment after it is asked. */
 function memoryApi(answer: Answer): SetupApi {
@@ -81,7 +81,8 @@ function memoryApi(answer: Answer): SetupApi {
   return {
     listRepositories: () => later(REPOSITORIES),
     inspect: (target) => later(inspected(target)),
-    inspectContent: () => later({ kind: "clear" }),
+    inspectContent: () =>
+      later(answer === "occupied" ? { kind: "occupied", entries: ["docs"], count: 1 } : { kind: "clear" }),
     plan: () => later(PLAN),
     create: async () => {
       await later(null);
@@ -125,6 +126,18 @@ export const NoAccess = meta.story({ args: { answer: "unreachable", start: FOUND
 /** The repository has docs already, so it offers to open them instead. */
 export const HasDocs = meta.story({ args: { answer: "configured", start: FOUND.target } });
 
+/** The repository root holds a `docs/` already, which has to move into `_old/` before Next is enabled. */
+export const DocsInTheWay = meta.story({
+  args: { answer: "occupied", start: FOUND.target },
+  play: async () => {
+    const page = within(document.body);
+    await page.findByText(/^Default branch main/);
+    await pressNext();
+    await userEvent.click(await page.findByRole("checkbox", { name: /Move it into/ }));
+    await waitFor(() => expect(page.getByRole("button", { name: "Next" })).toBeEnabled());
+  },
+});
+
 /** Presses Next once it is enabled, since a step disables it while its checks are in flight. */
 async function pressNext() {
   const next = await within(document.body).findByRole("button", { name: "Next" });
@@ -156,9 +169,9 @@ export const CreateFailed = meta.story({
   },
 });
 
-/** The end: what was written, and the next steps. */
-export const Done = meta.story({
-  render: () => (
+/** The wizard's last screen, after a create that wrote the plan's files. */
+function DoneWindow({ moved }: { moved: string | null }) {
+  return (
     <DialogPrimitive.Root open>
       <DialogPrimitive.Portal>
         <WizardFrame
@@ -177,11 +190,28 @@ export const Done = meta.story({
               target={FOUND.target}
               inspection={FOUND}
               publishing="vercel"
+              moved={moved}
               onOpenProject={fn()}
             />
           </WizardBody>
         </WizardFrame>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>
-  ),
+  );
+}
+
+/** The end: what was written, and the next steps. */
+export const Done = meta.story({ render: () => <DoneWindow moved={null} /> });
+
+/** The end, after old docs moved into `_old/`: a prompt to port them is one of the next steps. */
+export const DonePorting = meta.story({
+  render: () => <DoneWindow moved="" />,
+  beforeEach: () => {
+    spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+  },
+  play: async () => {
+    await userEvent.click(await within(document.body).findByRole("button", { name: /port _old\/ into your docs/ }));
+    await within(document.body).findByText(/^Copied/);
+    await expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining("into _old/. Port them"));
+  },
 });

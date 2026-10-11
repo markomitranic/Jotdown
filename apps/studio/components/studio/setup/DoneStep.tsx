@@ -1,9 +1,20 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ArrowRight, ArrowUpRight, Bot, CircleCheck, Globe, LayoutPanelLeft } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Bot,
+  Check,
+  CircleCheck,
+  Copy,
+  FolderInput,
+  Globe,
+  LayoutPanelLeft,
+} from "lucide-react";
 import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@jotdown/core/components/ui/item";
-import type { Inspection, SetupAnswers, SetupDone, SetupTarget } from "@/lib/setup";
+import { useCopyButton } from "@jotdown/core/lib/use-copy-button";
+import { OLD_FOLDER, type Inspection, type SetupAnswers, type SetupDone, type SetupTarget } from "@/lib/setup";
 import { QUESTION } from "./WizardFrame";
 import { PUBLISHING_GUIDES } from "./Steps";
 
@@ -12,6 +23,7 @@ type Props = {
   target: SetupTarget | null;
   inspection: Inspection | null;
   publishing: SetupAnswers["publishing"];
+  moved: string | null;
   onOpenProject: () => void;
 };
 
@@ -23,9 +35,11 @@ const HOSTS = { vercel: "Vercel", "github-pages": "GitHub Pages" };
 /**
  * The end of the wizard: what was written, and the next steps as links.
  *
- * @example <DoneStep done={done} target={target} inspection={inspection} publishing="vercel" onOpenProject={open} />
+ * `moved` is the content folder whose old files went into `_old/`, which offers a prompt to port them, or null.
+ *
+ * @example <DoneStep done={done} target={target} inspection={inspection} publishing="vercel" moved={null} onOpenProject={open} />
  */
-export function DoneStep({ done, target, inspection, publishing, onOpenProject }: Props) {
+export function DoneStep({ done, target, inspection, publishing, moved, onOpenProject }: Props) {
   const onGitHub = target?.kind === "github";
   const branch = inspection?.branch ?? "the default branch";
   const written = done.files.filter((file) => file.change !== "kept").length;
@@ -60,6 +74,7 @@ export function DoneStep({ done, target, inspection, publishing, onOpenProject }
             title="Open your docs project in the studio"
             detail="Read and edit every page where it stands"
           />
+          {moved !== null && <PortPrompt folder={moved} branch={onGitHub ? branch : null} />}
           <Next
             href={`${MANUAL}/studio/local-studio#ask-your-agent-for-a-first-page`}
             icon={<Bot />}
@@ -80,19 +95,74 @@ export function DoneStep({ done, target, inspection, publishing, onOpenProject }
   );
 }
 
-/** A next step: a guide opened in a new tab, or the project opened here. */
+/**
+ * The next step that copies a prompt for porting the old docs out of `_old/`, and says it worked.
+ *
+ * @example <PortPrompt folder="apps/web" branch="main" />
+ */
+function PortPrompt({ folder, branch }: { folder: string; branch: string | null }) {
+  const [copied, copy] = useCopyButton(() => navigator.clipboard.writeText(portPrompt(folder, branch)));
+
+  return (
+    <Next
+      onClick={copy}
+      icon={<FolderInput />}
+      title={`Ask your agent to port ${OLD_FOLDER}/ into your docs`}
+      detail={
+        copied ? "Copied. Paste it into Claude Code, Codex or Cursor" : "Copies a prompt that moves every old page"
+      }
+      trailing={copied ? <Check className="text-primary" /> : <Copy />}
+    />
+  );
+}
+
+/**
+ * A prompt that has an agent port the old docs out of `_old/` into the new docs, page for page.
+ *
+ * A branch means the setup committed on GitHub and the agent pulls it first; without one the
+ * setup's files are still uncommitted on disk, and are committed on their own first.
+ *
+ * @example portPrompt("", "main"); // "Read the authoring, blocks and editorial-illustration skills…"
+ */
+function portPrompt(folder: string, branch: string | null) {
+  const root = folder ? `${folder}/` : "";
+  const old = `${root}${OLD_FOLDER}/`;
+  const docs = `${root}docs/`;
+
+  return [
+    "Read the authoring, blocks and editorial-illustration skills in .agents/skills/ first.",
+    "",
+    `The Jotdown setup moved this repository's old docs into ${old}. Port them into the new docs in ${docs}, one step at a time:`,
+    "",
+    branch
+      ? `1. Check out ${branch} and pull, so the setup's commit and the skills are on your disk.`
+      : "1. Commit the files the setup wrote, on their own, so the port is a change of its own.",
+    `2. Inspect ${old}: every file, how it is organised, how the pages link to each other, and the images and attachments they use.`,
+    `3. Plan the new structure per the authoring skill: the roots, the sidebar sections in each, and the folder every page lands in. Show me the plan as a tree that maps each old file to its new path, and wait for my approval.`,
+    `4. Once I approve, move every file with git mv and convert it into the new format: front matter, MDX syntax, links between pages and image paths. Do not change what the pages say: no rewording, summarising, merging or dropping content. Run \`jotdown check\` and fix every error it reports.`,
+    "5. Pick the one page readers will land on most, and have a subagent paint its editorial illustration per the editorial-illustration skill.",
+    branch
+      ? `6. Commit, and push to ${branch}. If you cannot push to it, open a pull request instead.`
+      : "6. Commit, then push or open a pull request, whichever this repository expects.",
+    "7. Suggest 5 or 6 more pages that would gain the most from an editorial illustration, one line each on why, and ask me which ones to paint.",
+  ].join("\n");
+}
+
+/** A next step: a guide opened in a new tab, or an action taken here. */
 function Next({
   href,
   onClick,
   icon,
   title,
   detail,
+  trailing,
 }: {
   href?: string;
   onClick?: () => void;
   icon: ReactNode;
   title: string;
   detail: string;
+  trailing?: ReactNode;
 }) {
   const row = (
     <>
@@ -103,11 +173,9 @@ function Next({
         <ItemTitle>{title}</ItemTitle>
         <ItemDescription className="line-clamp-1 text-xs">{detail}</ItemDescription>
       </ItemContent>
-      {href ? (
-        <ArrowUpRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-      ) : (
-        <ArrowRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-      )}
+      <span aria-hidden="true" className="shrink-0 text-muted-foreground [&_svg]:size-4">
+        {trailing ?? (href ? <ArrowUpRight /> : <ArrowRight />)}
+      </span>
     </>
   );
 
