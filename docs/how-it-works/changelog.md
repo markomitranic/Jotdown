@@ -53,6 +53,12 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.3.3](https://github.com/markomitranic/Jotdown/compare/v0.3.2...v0.3.3) (2026-10-11)
+
+### Bug Fixes
+
+* **studio:** keep a colour mode picked on the canvas, without redrawing the page ([38fafe1](https://github.com/markomitranic/Jotdown/commit/38fafe143c4e8aa6127638d906b16399ce244023))
+
 ## [0.3.2](https://github.com/markomitranic/Jotdown/compare/v0.3.1...v0.3.2) (2026-10-11)
 
 ### Features
