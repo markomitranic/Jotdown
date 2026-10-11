@@ -53,6 +53,19 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.3.4](https://github.com/markomitranic/Jotdown/compare/v0.3.3...v0.3.4) (2026-10-11)
+
+### Features
+
+* keep editorial illustrations as SVG uploads, not inline in the page ([2e0d056](https://github.com/markomitranic/Jotdown/commit/2e0d056e53abd896cd5047ad1b0ba4cb09257450))
+* **studio:** offer a prompt that ports _old/ into the new docs when setup ends ([f104065](https://github.com/markomitranic/Jotdown/commit/f104065af9228a940747a5fbdd7d34fccfe8aa25))
+
+### Bug Fixes
+
+* **canvas:** keep the logo in place and show a clicked page on its way ([d6aa3b8](https://github.com/markomitranic/Jotdown/commit/d6aa3b83211cb3d146d52c1c0c7e33dc2a264049))
+* **studio:** ask to move old docs into _old/ with a checkbox, not a toggle button ([e28c1de](https://github.com/markomitranic/Jotdown/commit/e28c1de1aa1cda3a24dd02e8323fc1092bd4ae7c))
+* **studio:** name the renderers Publication, Custom address and Skinny, with descriptions that fit ([2f57745](https://github.com/markomitranic/Jotdown/commit/2f57745aa431864b3472f71de44eb315031564a5))
+
 ## [0.3.3](https://github.com/markomitranic/Jotdown/compare/v0.3.2...v0.3.3) (2026-10-11)
 
 ### Bug Fixes
