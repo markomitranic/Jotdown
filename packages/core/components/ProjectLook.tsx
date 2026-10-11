@@ -42,33 +42,47 @@ export function projectLogo(project: Project) {
 }
 
 /**
- * What the top of the sidebar says: the logo in both colour modes beside the title, or the title alone.
+ * The project's square icon as the project serves it: its favicon, else its logo, or undefined when it has neither.
+ *
+ * @example projectIcon(project); // { alt: "Handbook", src: "/you/notes/uploads/icon.png", srcDark: undefined }
+ */
+export function projectIcon(project: Project) {
+  const { favicon, title } = project.config;
+  if (!favicon) return projectLogo(project);
+  return { alt: title, src: atBase(project, favicon, "file"), srcDark: undefined };
+}
+
+/**
+ * What the top of the sidebar says: the project's icon in a fixed square beside the title, or the title alone.
+ *
+ * The square holds whatever it is given, so a wide logo standing in for an
+ * icon shrinks to fit rather than pushing the title aside.
  *
  * @example <ProjectTitle project={project} />
  */
 export function ProjectTitle({ project }: { project: Project }) {
   const { title } = project.config;
-  const logo = projectLogo(project);
+  const icon = projectIcon(project);
 
-  if (!logo) return <span className="font-semibold">{title}</span>;
+  if (!icon) return <span className="font-semibold">{title}</span>;
 
   return (
     <>
       <Image
-        src={logo.src}
-        alt={logo.alt}
-        width={192}
+        src={icon.src}
+        alt={icon.alt}
+        width={48}
         height={48}
-        unoptimized={!optimizable(logo.src)}
-        className="h-6 w-auto shrink-0 dark:hidden"
+        unoptimized={!optimizable(icon.src)}
+        className="size-6 shrink-0 object-contain dark:hidden"
       />
       <Image
-        src={logo.srcDark ?? logo.src}
-        alt={logo.alt}
-        width={192}
+        src={icon.srcDark ?? icon.src}
+        alt={icon.alt}
+        width={48}
         height={48}
-        unoptimized={!optimizable(logo.srcDark ?? logo.src)}
-        className="hidden h-6 w-auto dark:block"
+        unoptimized={!optimizable(icon.srcDark ?? icon.src)}
+        className="hidden size-6 shrink-0 object-contain dark:block"
       />
       <span className="truncate font-semibold max-md:hidden">{title}</span>
     </>

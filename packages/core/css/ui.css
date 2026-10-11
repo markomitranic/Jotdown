@@ -68,6 +68,8 @@
   --animate-dialog-in: dialog-in 300ms cubic-bezier(0.16, 1, 0.3, 1);
   --animate-dialog-out: dialog-out 300ms cubic-bezier(0.16, 1, 0.3, 1);
   --animate-popover-in: popover-in 100ms ease;
+  --animate-panel-in: panel-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-bar-in: bar-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
   --animate-popover-out: popover-out 100ms ease;
   --animate-sidebar-in: sidebar-in 250ms ease;
   --animate-sidebar-out: sidebar-out 250ms ease;
@@ -105,6 +107,20 @@
     to {
       transform: scale(1.04);
       opacity: 0;
+    }
+  }
+
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: scale(0.985);
+    }
+  }
+
+  @keyframes bar-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem);
     }
   }
 

@@ -63,6 +63,13 @@ export type ProjectStorage = {
 
   listPageHistory: (path: string, page: number, head?: string) => Promise<Result<PageHistoryResponse>>;
   readRevision: (path: string, sha: string) => Promise<Result<PageRevisionResponse>>;
+
+  /** `.jotdown/config.json` as it is now, read from the repository root rather than the content folder. */
+  readConfig: () => Promise<Result<SourceResponse>>;
+  /** Writes the config back, unless it changed since `save.sha` was read. */
+  saveConfig: (save: Omit<SaveRequest, "path">) => Promise<Result<SaveResponse>>;
+  listConfigHistory: (page: number, head?: string) => Promise<Result<PageHistoryResponse>>;
+  readConfigRevision: (sha: string) => Promise<Result<PageRevisionResponse>>;
 };
 
 /** A project the studio opened, with the version it was read at and where its files can be seen online. */

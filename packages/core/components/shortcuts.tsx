@@ -18,6 +18,7 @@ export const SHORTCUTS = {
   switcher: [{ code: "Digit2" }, { code: "KeyP", shift: true }],
   drawer: [{ code: "Digit3" }],
   search: [{ code: "KeyK" }, { code: "KeyF", shift: true }],
+  settings: [{ code: "Comma" }],
 } satisfies Record<string, Chord[]>;
 
 /**

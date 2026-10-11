@@ -11,8 +11,21 @@ import { join, resolve } from "node:path";
  * @example originOwner("/Users/ada/Sites/web"); // "you"
  */
 export function originOwner(folder: string) {
-  const url = /\[remote "origin"\][^[]*?\burl\s*=\s*(\S+)/.exec(readGitConfig(folder) ?? "")?.[1] ?? "";
-  return /github\.com[:/]([A-Za-z0-9][A-Za-z0-9-]*)\//.exec(url)?.[1] ?? null;
+  return /github\.com[:/]([A-Za-z0-9][A-Za-z0-9-]*)\//.exec(originUrl(folder))?.[1] ?? null;
+}
+
+/**
+ * The GitHub repository a folder's git `origin` points at, as `owner/repo`, or null when it is not on GitHub.
+ *
+ * @example originRepository("/Users/ada/Sites/web"); // "you/web"
+ */
+export function originRepository(folder: string) {
+  const found = /github\.com[:/]([A-Za-z0-9][A-Za-z0-9-]*)\/([A-Za-z0-9._-]+?)(?:\.git)?\/?$/.exec(originUrl(folder));
+  return found ? `${found[1]}/${found[2]}` : null;
+}
+
+function originUrl(folder: string) {
+  return /\[remote "origin"\][^[]*?\burl\s*=\s*(\S+)/.exec(readGitConfig(folder) ?? "")?.[1] ?? "";
 }
 
 function readGitConfig(folder: string) {

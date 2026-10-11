@@ -76,7 +76,7 @@ const MAX_BYTES = UPLOAD_LIMITS.max;
  *
  * @example arrivedShort(request, bytes); // true for 10 MB of a 12 MB upload
  */
-function arrivedShort(request: Request, bytes: Uint8Array) {
+export function arrivedShort(request: Request, bytes: Uint8Array) {
   const declared = Number(request.headers.get("content-length"));
   return declared > 0 && bytes.byteLength < declared;
 }

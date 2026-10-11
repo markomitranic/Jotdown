@@ -12,13 +12,23 @@ import { hasUnsavedChanges } from "@jotdown/editor/client/useLeaveGuard";
 import { OpeningProject } from "./OpeningProject";
 import { ProjectPalette } from "./ProjectPalette";
 import { SetupDialog } from "./setup/SetupDialog";
+import { SettingsDraft } from "./settings/draft";
+import { LiveTheme } from "./settings/LiveTheme";
+import type { Theme } from "@jotdown/core/lib/theme";
+import { SettingsPanel } from "./settings/SettingsPanel";
+import { toggleSettings } from "./settings/store";
 import { useBookmarks, useOpenProject } from "./projects";
 import { useStudioPulse } from "./pulse";
 
 type Workspace = {
   editor: { login: string; name: string };
-  project: { id: string; key: string; title: string };
-  logo?: { alt: string; src: string; srcDark?: string };
+  project: { id: string; key: string; title: string; base: string };
+  /** The theme the page was drawn with, which a settings draft is tried on against. */
+  theme?: Theme;
+  /** The top-level folders of the project's pages, which the theme can give accents. */
+  folders?: string[];
+  /** The project's square icon, its favicon or else its logo. */
+  icon?: { alt: string; src: string; srcDark?: string };
   /** How the project is drawn, and the addresses the renderer menu offers. */
   drawing?: {
     mode: "site" | "custom" | "dev" | "skinny";
@@ -36,7 +46,7 @@ type WorkspaceState = Workspace & {
 const WorkspaceContext = createContext<WorkspaceState | null>(null);
 
 /**
- * The studio's workspace: the project switcher, the setup wizard, the opening screen, and the signed-in editor and open project.
+ * The studio's workspace: the project switcher, the settings, the setup wizard, the opening screen, and the signed-in editor and open project.
  *
  * The switcher lives here once, rather than in each place that draws the
  * project's name, so its shortcut opens one palette and the projects are asked
@@ -50,6 +60,7 @@ export function WorkspaceProvider({ workspace, children }: { workspace: Workspac
   const { opening, open, dismiss } = useOpenProject();
   const [switching, setSwitching] = useState(false);
   useShortcut(SHORTCUTS.switcher, () => setSwitching((shown) => !shown));
+  useShortcut(SHORTCUTS.settings, toggleSettings);
 
   function start(key: string, title: string | null, bookmark: boolean) {
     setSwitching(false);
@@ -58,7 +69,11 @@ export function WorkspaceProvider({ workspace, children }: { workspace: Workspac
 
   return (
     <WorkspaceContext value={{ ...workspace, switch: () => setSwitching(true), switching }}>
-      {children}
+      <SettingsDraft key={workspace.project.id} projectId={workspace.project.id} base={workspace.project.base}>
+        {children}
+        {(workspace.drawing?.mode ?? "skinny") === "skinny" && <LiveTheme pageTheme={workspace.theme} />}
+        <SettingsPanel folders={workspace.folders ?? []} />
+      </SettingsDraft>
       <BranchWatch />
       <ProjectPalette
         open={switching}
@@ -94,7 +109,7 @@ export function useWorkspace() {
 export function WorkspaceMenu() {
   const workspace = useWorkspace();
   if (!workspace) return null;
-  const { project, logo } = workspace;
+  const { project, icon } = workspace;
 
   return (
     <Tooltip>
@@ -106,8 +121,8 @@ export function WorkspaceMenu() {
           onClick={workspace.switch}
           className="-ms-1.5 me-1 flex min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 py-1 text-start outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring aria-expanded:bg-accent"
         >
-          {logo ? <ProjectLogo logo={logo} /> : <ProjectMark title={project.title} current />}
-          <span className={cn("truncate font-medium text-[0.9375rem]", logo && "max-md:hidden")}>{project.title}</span>
+          {icon ? <ProjectIcon icon={icon} /> : <ProjectMark title={project.title} current />}
+          <span className={cn("truncate font-medium text-[0.9375rem]", icon && "max-md:hidden")}>{project.title}</span>
           <ChevronsUpDown className="ms-auto size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
         </button>
       </TooltipTrigger>
@@ -133,25 +148,25 @@ function ProjectMark({ title, current }: { title: string; current: boolean }) {
   );
 }
 
-/** The project's own logo, in the colour mode's variant when it names one. */
-function ProjectLogo({ logo }: { logo: NonNullable<Workspace["logo"]> }) {
+/** The project's icon fitted into a square, in the colour mode's variant when it names one. */
+function ProjectIcon({ icon }: { icon: NonNullable<Workspace["icon"]> }) {
   return (
     <>
       <Image
-        src={logo.src}
-        alt={logo.alt}
-        width={160}
+        src={icon.src}
+        alt={icon.alt}
+        width={40}
         height={40}
-        unoptimized={!optimizable(logo.src)}
-        className="h-5 w-auto shrink-0 dark:hidden"
+        unoptimized={!optimizable(icon.src)}
+        className="size-5 shrink-0 object-contain dark:hidden"
       />
       <Image
-        src={logo.srcDark ?? logo.src}
-        alt={logo.alt}
-        width={160}
+        src={icon.srcDark ?? icon.src}
+        alt={icon.alt}
+        width={40}
         height={40}
-        unoptimized={!optimizable(logo.srcDark ?? logo.src)}
-        className="hidden h-5 w-auto shrink-0 dark:block"
+        unoptimized={!optimizable(icon.srcDark ?? icon.src)}
+        className="hidden size-5 shrink-0 object-contain dark:block"
       />
     </>
   );

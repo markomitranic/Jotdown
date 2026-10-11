@@ -25,7 +25,7 @@ function Strip({ projectKey, title }: { projectKey: string; title: string }) {
       <WorkspaceProvider
         workspace={{
           editor: EDITOR,
-          project: { id: "p1", key: projectKey, title },
+          project: { id: "p1", key: projectKey, title, base: `/${projectKey}` },
           drawing: { mode: "skinny", siteUrl: null, customUrl: null, folder: projectKey.startsWith("local/") },
         }}
       >

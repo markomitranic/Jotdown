@@ -17,7 +17,7 @@ import { CanvasWorkspace } from "@/components/studio/canvas/CanvasWorkspace";
 import { drawingOf, type Drawing } from "@/server/canvas/renderer";
 import { liveEditConfig } from "@/lib/live-edit/config";
 import { sectionTabs } from "@jotdown/core/lib/sections";
-import { ProjectStyles, ProjectTitle, projectLogo } from "@jotdown/core/components/ProjectLook";
+import { ProjectStyles, ProjectTitle, projectIcon } from "@jotdown/core/components/ProjectLook";
 import { getSource, requireSource } from "@/lib/source";
 import { currentProject, currentProjectKey, rememberedLook } from "@/server/projects/context";
 import { localSession } from "@/server/auth/session";
@@ -138,8 +138,10 @@ async function ProjectShell({ project, drawing, tree, sections, children }: Shel
       <WorkspaceProvider
         workspace={{
           editor: session.editor,
-          project: { id: project.id, key: project.key, title: project.config.title },
-          logo: projectLogo(project),
+          project: { id: project.id, key: project.key, title: project.config.title, base: project.base },
+          icon: projectIcon(project),
+          theme: project.config.theme,
+          folders: topFolders(await requireSource()),
           drawing: drawing ? drawingFor(drawing) : undefined,
         }}
       >
@@ -168,8 +170,8 @@ async function CanvasProject({ project, drawing }: { project: StudioProject; dra
     <WorkspaceProvider
       workspace={{
         editor: session.editor,
-        project: { id: project.id, key: project.key, title: project.config.title },
-        logo: projectLogo(project),
+        project: { id: project.id, key: project.key, title: project.config.title, base: project.base },
+        icon: projectIcon(project),
         drawing: drawingFor(drawing),
       }}
     >
@@ -184,6 +186,19 @@ async function CanvasProject({ project, drawing }: { project: StudioProject; dra
       />
     </WorkspaceProvider>
   );
+}
+
+/**
+ * The folders at the top of the project's pages, the sections a theme can give an accent.
+ *
+ * @example topFolders(source); // ["decision-records", "examples", "how-it-works"]
+ */
+function topFolders(source: Awaited<ReturnType<typeof requireSource>>) {
+  const folders = source.getPages().flatMap((page) => {
+    const [first, ...rest] = page.path.split("/");
+    return first && rest.length > 0 && !first.startsWith("_") ? [first] : [];
+  });
+  return [...new Set(folders)].sort();
 }
 
 /** What the renderer menu needs to know about how a project is drawn. */

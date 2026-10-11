@@ -73,4 +73,9 @@ export const storage: Storage = {
 
   listPageHistory: (path, page, head) => editingStorage().listPageHistory(path, page, head),
   readRevision: (path, sha) => editingStorage().readRevision(path, sha),
+
+  readConfig: () => editingStorage().readConfig(),
+  saveConfig: (save) => editingStorage().saveConfig(save),
+  listConfigHistory: (page, head) => editingStorage().listConfigHistory(page, head),
+  readConfigRevision: (sha) => editingStorage().readConfigRevision(sha),
 };

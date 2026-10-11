@@ -5,7 +5,9 @@ import { CONTENT_PATH, META_PATH, type Failure, type Result } from "../../live-e
 import { DOCS_ROOT, finalHome, MOVED_FILE, repoPath, type Move } from "@jotdown/core/lib/paths";
 import type { Addition, AssetUpload, CommitOutcome, Docs, TreeCommit } from "../types";
 import { editingContext } from "./context";
+import { forgetProject } from "./projects";
 import { fetchRemembered } from "./remembered";
+import { CONFIG_FILE } from "@jotdown/core/lib/config";
 import type {
   AssetResponse,
   PageHistoryResponse,
@@ -922,4 +924,47 @@ export async function readRevision(path: string, sha: string): Promise<Result<Pa
   }
   const decoded = revisionText(Buffer.from(file.content, "base64"));
   return decoded.ok ? { ok: true, value: { path, sha, text: decoded.value } } : decoded;
+}
+
+/**
+ * Runs a read or a commit against the repository root rather than the content folder.
+ *
+ * Every path in this module counts from the folder holding `docs/`. The config
+ * is the one file that sits at the root whatever `content` says, so its calls
+ * run with the subfolder taken away.
+ *
+ * @example await atRepositoryRoot(() => readSource(CONFIG_FILE)); // ".jotdown/config.json", not "apps/docs/.jotdown/config.json"
+ */
+function atRepositoryRoot<T>(run: () => Promise<T>) {
+  const scoped = editingContext.getStore();
+  if (!scoped) return run();
+  return editingContext.run({ ...scoped, remote: { ...scoped.remote, subfolder: "" } }, run);
+}
+
+/** The project's `.jotdown/config.json` at branch HEAD, with the blob sha a save has to match. */
+export function readConfigFile() {
+  return atRepositoryRoot(() => readSource(CONFIG_FILE));
+}
+
+/**
+ * Commits the config, re-reading the head when the branch moved and refusing a config changed since it was read.
+ *
+ * The project's remembered content folder, uploads folder and branch are read
+ * off the config, so they are forgotten once it is saved.
+ */
+export async function saveConfigFile(save: Omit<SaveRequest, "path">) {
+  const saved = await atRepositoryRoot(() => commitFile({ ...save, path: CONFIG_FILE }));
+  const scoped = editingContext.getStore();
+  if (saved.ok && scoped) forgetProject(scoped.remote);
+  return saved;
+}
+
+/** The config's commits, newest first, pinned to the head the first page was read at. */
+export function listConfigHistory(page: number, head?: string) {
+  return atRepositoryRoot(() => listPageHistory(CONFIG_FILE, page, head));
+}
+
+/** The config as it was at one commit, or null text when it did not exist then. */
+export function readConfigRevision(sha: string) {
+  return atRepositoryRoot(() => readRevision(CONFIG_FILE, sha));
 }
