@@ -5,18 +5,18 @@ These are the files a content repository copies to publish itself, laid out from
 Your repository holds `docs/` with its uploads in `docs/_uploads/`, and `.jotdown/config.json`. The config's `jotdown` names the tag or branch to build with, `main` when unset; a release's own tag freezes on it. Its `url` is where the site is hosted, and a site below a domain's root is built under that path:
 
 ```json
-{ "jotdown": "v0.2.0", "title": "Notes", "url": "https://you.github.io/notes" }
+{ "jotdown": "v0.3.1", "title": "Notes", "url": "https://you.github.io/notes" }
 ```
 
-`JOTDOWN_TOKEN` is the only secret a build needs. While the Jotdown repository is private, each content repository makes its own fine-grained GitHub token for `markomitranic/Jotdown` alone, with Contents read-only, and gives it to its host under that name.
+A build needs no secrets: Jotdown's repository is public.
 
 ## GitHub Pages
 
-Copy `github-pages/.github/workflows/jotdown.yml` and `github-pages/.jotdown/.gitignore` into the same places. Set Pages to "GitHub Actions" in the repository's settings and add the `JOTDOWN_TOKEN` secret. Every push to `main` publishes.
+Copy `github-pages/.github/workflows/jotdown.yml` and `github-pages/.jotdown/.gitignore` into the same places. Set Pages to "GitHub Actions" in the repository's settings. Every push to `main` publishes.
 
 ## Vercel
 
-Copy `vercel/.jotdown/vercel.json` and `vercel/.jotdown/.gitignore` into `.jotdown/`, and give the docs a Vercel project of their own with `.jotdown` as its Root Directory and `JOTDOWN_TOKEN`. Leave "Include files outside the root directory" on, since the pages are outside it. Keep everything past the clone in `build.sh`, so a fix never has to be copied into content repositories, and keep each command under Vercel's 256 characters.
+Copy `vercel/.jotdown/vercel.json` and `vercel/.jotdown/.gitignore` into `.jotdown/`, and give the docs a Vercel project of their own with `.jotdown` as its Root Directory. Leave "Include files outside the root directory" on, since the pages are outside it. Keep everything past the clone in `build.sh`, so a fix never has to be copied into content repositories, and keep each command under Vercel's 256 characters.
 
 ## Any other host
 

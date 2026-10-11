@@ -365,7 +365,7 @@ tag or branch `jotdown` names, `main` when unset:
 
 ```json title=".jotdown/config.json"
 {
-  "jotdown": "v0.2.0",
+  "jotdown": "v0.3.1",
   "title": "Notes",
   "url": "https://you.github.io/notes"
 }
@@ -373,24 +373,6 @@ tag or branch `jotdown` names, `main` when unset:
 
 A release's own tag freezes the site on it until you bump it by hand, and
 `main` takes unreleased work on the next deploy.
-
-</Step>
-<Step>
-
-### Give the build a token for Jotdown
-
-While `markomitranic/Jotdown` is private, the clone needs `JOTDOWN_TOKEN`, a
-fine-grained GitHub token, one per content repository so each can be revoked
-on its own. Create it at
-[github.com/settings/personal-access-tokens/new](https://github.com/settings/personal-access-tokens/new):
-
-- **Resource owner**: `markomitranic`.
-- **Repository access**: Only select repositories, `markomitranic/Jotdown`.
-- **Permissions**: Contents, Read-only.
-
-The build script takes the token back out of the clone before anything else
-runs. When it expires, the next build fails at the clone: make a new one and
-replace the secret.
 
 </Step>
 <Step>

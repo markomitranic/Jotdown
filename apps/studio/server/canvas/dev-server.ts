@@ -5,7 +5,8 @@ import { join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { CANVAS_PATH } from "@jotdown/core/lib/canvas";
 import { readProjectConfig } from "@jotdown/core/server/config";
-import { githubToken } from "@/server/auth/token";
+
+const JOTDOWN_REPOSITORY = "https://github.com/markomitranic/Jotdown.git";
 
 /**
  * The dev servers of folder projects, started by the studio so a folder can be edited in its own site's look.
@@ -41,7 +42,7 @@ const run = promisify(execFile);
 /**
  * The folder's dev server as it stands, started on the first ask, and once more after a failure when asked to retry.
  *
- * @example devServer("/Users/ada/Sites/notes"); // { state: "starting", log: ["Cloning Jotdown v0.2.0…"] }
+ * @example devServer("/Users/ada/Sites/notes"); // { state: "starting", log: ["Cloning Jotdown v0.3.1…"] }
  */
 export function devServer(folder: string, retry = false): DevServerState {
   const known = servers.get(folder);
@@ -104,9 +105,7 @@ async function start(folder: string, server: Server) {
 /**
  * The checkout of Jotdown a folder's site runs from: this one when the studio runs from a checkout, else a clone in the folder.
  *
- * A clone is made once, at the version the project's config pins, with the
- * GitHub token while the repository is private, and its remote reset after so
- * the token is not left in it.
+ * A clone is made once, at the version the project's config pins.
  */
 async function frameworkFor(folder: string, path: string, note: (line: string) => void) {
   const checkout = resolve(/* turbopackIgnore: true */ process.cwd(), "../..");
@@ -116,14 +115,8 @@ async function frameworkFor(folder: string, path: string, note: (line: string) =
   const framework = join(folder, ".jotdown/framework");
   if (!existsSync(framework)) {
     const ref = readProjectConfig(folder).jotdown ?? "main";
-    const token = await githubToken();
-    const address = `https://${token ? `x-access-token:${token}@` : ""}github.com/markomitranic/Jotdown.git`;
     note(`Cloning Jotdown ${ref} into .jotdown/framework.`);
-    await run("git", ["clone", "--quiet", "--depth", "1", "--branch", ref, address, framework], {
-      env: { ...process.env, PATH: path },
-    });
-    await run("git", ["remote", "set-url", "origin", "https://github.com/markomitranic/Jotdown.git"], {
-      cwd: framework,
+    await run("git", ["clone", "--quiet", "--depth", "1", "--branch", ref, JOTDOWN_REPOSITORY, framework], {
       env: { ...process.env, PATH: path },
     });
   }

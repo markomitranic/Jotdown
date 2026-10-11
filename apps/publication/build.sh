@@ -13,11 +13,6 @@
 # The content repository is the one whose .jotdown/ holds the checkout, or the
 # one JOTDOWN_PROJECT names, or the checkout itself when it is Jotdown's own
 # repository. A link to a page or upload that is not there stops the build.
-#
-# In a clone in `.jotdown/framework`, the first thing it does is reset the
-# remote to Jotdown's public address. A private clone carries JOTDOWN_TOKEN in
-# that URL, and resetting it keeps the token out of its `.git/config`. A
-# checkout anywhere else keeps the remote it has.
 set -euo pipefail
 
 framework=$(cd "$(dirname "$0")/../.." && pwd)
@@ -30,9 +25,6 @@ export JOTDOWN_PROJECT=$content
 export NEXT_TELEMETRY_DISABLED=1
 
 cd "$framework"
-if [[ "$(basename "$(dirname "$framework")")" == ".jotdown" ]]; then
-  git remote set-url origin https://github.com/markomitranic/Jotdown.git 2>/dev/null || true
-fi
 printf 'Jotdown commit: %s\n' "$(git rev-parse HEAD 2>/dev/null || echo unknown)"
 printf 'Bun: %s\n' "$(bun --version)"
 

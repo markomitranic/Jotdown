@@ -302,8 +302,7 @@ description: Two files in .jotdown, a Vercel project rooted there, and one token
 </figure>
 
 Vercel is the happy path. Copy two files into `.jotdown/`, give the docs a
-Vercel project whose root directory is `.jotdown`, add `JOTDOWN_TOKEN`, and
-push. From then on every push to the branch deploys, and so does every studio
+Vercel project whose root directory is `.jotdown`, and push. From then on every push to the branch deploys, and so does every studio
 save to a GitHub project. This page assumes the steps in
 [Publishing it as a site](./publishing.mdx) up to the host.
 
@@ -317,7 +316,7 @@ From Jotdown's [`deployment/vercel`](https://github.com/markomitranic/Jotdown/tr
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "bunVersion": "1.4.x",
-  "installCommand": "rm -rf framework && git clone --quiet --depth 1 --branch \"$(bun --print \"require('./config.json').jotdown || 'main'\")\" \"https://${JOTDOWN_TOKEN:+x-access-token:$JOTDOWN_TOKEN@}github.com/markomitranic/Jotdown.git\" framework",
+  "installCommand": "rm -rf framework && git clone --quiet --depth 1 --branch \"$(bun --print \"require('./config.json').jotdown || 'main'\")\" https://github.com/markomitranic/Jotdown.git framework",
   "buildCommand": "bash framework/apps/publication/build.sh",
   "outputDirectory": "out",
   "cleanUrls": true
@@ -340,18 +339,6 @@ this file. The setup wizard writes both files when you pick Vercel as the host.
 New project on Vercel, the content repository, and set **Root Directory** to
 `.jotdown`. The framework preset can stay as it is, since `vercel.json` wins
 over the dashboard.
-
-</Step>
-<Step>
-
-### Add the environment variables
-
-| Variable | Environments | Value |
-| --- | --- | --- |
-| `JOTDOWN_TOKEN` | Production, Preview | The token from [Publishing it as a site](./publishing.mdx#give-the-build-a-token-for-jotdown). |
-
-Every variable a publication reads is in
-[Environment variables](../how-it-works/environment-variables.mdx).
 
 </Step>
 <Step>

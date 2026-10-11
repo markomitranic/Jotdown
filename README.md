@@ -50,7 +50,7 @@ The code is three workspaces: `packages/core` renders a project, `apps/studio` i
 
 ## Publish a site
 
-A site is the project built into static files. Name the Jotdown version in `.jotdown/config.json`, `"jotdown": "v0.2.0"` or `main` when unset, and the host clones Jotdown at that ref and builds the site into `.jotdown/out`:
+A site is the project built into static files. Name the Jotdown version in `.jotdown/config.json`, `"jotdown": "v0.3.1"` or `main` when unset, and the host clones Jotdown at that ref and builds the site into `.jotdown/out`:
 
 ```sh
 git clone --depth 1 --branch main https://github.com/markomitranic/Jotdown.git .jotdown/framework

@@ -74,7 +74,7 @@ GitHub nothing, and it is still a Next.js server, so a route handler or a
 `proxy.ts` can be added to it the day a feature needs one.
 
 **A content repository names its Jotdown version in its config.**
-`"jotdown": "v0.2.0"`, `main` when unset. The host clones Jotdown at that ref
+`"jotdown": "v0.3.1"`, `main` when unset. The host clones Jotdown at that ref
 beside the content and runs its `apps/publication/build.sh`. The content
 repository gets no `package.json`, no lockfile and no framework image to pull.
 Being able to read Jotdown's repository is what lets a host build a site.
@@ -97,8 +97,6 @@ publication's app only appears halfway through the build.
 - A publication has no search yet. The studio's search is served by the
   studio; a publication gets it when its app serves the same index. *Since
   amended:* a site now serves its own.
-- While Jotdown's repository is private, every host needs `JOTDOWN_TOKEN`.
-  Making the repository public removes it.
 - A publication left on `main` picks up every Jotdown change on its next
   build, good or bad. Pinning a tag is one line in its config.
 - On Vercel the build leans on `@next-community/adapter-vercel`, still a beta,

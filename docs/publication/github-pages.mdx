@@ -453,7 +453,7 @@ description: One workflow file, Pages turned on, and one token. Every push to ma
 
 GitHub Pages serves a static site straight from the repository it belongs to,
 so the docs, the build and the address all live in one place. Add one workflow
-file, turn Pages on, add `JOTDOWN_TOKEN`, and push. From then on every push to
+file, turn Pages on, and push. From then on every push to
 `main` publishes, and so does every studio save to the project. This page
 assumes the steps in [Publishing it as a site](./publishing.mdx) up to the host.
 
@@ -488,15 +488,6 @@ it. With a custom domain, `url` is the domain and the path is empty.
 
 In the repository's **Settings**, then **Pages**, set **Source** to
 **GitHub Actions**.
-
-</Step>
-<Step>
-
-### Add the token
-
-In **Settings**, then **Secrets and variables**, then **Actions**, add a
-repository secret named `JOTDOWN_TOKEN` holding the token from
-[Publishing it as a site](./publishing.mdx#give-the-build-a-token-for-jotdown).
 
 </Step>
 <Step>

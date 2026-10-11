@@ -1,7 +1,6 @@
 # Builds the docs into a static site with Jotdown and publishes it on GitHub Pages, on every push to main.
 #
-# In the repository's settings, set Pages to "GitHub Actions". While Jotdown's
-# repository is private, add a JOTDOWN_TOKEN secret that can read it.
+# In the repository's settings, set Pages to "GitHub Actions".
 name: Docs
 
 on:
@@ -27,11 +26,9 @@ jobs:
         with:
           bun-version: 1.4.2
       - name: Clone Jotdown at the version the config names
-        env:
-          JOTDOWN_TOKEN: ${{ secrets.JOTDOWN_TOKEN }}
         run: |
           ref="$(bun --print "require('./.jotdown/config.json').jotdown || 'main'")"
-          git clone --quiet --depth 1 --branch "$ref" "https://${JOTDOWN_TOKEN:+x-access-token:$JOTDOWN_TOKEN@}github.com/markomitranic/Jotdown.git" .jotdown/framework
+          git clone --quiet --depth 1 --branch "$ref" https://github.com/markomitranic/Jotdown.git .jotdown/framework
       - run: bash .jotdown/framework/apps/publication/build.sh
       - uses: actions/upload-pages-artifact@v4
         with:

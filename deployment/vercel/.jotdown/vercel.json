@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "bunVersion": "1.4.x",
-  "installCommand": "rm -rf framework && git clone --quiet --depth 1 --branch \"$(bun --print \"require('./config.json').jotdown || 'main'\")\" \"https://${JOTDOWN_TOKEN:+x-access-token:$JOTDOWN_TOKEN@}github.com/markomitranic/Jotdown.git\" framework",
+  "installCommand": "rm -rf framework && git clone --quiet --depth 1 --branch \"$(bun --print \"require('./config.json').jotdown || 'main'\")\" https://github.com/markomitranic/Jotdown.git framework",
   "buildCommand": "bash framework/apps/publication/build.sh",
   "outputDirectory": "out",
   "cleanUrls": true
