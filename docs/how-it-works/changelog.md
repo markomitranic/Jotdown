@@ -52,6 +52,18 @@ paste it, which is the whole content model either way.
 
 ## Releases
 
+
+## 0.3.1 (2026-10-11)
+
+### Features
+
+* jotdown, a studio and a site for docs kept in git ([548c8d2](https://github.com/markomitranic/Jotdown/commit/548c8d266634abba3d8d991c3c2e75707c43174e))
+* update the app on its own, open pages from jotdown:// links, and keep jotdown's docs listed ([176b1de](https://github.com/markomitranic/Jotdown/commit/176b1de32a2b1a6805b3d108088960b026ef7542))
+
+### Bug Fixes
+
+* **ci:** declare the story server's file types before serving with them ([1d86d4a](https://github.com/markomitranic/Jotdown/commit/1d86d4ac39934b38b994ab1a6fdcb3477c2c6749))
+
 ## 0.3.0 (2026-10-11)
 
 ### Features
