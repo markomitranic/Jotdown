@@ -5,8 +5,9 @@ import { CONTENT_PATH, META_PATH, type Failure, type Result } from "../../live-e
 import { DOCS_ROOT, finalHome, MOVED_FILE, repoPath, type Move } from "@jotdown/core/lib/paths";
 import type { Addition, AssetUpload, CommitOutcome, Docs, TreeCommit } from "../types";
 import { editingContext } from "./context";
+import { forgetProject } from "./projects";
 import { fetchRemembered } from "./remembered";
-import { CONFIG_FILE } from "@jotdown/core/server/config";
+import { CONFIG_FILE } from "@jotdown/core/lib/config";
 import type {
   AssetResponse,
   PageHistoryResponse,
@@ -945,9 +946,17 @@ export function readConfigFile() {
   return atRepositoryRoot(() => readSource(CONFIG_FILE));
 }
 
-/** Commits the config, re-reading the head when the branch moved and refusing a config changed since it was read. */
-export function saveConfigFile(save: Omit<SaveRequest, "path">) {
-  return atRepositoryRoot(() => commitFile({ ...save, path: CONFIG_FILE }));
+/**
+ * Commits the config, re-reading the head when the branch moved and refusing a config changed since it was read.
+ *
+ * The project's remembered content folder, uploads folder and branch are read
+ * off the config, so they are forgotten once it is saved.
+ */
+export async function saveConfigFile(save: Omit<SaveRequest, "path">) {
+  const saved = await atRepositoryRoot(() => commitFile({ ...save, path: CONFIG_FILE }));
+  const scoped = editingContext.getStore();
+  if (saved.ok && scoped) forgetProject(scoped.remote);
+  return saved;
 }
 
 /** The config's commits, newest first, pinned to the head the first page was read at. */

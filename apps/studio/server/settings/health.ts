@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { webAddress } from "@jotdown/core/lib/web-address";
 import { formatProjectKey, type ProjectKey } from "../../lib/project-key";
 import type { Session } from "../auth/session";
 import { errorResponse, readJsonBody } from "../live-edit/_contract";
@@ -97,6 +98,7 @@ async function checkBranch(key: ProjectKey, session: Session, branch: string | u
 
 async function checkSite(url: string | undefined): Promise<HealthCheck> {
   if (!url) return { id: "url", state: "warning", text: "No site address yet. Links to the published site stay off." };
+  if (!webAddress(url)) return { id: "url", state: "failed", text: "The site address has to start with https://." };
 
   try {
     const response = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(TIMEOUT_MS) });

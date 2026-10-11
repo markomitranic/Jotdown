@@ -1,8 +1,9 @@
 "use client";
 
-import { createContext, use, type ReactNode } from "react";
+import { createContext, use, type ComponentProps, type ReactNode } from "react";
 import { cn } from "cn";
 import { RotateCcw } from "lucide-react";
+import { Input } from "@jotdown/core/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@jotdown/core/components/ui/tooltip";
 import { useDraft } from "./draft";
 import { valueAt, withValue } from "@/lib/settings/config-draft";
@@ -177,5 +178,27 @@ export function Segmented<T extends string>({
         </button>
       ))}
     </div>
+  );
+}
+
+type TextProps = Omit<ComponentProps<typeof Input>, "value" | "onChange"> & { path: string };
+
+/**
+ * A text input bound to one config path, an empty field taking the key out.
+ *
+ * @example <TextSetting path="title" placeholder="Documentation" />
+ */
+export function TextSetting({ path, className, ...props }: TextProps) {
+  const { config, update, issues } = useDraft();
+  const value = valueAt(config, path);
+
+  return (
+    <Input
+      {...props}
+      value={typeof value === "string" ? value : ""}
+      aria-invalid={issues.has(path) || undefined}
+      onChange={(event) => update((current) => withValue(current, path, event.target.value || undefined))}
+      className={cn("h-8", className)}
+    />
   );
 }

@@ -82,7 +82,6 @@ export function SettingsPanel({ folders }: { folders: string[] }) {
   return (
     <div
       role="dialog"
-      aria-modal="true"
       aria-label="Project settings"
       data-settings-panel=""
       className={cn(

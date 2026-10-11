@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { UPLOAD_LIMITS, megabytes } from "@jotdown/editor/limits";
 import type { Session } from "../auth/session";
 import { errorResponse, type Result } from "../live-edit/_contract";
-import { imageKind } from "../live-edit/asset";
+import { arrivedShort, imageKind } from "../live-edit/asset";
 import { storage } from "../storage";
 
 /**
@@ -15,6 +15,12 @@ import { storage } from "../storage";
 
 /** What an upload is, where it is served from, and what its commit says. */
 export type BrandUpload = { kind: "image" | "font"; extension: string };
+
+/** Where each kind of brand file is kept in the uploads folder, and the address the config names it by. */
+const SHELVES = {
+  image: { folder: "img/brand", address: "/img/brand" },
+  font: { folder: "fonts", address: "/uploads/fonts" },
+} as const;
 
 /** A font file's format, read off the bytes it starts with. */
 const FONT_SIGNATURES = {
@@ -47,6 +53,10 @@ export function fontKind(bytes: Uint8Array): keyof typeof FONT_SIGNATURES | null
  * draws an SVG icon into a PNG before it gets here.
  */
 export function describeUpload(kind: string | null, bytes: Uint8Array): Result<BrandUpload> {
+  if (kind !== "image" && kind !== "font") {
+    return { ok: false, failure: { status: 400, error: "Say whether the upload is an image or a font." } };
+  }
+
   if (bytes.byteLength > UPLOAD_LIMITS.max) {
     return { ok: false, failure: { status: 413, error: `Uploads have to be under ${megabytes(UPLOAD_LIMITS.max)}.` } };
   }
@@ -73,13 +83,12 @@ export function describeUpload(kind: string | null, bytes: Uint8Array): Result<B
  * @example await commitBrandFile(bytes, upload, "the icon", session); // { ok: true, value: { url: "/img/brand/3f1c….png" } }
  */
 export async function commitBrandFile(bytes: Uint8Array, upload: BrandUpload, what: string, session: Session) {
-  const hash = createHash("sha256").update(bytes).digest("hex").slice(0, 16);
-  const folder = upload.kind === "font" ? "fonts" : "img/brand";
-  const url =
-    upload.kind === "font" ? `/uploads/fonts/${hash}.${upload.extension}` : `/img/brand/${hash}.${upload.extension}`;
+  const name = `${createHash("sha256").update(bytes).digest("hex").slice(0, 16)}.${upload.extension}`;
+  const { folder, address } = SHELVES[upload.kind];
+  const url = `${address}/${name}`;
 
   const saved = await storage.commitAsset({
-    path: `${await storage.uploadsFolder()}/${folder}/${hash}.${upload.extension}`,
+    path: `${await storage.uploadsFolder()}/${folder}/${name}`,
     url,
     bytes,
     message: `docs: (studio) settings: add ${what}`,
@@ -93,6 +102,9 @@ export async function commitBrandFile(bytes: Uint8Array, upload: BrandUpload, wh
 export async function upload(request: Request, session: Session) {
   const query = new URL(request.url).searchParams;
   const bytes = new Uint8Array(await request.arrayBuffer());
+  if (arrivedShort(request, bytes)) {
+    return errorResponse({ status: 413, error: "The file arrived incomplete, so nothing was committed. Try again." });
+  }
 
   const described = describeUpload(query.get("kind"), bytes);
   if (!described.ok) return errorResponse(described.failure);

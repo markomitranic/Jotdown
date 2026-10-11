@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { themeSchema } from "./theme";
 
 /**
  * The messages between the studio and a site's `/_edit` canvas, the page the studio frames to edit a project in its own look.
@@ -91,7 +92,7 @@ const theme = z.object({ type: z.literal("theme"), mode: colourMode });
 const appWindow = z.object({ type: z.literal("window"), app: z.boolean() });
 
 /** A draft of the project's theme for the canvas to wear until it is saved, or null to wear the built one again. */
-const look = z.object({ type: z.literal("look"), theme: z.unknown() });
+const look = z.object({ type: z.literal("look"), theme: themeSchema.nullable() });
 
 /** Anything a canvas may send. */
 export const fromCanvas = z.discriminatedUnion("type", [hello, request, navigate, theme, shortcut, drag]);

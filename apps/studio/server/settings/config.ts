@@ -1,4 +1,4 @@
-import { projectConfigSchema } from "@jotdown/core/server/config";
+import { projectConfigSchema } from "@jotdown/core/lib/config";
 import type { Session } from "../auth/session";
 import { errorResponse, readJsonBody, type Result, type Unparsed } from "../live-edit/_contract";
 import { parseHistory, parseRevision } from "../live-edit/_history";

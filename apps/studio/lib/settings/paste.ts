@@ -1,4 +1,4 @@
-import { COLOUR, TOKEN_NAMES, type Theme, type ThemeToken } from "@jotdown/core/lib/theme";
+import { COLOUR, FAMILY, TOKEN_NAMES, type Theme, type ThemeToken } from "@jotdown/core/lib/theme";
 
 /**
  * A theme read out of shadcn's CSS variables, as ui.shadcn.com and tweakcn export them.
@@ -16,7 +16,6 @@ export type PastedTheme = { theme: Theme; applied: number; skipped: string[] };
 const TOKENS = new Set<string>(TOKEN_NAMES);
 const BARE_HSL = /^-?\d*\.?\d+(deg)?\s+\d*\.?\d+%\s+\d*\.?\d+%$/;
 const RADIUS = /^\d*\.?\d+(rem|px)$/;
-const FAMILY = /^[A-Za-z0-9][A-Za-z0-9 _-]*$/;
 const GENERIC_FAMILIES = new Set([
   "system-ui",
   "sans-serif",

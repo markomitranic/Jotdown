@@ -140,6 +140,7 @@ async function ProjectShell({ project, drawing, tree, sections, children }: Shel
           editor: session.editor,
           project: { id: project.id, key: project.key, title: project.config.title, base: project.base },
           icon: projectIcon(project),
+          theme: project.config.theme,
           folders: topFolders(await requireSource()),
           drawing: drawing ? drawingFor(drawing) : undefined,
         }}

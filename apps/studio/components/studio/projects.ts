@@ -6,6 +6,7 @@ import { fetchJson, postJson } from "@jotdown/core/lib/fetch-json";
 import { hasUnsavedChanges } from "@jotdown/editor/client/useLeaveGuard";
 import { parseProjectKey, type ProjectKey } from "@/lib/project-key";
 import { rememberAnsweredBookmarks, useAnsweredBookmarks } from "./saved";
+import { wearBrand } from "@jotdown/core/lib/wear-brand";
 
 /** A project GitHub lists for the editor, as `GET /api/projects` answers, with the address its icon is drawn from. */
 export type ProjectListing = { key: string; title: string; description: string; icon: string | null };
@@ -205,28 +206,4 @@ export function useOpenProject() {
   }
 
   return { opening, open, dismiss };
-}
-
-/**
- * Swaps the page's project brand for another project's stylesheet, and returns how to swap back.
- *
- * With no stylesheet, the page falls back to the framework's default brand.
- *
- * @example const takeOff = wearBrand(":root { --primary: #2b2c30 }"); takeOff();
- */
-function wearBrand(stylesheet: string | null) {
-  const worn = [...document.querySelectorAll<HTMLLinkElement | HTMLStyleElement>("[data-project-brand]")];
-  for (const sheet of worn) sheet.disabled = true;
-
-  const borrowed = stylesheet ? document.createElement("style") : null;
-  if (borrowed) {
-    borrowed.textContent = stylesheet;
-    borrowed.dataset.projectBrand = "";
-    document.body.append(borrowed);
-  }
-
-  return () => {
-    borrowed?.remove();
-    for (const sheet of worn) sheet.disabled = false;
-  };
 }

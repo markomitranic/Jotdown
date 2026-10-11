@@ -7,7 +7,7 @@ import type { Theme } from "@jotdown/core/lib/theme";
 import { PALETTES, type Palette } from "@/lib/setup";
 import { DEFAULT_COLOURS } from "@/lib/settings/colour";
 import { useDraft } from "../draft";
-import { withValue } from "@/lib/settings/config-draft";
+import { changedPaths, withValue } from "@/lib/settings/config-draft";
 
 type Mode = NonNullable<Theme["light"]>;
 
@@ -105,14 +105,7 @@ function Orb({ mode, checked, icon }: { mode: Mode; checked: boolean; icon: "lig
 /** Whether a theme's colours are exactly a palette's, which for Neutral means none at all. */
 function matches(palette: Palette, theme: Theme | undefined) {
   if (palette.id === "neutral") return !theme?.light && !theme?.dark;
-  return sameMode(palette.light, theme?.light) && sameMode(palette.dark, theme?.dark);
-}
-
-function sameMode(palette: Mode, mode: Mode | undefined) {
-  if (!mode) return false;
-  const keys = Object.keys(mode);
   return (
-    keys.length === Object.keys(palette).length &&
-    keys.every((key) => mode[key as keyof Mode] === palette[key as keyof Mode])
+    changedPaths({ light: palette.light, dark: palette.dark }, { light: theme?.light, dark: theme?.dark }).length === 0
   );
 }

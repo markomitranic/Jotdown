@@ -131,7 +131,11 @@ function Accents({ folders }: { folders: string[] }) {
                   aria-checked={chosen === token}
                   aria-label={label}
                   title={label}
-                  onClick={() => update((current) => withValue(current, path, token))}
+                  onClick={() =>
+                    update((current) =>
+                      withValue(current, "theme.sections", { ...current.theme?.sections, [folder]: token }),
+                    )
+                  }
                   className={cn(
                     "grid size-6 place-items-center rounded-full outline-none ring-offset-2 ring-offset-card transition-shadow focus-visible:ring-2 focus-visible:ring-ring aria-checked:ring-2 aria-checked:ring-foreground/70",
                     !token && "border border-border border-dashed",

@@ -14,14 +14,17 @@ import { ProjectPalette } from "./ProjectPalette";
 import { SetupDialog } from "./setup/SetupDialog";
 import { SettingsDraft } from "./settings/draft";
 import { LiveTheme } from "./settings/LiveTheme";
+import type { Theme } from "@jotdown/core/lib/theme";
 import { SettingsPanel } from "./settings/SettingsPanel";
-import { closeSettings, openSettings, useSettings } from "./settings/store";
+import { toggleSettings } from "./settings/store";
 import { useBookmarks, useOpenProject } from "./projects";
 import { useStudioPulse } from "./pulse";
 
 type Workspace = {
   editor: { login: string; name: string };
   project: { id: string; key: string; title: string; base: string };
+  /** The theme the page was drawn with, which a settings draft is tried on against. */
+  theme?: Theme;
   /** The top-level folders of the project's pages, which the theme can give accents. */
   folders?: string[];
   /** The project's square icon, its favicon or else its logo. */
@@ -56,9 +59,8 @@ export function WorkspaceProvider({ workspace, children }: { workspace: Workspac
   const { bookmarks, error, save, forget } = useBookmarks();
   const { opening, open, dismiss } = useOpenProject();
   const [switching, setSwitching] = useState(false);
-  const settings = useSettings();
   useShortcut(SHORTCUTS.switcher, () => setSwitching((shown) => !shown));
-  useShortcut(SHORTCUTS.settings, () => (settings.open ? closeSettings() : openSettings()));
+  useShortcut(SHORTCUTS.settings, toggleSettings);
 
   function start(key: string, title: string | null, bookmark: boolean) {
     setSwitching(false);
@@ -69,7 +71,7 @@ export function WorkspaceProvider({ workspace, children }: { workspace: Workspac
     <WorkspaceContext value={{ ...workspace, switch: () => setSwitching(true), switching }}>
       <SettingsDraft key={workspace.project.id} projectId={workspace.project.id} base={workspace.project.base}>
         {children}
-        {(workspace.drawing?.mode ?? "skinny") === "skinny" && <LiveTheme />}
+        {(workspace.drawing?.mode ?? "skinny") === "skinny" && <LiveTheme pageTheme={workspace.theme} />}
         <SettingsPanel folders={workspace.folders ?? []} />
       </SettingsDraft>
       <BranchWatch />

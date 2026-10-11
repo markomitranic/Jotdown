@@ -79,6 +79,9 @@ export const TOKEN_NAMES = [...CORE_TOKENS, ...DERIVED_TOKEN_NAMES] as [ThemeTok
 /** A CSS colour that cannot close the rule it sits in: hex, or one colour function with plain arguments. */
 export const COLOUR = /^(#[0-9a-f]{3,8}|(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch)\([0-9a-z.%\s,/+-]*\))$/i;
 
+/** A font family a theme can name: plain words, which is also what keeps it out of the stylesheet's syntax. */
+export const FAMILY = /^[A-Za-z0-9][A-Za-z0-9 _-]*$/;
+
 const colour = z.string().regex(COLOUR, "Write a colour as #hex, rgb(), hsl() or oklch().");
 const mode = z.partialRecord(z.enum(TOKEN_NAMES), colour);
 
@@ -92,7 +95,7 @@ const FONT_ROLES = {
 /** A typeface: its family name, and an uploaded variable font file when the reader's machine will not have it. */
 const font = z
   .object({
-    family: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9 _-]*$/, "Write the family as plain words, like Inter."),
+    family: z.string().regex(FAMILY, "Write the family as plain words, like Inter."),
     src: z
       .string()
       .regex(

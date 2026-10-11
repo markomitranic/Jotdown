@@ -3,7 +3,7 @@
 import { createContext, use, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { projectConfigSchema, type ProjectConfigInput } from "@jotdown/core/lib/config";
+import { CONFIG_FILE, projectConfigSchema, type ProjectConfigInput } from "@jotdown/core/lib/config";
 import { FetchFailure, fetchJson, postJson } from "@jotdown/core/lib/fetch-json";
 import { useLeaveGuard } from "@jotdown/editor/client/useLeaveGuard";
 import type { SaveResponse, SourceResponse } from "@jotdown/editor/types";
@@ -14,7 +14,9 @@ import { changedPaths, commitMessage, tidy } from "@/lib/settings/config-draft";
 /**
  * The settings draft: the config as it was read, and the text somebody is shaping it into.
  *
- * The draft is the file's own text. Every field edits it by parsing, changing
+ * The draft is the file's own text, pinned to the config it was started from,
+ * so a refresh of the saved config underneath cannot make a save quietly
+ * overwrite somebody else's change. Every field edits it by parsing, changing
  * one key and writing it back, and the config file section edits it directly,
  * so the form and the raw file can never disagree. It outlives the panel: close
  * the settings and the draft theme stays on the page until it is saved or
@@ -22,8 +24,6 @@ import { changedPaths, commitMessage, tidy } from "@/lib/settings/config-draft";
  */
 
 export type Config = ProjectConfigInput;
-
-type Saved = { text: string; sha: string };
 
 type Draft = {
   projectId: string;
@@ -69,8 +69,8 @@ export function SettingsDraft({ projectId, base, children }: { projectId: string
   const [asked, setAsked] = useState(open);
   if (open && !asked) setAsked(true);
 
-  const [saved, setSaved] = useState<Saved | null>(null);
-  const [text, setTextState] = useState<string | null>(null);
+  /** The draft's own text and the config it was started from, or null while it follows the saved config. */
+  const [edited, setEdited] = useState<{ text: string; from: SourceResponse | undefined } | null>(null);
 
   const read = useQuery({
     queryKey: ["settings", projectId, "config"],
@@ -79,14 +79,9 @@ export function SettingsDraft({ projectId, base, children }: { projectId: string
     staleTime: Number.POSITIVE_INFINITY,
   });
 
-  const loaded = read.data;
-  if (loaded && saved === null) {
-    setSaved({ text: loaded.text, sha: loaded.sha });
-    setTextState(loaded.text);
-  }
-
+  const saved = edited ? edited.from : read.data;
   const savedText = saved?.text ?? "";
-  const draftText = text ?? savedText;
+  const draftText = edited?.text ?? savedText;
   const savedConfig = useMemo(() => parse(savedText).config ?? {}, [savedText]);
   const parsed = useMemo(() => parse(draftText), [draftText]);
   const issues = useMemo(() => schemaIssues(parsed.config), [parsed.config]);
@@ -94,7 +89,7 @@ export function SettingsDraft({ projectId, base, children }: { projectId: string
     () => (parsed.config ? changedPaths(savedConfig, parsed.config) : []),
     [savedConfig, parsed.config],
   );
-  const dirty = saved !== null && draftText !== savedText;
+  const dirty = saved !== undefined && draftText !== savedText;
   useLeaveGuard(dirty);
 
   const commit = useMutation({
@@ -111,9 +106,8 @@ export function SettingsDraft({ projectId, base, children }: { projectId: string
       return { text: body.text, sha: answer.sha };
     },
     onSuccess: async (written) => {
-      setSaved(written);
-      setTextState(written.text);
-      queries.setQueryData(["settings", projectId, "config"], { path: "", ...written });
+      queries.setQueryData<SourceResponse>(["settings", projectId, "config"], { path: CONFIG_FILE, ...written });
+      setEdited(null);
       note("Saved the project settings");
       router.refresh();
       await queries.invalidateQueries({ queryKey: ["settings", projectId, "history"] });
@@ -142,29 +136,28 @@ export function SettingsDraft({ projectId, base, children }: { projectId: string
     dirty,
     update: (change) => {
       commit.reset();
-      setTextState((previous) => {
-        const current = parse(previous ?? savedText).config;
-        return current ? `${JSON.stringify(tidy(change(current)), null, 2)}\n` : previous;
+      setEdited((previous) => {
+        const current = parse(previous?.text ?? savedText).config;
+        if (!current) return previous;
+        return { text: `${JSON.stringify(tidy(change(current)), null, 2)}\n`, from: previous ? previous.from : saved };
       });
     },
     setText: (next) => {
       commit.reset();
-      setTextState(next);
+      setEdited((previous) => ({ text: next, from: previous ? previous.from : saved }));
     },
     discard: () => {
       commit.reset();
-      setTextState(savedText);
+      setEdited(null);
     },
     save: () => commit.mutate({ overwrite: false }),
     overwrite: () => commit.mutate({ overwrite: true }),
     saving: commit.isPending,
     saveProblem,
-    reload: async () => {
+    reload: () => {
       commit.reset();
-      const latest = await read.refetch();
-      if (!latest.data) return;
-      setSaved({ text: latest.data.text, sha: latest.data.sha });
-      setTextState(latest.data.text);
+      setEdited(null);
+      void read.refetch();
     },
   };
 

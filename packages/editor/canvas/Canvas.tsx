@@ -23,8 +23,8 @@ import { TitleBarControls, WindowTitleBar } from "@jotdown/core/components/Windo
 import { SHORTCUTS, pressed } from "@jotdown/core/components/shortcuts";
 import { DocCardList } from "@jotdown/core/components/blocks/DocCardList";
 import { compileInBrowser } from "@jotdown/core/lib/browser-page";
-import { wearDraftTheme } from "@jotdown/core/lib/draft-theme";
-import { themeSchema, themeStylesheet } from "@jotdown/core/lib/theme";
+import { wearBrand } from "@jotdown/core/lib/wear-brand";
+import { themeStylesheet, type Theme } from "@jotdown/core/lib/theme";
 import {
   CANVAS_PROTOCOL,
   colourMode,
@@ -375,14 +375,14 @@ function post(target: Window, origin: string, message: FromCanvas) {
   target.postMessage(message, origin);
 }
 
+let takeOffLook: (() => void) | null = null;
+
 /**
  * Wears the theme the studio's settings are trying on, or the site's own again for null.
  *
- * A theme that does not read is ignored. Its fonts are looked for at the site's
- * root, where the canvas is served.
+ * Its fonts are looked for at the site's root, where the canvas is served.
  */
-function wearLook(theme: unknown) {
-  if (theme === null) return wearDraftTheme(null);
-  const parsed = themeSchema.safeParse(theme);
-  if (parsed.success) wearDraftTheme(themeStylesheet(parsed.data));
+function wearLook(theme: Theme | null) {
+  takeOffLook?.();
+  takeOffLook = theme ? wearBrand(themeStylesheet(theme) || null) : null;
 }

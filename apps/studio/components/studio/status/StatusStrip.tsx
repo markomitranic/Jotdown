@@ -14,7 +14,7 @@ import { UpdateNotice } from "../account/UpdateNotice";
 import { RendererMenu } from "../canvas/RendererMenu";
 import { useWorkspace } from "../Workspace";
 import { useDraft } from "../settings/draft";
-import { closeSettings, openSettings, useSettings } from "../settings/store";
+import { toggleSettings, useSettings } from "../settings/store";
 import { BranchMenu } from "./BranchMenu";
 import { ITEM, note, useNote } from "./note";
 
@@ -184,7 +184,7 @@ function SettingsButton() {
           type="button"
           aria-label="Project settings"
           aria-pressed={open}
-          onClick={() => (open ? closeSettings() : openSettings())}
+          onClick={toggleSettings}
           className={cn(ITEM, "relative aria-pressed:bg-accent aria-pressed:text-accent-foreground")}
         >
           <Settings className="size-3.5" aria-hidden="true" />

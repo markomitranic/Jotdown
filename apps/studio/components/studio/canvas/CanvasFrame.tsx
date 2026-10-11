@@ -15,6 +15,7 @@ import {
   type FromStudio,
 } from "@jotdown/core/lib/canvas";
 import { Button } from "@jotdown/core/components/ui/button";
+import { useDraft } from "../settings/draft";
 import { useDraftTheme } from "../settings/LiveTheme";
 
 type Props = {
@@ -60,7 +61,8 @@ export function CanvasFrame({ src, project }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
-  const draftTheme = useDraftTheme();
+  const draft = useDraft();
+  const draftTheme = useDraftTheme(draft.saved.theme);
   const queries = useQueryClient();
 
   const slug = pathname.startsWith(project.base) ? pathname.slice(project.base.length).replace(/^\//, "") : "";

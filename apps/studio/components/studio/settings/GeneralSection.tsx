@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useState, type ComponentProps } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "cn";
 import { CircleAlert, CircleCheck, LoaderCircle, RotateCw, TriangleAlert } from "lucide-react";
 import { Button } from "@jotdown/core/components/ui/button";
-import { Input } from "@jotdown/core/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@jotdown/core/components/ui/select";
 import { fetchJson, postJson } from "@jotdown/core/lib/fetch-json";
 import type { Branches } from "@/server/projects/branches";
 import type { HealthCheck } from "@/server/settings/health";
 import { type Config, useDraft } from "./draft";
-import { valueAt, withValue } from "@/lib/settings/config-draft";
-import { SettingsBlock, SettingsGroup, SettingsRow } from "./parts";
+import { withValue } from "@/lib/settings/config-draft";
+import { SettingsBlock, SettingsGroup, SettingsRow, TextSetting } from "./parts";
 
 /**
  * What the project is called, where it lives and where it is published, with a check that each of those answers.
@@ -108,27 +107,8 @@ export function GeneralSection() {
   );
 }
 
-type TextProps = Omit<ComponentProps<typeof Input>, "value" | "onChange"> & { path: string };
-
-/**
- * A text input bound to one config path, an empty field taking the key out.
- *
- * @example <TextSetting path="title" placeholder="Documentation" />
- */
-export function TextSetting({ path, className, ...props }: TextProps) {
-  const { config, update, issues } = useDraft();
-  const value = valueAt(config, path);
-
-  return (
-    <Input
-      {...props}
-      value={typeof value === "string" ? value : ""}
-      aria-invalid={issues.has(path) || undefined}
-      onChange={(event) => update((current) => withValue(current, path, event.target.value || undefined))}
-      className={cn("h-8", className)}
-    />
-  );
-}
+/** The branch picker's choice for leaving `branch` out, which no git branch can be called. */
+const DEFAULT_BRANCH = "\0default";
 
 /** The branch to publish from, out of the ones the project has, or its default. */
 function BranchSetting() {
@@ -143,16 +123,16 @@ function BranchSetting() {
 
   return (
     <Select
-      value={chosen ?? "\0default"}
+      value={chosen ?? DEFAULT_BRANCH}
       onValueChange={(value) =>
-        update((current) => withValue(current, "branch", value === "\0default" ? undefined : value))
+        update((current) => withValue(current, "branch", value === DEFAULT_BRANCH ? undefined : value))
       }
     >
       <SelectTrigger className="w-56" aria-label="Branch">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={"\0default"}>{home ? `The default, ${home}` : "The default branch"}</SelectItem>
+        <SelectItem value={DEFAULT_BRANCH}>{home ? `The default, ${home}` : "The default branch"}</SelectItem>
         {listed.map((branch) => (
           <SelectItem key={branch} value={branch}>
             {branch}

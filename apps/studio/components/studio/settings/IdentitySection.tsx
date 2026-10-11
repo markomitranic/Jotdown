@@ -5,12 +5,11 @@ import { useMutation } from "@tanstack/react-query";
 import { cn } from "cn";
 import { ImagePlus, LoaderCircle, X } from "lucide-react";
 import { Button } from "@jotdown/core/components/ui/button";
-import { drawIcon } from "../setup/icon";
+import { drawPng } from "../images";
 import { useDraft } from "./draft";
 import { withValue } from "@/lib/settings/config-draft";
-import { TextSetting } from "./GeneralSection";
-import { SettingsGroup, SettingsRow } from "./parts";
-import { fittedPng, uploadBrandFile } from "./upload";
+import { SettingsGroup, SettingsRow, TextSetting } from "./parts";
+import { uploadBrandFile } from "./upload";
 
 /**
  * The project's marks: a square icon for every square slot, and an optional wide wordmark.
@@ -31,20 +30,23 @@ export function IdentitySection() {
   const icon = shown(config?.favicon ?? config?.logo?.src);
 
   async function uploadIcon(file: File) {
-    const drawn = await drawIcon(file);
-    const bytes = Uint8Array.from(atob(drawn.base64), (char) => char.charCodeAt(0));
-    const { url } = await uploadBrandFile(projectId, new Blob([bytes], { type: "image/png" }), "image", "the icon");
+    const drawn = await drawPng(file, { width: 512, height: 512, square: true });
+    const { url } = await uploadBrandFile(projectId, drawn.blob, "image", "the icon");
     setPreviews((known) => ({ ...known, [url]: drawn.preview }));
     update((current) => withValue(current, "favicon", url));
   }
 
   function uploadLogo(variant: "src" | "srcDark") {
     return async (file: File) => {
-      const drawn = await fittedPng(file, 1600, 400);
+      const drawn = await drawPng(file, { width: 1600, height: 400 });
       const { url } = await uploadBrandFile(projectId, drawn.blob, "image", "the logo");
       setPreviews((known) => ({ ...known, [url]: drawn.preview }));
       update((current) =>
-        withValue(current, "logo", { alt: current.logo?.alt ?? current.title ?? "", ...current.logo, [variant]: url }),
+        withValue(current, "logo", {
+          ...current.logo,
+          alt: current.logo?.alt || current.title || "Logo",
+          [variant]: url,
+        }),
       );
     };
   }
@@ -213,8 +215,8 @@ function ImageDrop({ label, src, square, dark, disabled, onFile, onRemove }: Dro
             "relative grid place-items-center overflow-hidden rounded-xl border border-border border-dashed outline-none transition-colors hover:border-foreground/30 focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
             square ? "size-24" : "h-20 w-56",
             dark
-              ? "bg-[#0b0b0f]"
-              : "bg-[repeating-conic-gradient(var(--muted)_0_25%,var(--background)_0_50%)] bg-size-[12px_12px]",
+              ? "dark bg-background text-muted-foreground"
+              : "bg-[repeating-conic-gradient(var(--muted)_0_25%,var(--background)_0_50%)] bg-size-[12px_12px] text-muted-foreground",
             src && "border-solid",
             over && "border-primary bg-primary/5",
           )}
@@ -223,12 +225,7 @@ function ImageDrop({ label, src, square, dark, disabled, onFile, onRemove }: Dro
             // biome-ignore lint/performance/noImgElement: a preview of a file that may only exist in this browser
             <img src={src} alt="" className="absolute inset-0 size-full object-contain p-2.5" />
           ) : (
-            <span
-              className={cn(
-                "flex flex-col items-center gap-1 text-xs",
-                dark ? "text-white/60" : "text-muted-foreground",
-              )}
-            >
+            <span className="flex flex-col items-center gap-1 text-xs">
               <ImagePlus className="size-4" aria-hidden="true" />
               Drop or choose
             </span>

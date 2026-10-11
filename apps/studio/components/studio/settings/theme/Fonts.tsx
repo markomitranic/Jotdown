@@ -198,10 +198,7 @@ function FontPicker({ projectId, face, fallback, onChoose }: PickerProps) {
                   className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start outline-none aria-selected:bg-accent aria-selected:text-accent-foreground"
                 >
                   <span className="truncate">{font.family}</span>
-                  <span className="ms-auto shrink-0 text-muted-foreground text-xs">
-                    {font.category}
-                    {font.weights && " · variable"}
-                  </span>
+                  <span className="ms-auto shrink-0 text-muted-foreground text-xs">{font.category}</span>
                 </button>
               ))}
             </div>
