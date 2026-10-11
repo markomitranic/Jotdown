@@ -1,54 +1,35 @@
-import manifest from "../../../package.json";
-import { githubToken } from "./auth/token";
+import { env } from "@/env";
 
 /**
- * Whether a newer Jotdown is out, read from the latest release of its GitHub repository.
+ * Jotdown's updates, as the desktop app has them.
  *
- * The repository is private for now, so the check asks with the signed-in
- * token, and says nothing when there is none. GitHub is asked at most once an
- * hour; the answer in between is the last one.
+ * The app checks for a newer release itself and downloads it in the
+ * background, so the studio only asks whether one is waiting for a restart,
+ * and asks for that restart. Outside the app there is nothing to update.
  */
 
-const LATEST = "https://api.github.com/repos/markomitranic/Jotdown/releases/latest";
-const HOUR = 3_600_000;
-
-/** A release newer than the running app: its version and the page to download it from. */
-export type Update = { version: string; url: string };
-
-const memory = globalThis as { jotdownUpdate?: { at: number; update: Promise<Update | null> } };
+/** A newer Jotdown, downloaded and installed by the next restart. */
+export type Update = { version: string };
 
 /**
- * The newer release, or null when this is the newest or GitHub cannot say.
+ * The downloaded update waiting for a restart, or null when there is none.
  *
- * @example await availableUpdate(); // { version: "0.3.0", url: "https://github.com/markomitranic/Jotdown/releases/tag/v0.3.0" }
+ * @example await readyUpdate(); // { version: "0.3.2" }
  */
-export function availableUpdate() {
-  if (!memory.jotdownUpdate || Date.now() - memory.jotdownUpdate.at > HOUR)
-    memory.jotdownUpdate = { at: Date.now(), update: askGitHub() };
-  return memory.jotdownUpdate.update;
-}
-
-async function askGitHub(): Promise<Update | null> {
-  const token = await githubToken();
-  if (!token) return null;
-
-  const response = await fetch(LATEST, {
-    headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${token}` },
-  }).catch(() => null);
-  if (!response?.ok) return null;
-
-  const release: { tag_name: string; html_url: string } = await response.json();
-  const version = release.tag_name.replace(/^v/, "");
-  return isNewer(version, manifest.version) ? { version, url: release.html_url } : null;
+export async function readyUpdate(): Promise<Update | null> {
+  if (!env.JOTDOWN_BRIDGE) return null;
+  const answer = await fetch(`${env.JOTDOWN_BRIDGE}/update`).catch(() => null);
+  const { version }: { version: string | null } = answer?.ok ? await answer.json() : { version: null };
+  return version ? { version } : null;
 }
 
 /**
- * Whether one `major.minor.patch` version comes after another.
+ * Asks the app to quit, install the downloaded update and open again, answering whether it agreed.
  *
- * @example isNewer("0.10.0", "0.9.2"); // true
+ * @example await restartToUpdate(); // true
  */
-export function isNewer(version: string, than: string) {
-  const [a, b] = [version, than].map((text) => text.split(".").map((part) => Number.parseInt(part, 10) || 0));
-  for (let at = 0; at < 3; at++) if ((a?.[at] ?? 0) !== (b?.[at] ?? 0)) return (a?.[at] ?? 0) > (b?.[at] ?? 0);
-  return false;
+export async function restartToUpdate() {
+  if (!env.JOTDOWN_BRIDGE) return false;
+  const answer = await fetch(`${env.JOTDOWN_BRIDGE}/update`, { method: "POST" }).catch(() => null);
+  return Boolean(answer?.ok);
 }

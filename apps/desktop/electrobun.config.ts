@@ -7,7 +7,8 @@ import manifest from "../../package.json";
  * `preBuild` builds and stages the studio, `postBuild` and `postWrap` sign the
  * bundles ad hoc so macOS offers Open Anyway rather than calling them damaged,
  * and `postPackage` builds the installer DMG. Closing the window leaves the app
- * running, as a Mac app does, and the Dock icon opens it again.
+ * running, as a Mac app does, and the Dock icon opens it again. Updates are
+ * read from the latest GitHub release, which carries the update files beside the DMG.
  */
 export default {
   app: {
@@ -29,5 +30,5 @@ export default {
     mac: { bundleCEF: false, icons: "icon.iconset" },
   },
   runtime: { exitOnLastWindowClosed: false },
-  release: { generatePatch: false },
+  release: { baseUrl: "https://github.com/markomitranic/Jotdown/releases/latest/download", generatePatch: false },
 } satisfies ElectrobunConfig;

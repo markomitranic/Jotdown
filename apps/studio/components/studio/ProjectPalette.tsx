@@ -29,6 +29,7 @@ import { GroupLabel, Key, Note } from "./PaletteParts";
 import { openSetup } from "./setup/store";
 import { discoverProjects, type Bookmark, type ProjectListing } from "./projects";
 import { openSignIn, useAccount, useSignOut, type AccountAnswer } from "./account/account";
+import { UpdateNotice } from "./account/UpdateNotice";
 import { GitHubMark } from "@jotdown/core/components/brand-icons";
 
 type Props = {
@@ -61,6 +62,7 @@ type Row = {
   owner?: string;
   locked?: boolean;
   bookmarked?: boolean;
+  pinned?: boolean;
 };
 
 /** The group of projects that belong to no GitHub organisation: folders outside git, or with no `origin` on GitHub. */
@@ -373,7 +375,7 @@ type RowProps = {
  *
  * A project's bookmark takes no room: it floats over the end of the row while
  * the row is pointed at or highlighted, and always on a touch screen, on the
- * editor's list and on GitHub's alike.
+ * editor's list and on GitHub's alike. A pinned project has none.
  */
 function PaletteRow({
   row,
@@ -388,7 +390,7 @@ function PaletteRow({
   onForget,
   onSave,
 }: RowProps) {
-  const project = row.kind === "bookmark" || row.kind === "discovered";
+  const project = (row.kind === "bookmark" || row.kind === "discovered") && !row.pinned;
 
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/useFocusableInteractive: an option of the listbox the focused search field steers by arrow keys and Enter
@@ -568,7 +570,7 @@ function RowIcon({ row, current, mark }: { row: Row; current: boolean; mark?: Re
 }
 
 /**
- * Who is editing, in one line above the keys: their GitHub picture or initial and name, the way in or out of GitHub, and the way back to the welcome page from inside a project.
+ * Who is editing, in one line above the keys: their GitHub picture or initial and name, the way in or out of GitHub, the way back to the welcome page from inside a project, and a waiting update.
  *
  * A token from `STUDIO_DEV_TOKEN` cannot be signed out of here, so it offers no Sign out.
  */
@@ -600,6 +602,7 @@ function Identity({ editor, auth, home, onSignIn }: IdentityProps) {
         <span className="font-medium">{account?.name ?? editor.name}</span>
         <span className="ms-1.5 text-muted-foreground text-xs">@{account?.login ?? editor.login}</span>
       </span>
+      <UpdateNotice className="h-auto px-2 py-1 text-primary text-xs hover:bg-accent focus-visible:bg-accent" />
       {onSignIn && (
         <button type="button" onClick={onSignIn} className={FOOTER_ACTION}>
           <GitHubMark />
@@ -658,6 +661,7 @@ function bookmarkRows(bookmarks: Bookmark[], query: string) {
         locked: bookmark.locked,
         folder: bookmark.folder,
         owner: bookmark.owner,
+        pinned: bookmark.pinned,
       }),
     );
 }
@@ -674,6 +678,7 @@ function discoveredRows(listings: ProjectListing[], bookmarks: Bookmark[], query
         kind: "discovered",
         icon: listing.icon,
         bookmarked: Boolean(bookmark),
+        pinned: bookmark?.pinned,
       };
     });
 }

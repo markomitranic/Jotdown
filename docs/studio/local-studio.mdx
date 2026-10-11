@@ -295,8 +295,10 @@ CLI holds. `bun run build` in `apps/desktop` builds the app and its DMG into
   </Accordion>
 
   <Accordion title="Keeping it current">
-    When a newer release is out, the welcome page says so in its top right and
-    links to it; download the DMG and drag it over the old app. That is apart
+    The app checks for a newer release every ten minutes and downloads it in
+    the background. Once it is ready, **Restart to update** shows in the
+    welcome page's top right and at the bottom of the project switcher, and a
+    click installs it and opens the app again. That is apart
     from the `jotdown` ref a project pins in its config for its
     [site](../publication/publishing.mdx).
   </Accordion>

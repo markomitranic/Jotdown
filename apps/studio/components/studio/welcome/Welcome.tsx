@@ -17,7 +17,7 @@ export async function Welcome({ problem, broken }: { problem: string | null; bro
   return (
     <NightSky>
       <header className="absolute top-5 wco:top-0 right-6 wco:right-[calc(var(--titlebar-end)+0.75rem)] z-10 flex wco:h-(--titlebar-height) items-center text-[0.8125rem] text-white/70">
-        <UpdateNotice />
+        <UpdateNotice className="text-white/75 hover:bg-white/10 hover:text-white focus-visible:ring-white/50" />
       </header>
 
       <section className="relative z-10 flex flex-col items-center px-6 pt-[24vh] text-center">

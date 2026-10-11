@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { cn } from "cn";
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowLeft, BookOpen, Folder, FolderOpen } from "lucide-react";
+import { ArrowLeft, BookOpen, CornerLeftUp, Folder, FolderOpen } from "lucide-react";
 import { useModifier } from "@jotdown/core/components/shortcuts";
 import { Button } from "@jotdown/core/components/ui/button";
 import { Item, ItemContent, ItemDescription, ItemFooter, ItemMedia, ItemTitle } from "@jotdown/core/components/ui/item";
@@ -21,15 +21,16 @@ type Props = {
   add?: (path: string) => Promise<{ key: string; title: string | null }>;
 };
 
-type Entry = FolderListing["entries"][number];
+type Entry = FolderListing["entries"][number] & { up?: true };
 
 /**
  * The switcher's folder browser: walk this machine's folders by keyboard, bookmark one that is a Jotdown project, or set up docs in one that is not.
  *
  * The field is a path. Typing past the last `/` narrows the folders listed,
  * Enter goes into a folder or adds a project, deleting back past a `/` climbs
- * out, and ⌘Enter adds the folder the field names. A folder with no docs is
- * not added: the browser asks whether to set docs up there instead.
+ * out, as does the `..` row, and ⌘Enter adds the folder the field names. The
+ * header turns the project's colour in a folder that is a project. A folder
+ * with no docs is not added: the browser asks whether to set docs up there instead.
  *
  * @example <FolderBrowser onBack={() => goTo("bookmarks")} onAdded={(key, title) => onChoose(key, title, false)} onSetUp={(path) => setUp({ kind: "folder", path })} />
  */
@@ -59,7 +60,12 @@ export function FolderBrowser({
   const problem = adding.error?.message ?? browsing.error?.message ?? "";
   const busy = adding.isPending || adding.isSuccess;
   const needle = query.slice(folder.length).toLowerCase();
-  const rows = (listing?.entries ?? []).filter((entry) => entry.name.toLowerCase().includes(needle));
+  const up: Entry[] = listing?.parent && !needle ? [{ name: "..", path: listing.parent, title: null, up: true }] : [];
+  const rows: Entry[] = [
+    ...up,
+    ...(listing?.entries ?? []).filter((entry) => entry.name.toLowerCase().includes(needle)),
+  ];
+  const project = listing?.title ?? null;
   const at = Math.min(active, Math.max(rows.length - 1, 0));
 
   useEffect(() => {
@@ -79,7 +85,7 @@ export function FolderBrowser({
 
   function choose(entry: Entry) {
     if (entry.title) return void addAt(entry.path);
-    setQuery(`${inside(listing?.display ?? folder, entry.name)}/`);
+    setQuery(entry.up ? inside(entry.path, "") : `${inside(listing?.display ?? folder, entry.name)}/`);
     setActive(0);
     input.current?.focus();
   }
@@ -103,7 +109,12 @@ export function FolderBrowser({
 
   return (
     <>
-      <div className="flex shrink-0 items-center gap-3 border-border border-b px-4">
+      <div
+        className={cn(
+          "flex shrink-0 items-center gap-3 border-b px-4 transition-colors duration-300",
+          project ? "border-primary/30 bg-primary/8" : "border-border",
+        )}
+      >
         <button
           type="button"
           aria-label="Back"
@@ -128,12 +139,18 @@ export function FolderBrowser({
           spellCheck={false}
           className="h-12 min-w-0 flex-1 bg-transparent font-mono text-[0.875rem] outline-none"
         />
+        {project && (
+          <span className="flex max-w-[35%] shrink-0 animate-fade-in items-center gap-1.5 font-medium text-primary text-xs">
+            <BookOpen className="size-3.5 shrink-0" aria-hidden="true" />
+            <span className="truncate">{project}</span>
+          </span>
+        )}
         <Button
-          variant="outline"
+          variant={project ? "default" : "outline"}
           size="sm"
           disabled={!listing || busy}
           onClick={addHere}
-          title={listing?.title ? `Add ${listing.title}` : undefined}
+          title={project ? `Add ${project}` : undefined}
         >
           Add
           <Kbd>{modifier} Enter</Kbd>
@@ -153,7 +170,7 @@ export function FolderBrowser({
         {!listing && !problem && <Note>Reading {folder}…</Note>}
         {listing && (
           <>
-            <GroupLabel>{listing.title ? `${listing.title}, a Jotdown project` : "Folders"}</GroupLabel>
+            <GroupLabel>{project ? `${project}, a Jotdown project` : "Folders"}</GroupLabel>
             {rows.map((entry, index) => (
               // biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/useFocusableInteractive: an option of the listbox the focused path field steers by arrow keys and Enter
               <div
@@ -168,18 +185,23 @@ export function FolderBrowser({
                   index === at && "bg-accent text-accent-foreground",
                 )}
               >
-                {entry.title ? (
+                {entry.up ? (
+                  <CornerLeftUp className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                ) : entry.title ? (
                   <BookOpen className="size-4 shrink-0 text-primary" aria-hidden="true" />
                 ) : (
                   <Folder className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                 )}
                 <span className="min-w-0 flex-1 truncate">{entry.name}</span>
+                {entry.up && <span className="shrink-0 text-muted-foreground text-xs">Parent folder</span>}
                 {entry.title && (
                   <span className="max-w-[45%] shrink-0 truncate text-muted-foreground text-xs">{entry.title}</span>
                 )}
               </div>
             ))}
-            {rows.length === 0 && <Note>{needle ? `No folder here matches “${needle}”.` : "No folders here."}</Note>}
+            {rows.length === up.length && (
+              <Note>{needle ? `No folder here matches “${needle}”.` : "No folders here."}</Note>
+            )}
           </>
         )}
       </div>
@@ -258,6 +280,7 @@ function SetUpInstead({
  *
  * @example inside("~", "Sites"); // "~/Sites"
  * @example inside("/", "opt"); // "/opt"
+ * @example inside("~", ""); // "~/"
  */
 function inside(parent: string, name: string) {
   return parent.endsWith("/") ? `${parent}${name}` : `${parent}/${name}`;

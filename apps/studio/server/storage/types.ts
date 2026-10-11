@@ -102,6 +102,8 @@ export type Bookmark = {
   locked: boolean;
   folder?: string;
   owner?: string;
+  /** Always listed, with no way to take it off. */
+  pinned?: boolean;
 };
 
 /** Every doc in the project, and the version they were all read at. */

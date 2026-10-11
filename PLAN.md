@@ -343,7 +343,7 @@ The studio becomes local only. `STUDIO_LOCAL` stops being a switch, because loca
 
 **Done** (2026-10-10). The 2.7 grep finds nothing. Lint, tests and links pass, and the editor checks from 0.2 pass against a folder project. Notes:
 
-- **2.1:** `JOTDOWN_TOKEN` is in, since the repository is private (open question 1). The deployment templates clone `markomitranic/Jotdown` at `main` unless a project pins a tag, and the setup wizard no longer writes a version pin, since Jotdown has no release tags yet. Folder bookmarks moved to `~/.config/jotdown/folders.json`, so the old list does not carry over.
+- **2.1:** `JOTDOWN_TOKEN` was in while the repository was private, and went when it went public on 2026-10-11. The deployment templates clone `markomitranic/Jotdown` at `main` unless a project pins a tag, and the setup wizard no longer writes a version pin, since Jotdown has no release tags yet. Folder bookmarks moved to `~/.config/jotdown/folders.json`, so the old list does not carry over.
 - **2.2:** the default is shadcn's zinc neutrals with its chart palette, Inter for everything read and JetBrains Mono for code; `font-serif` is the system serif. The setup wizard's first palette is Neutral. The setup screenshots and the orphaned images are deleted. `publication-token.png` went in 2.1 with the token step it illustrated.
 - **2.3:** `noa/handbook` and `noa/web` placeholders are `you/notes` and `you/site`, and stories that need several organisations use `acme`.
 - **2.6:** besides the listed pages, every page under `how-it-works/`, `context-warehouse/`, `studio/` and `publication/` was swept, `local-studio.mdx` is now "Running the studio", and `moved.json` keeps only entries with a live target.
@@ -356,7 +356,7 @@ The studio becomes local only. `STUDIO_LOCAL` stops being a switch, because loca
   - Keep `check`; Phase 5 adds `dev` and `build`, Phase 6 `add`.
   - Update `t3.json`: drop the "Local Studio" script; "Dev Server" stays.
 - **Project folder:** `.noation/` becomes `.jotdown/` and the config field `noation` (the pinned framework version) becomes `jotdown`. This covers `CONFIG_FILE`, this repo's own config, the deployment templates, setup plan files, the GraphQL `HEAD:.jotdown/config.json` lookups and every message naming the path. Rename ADR 0020's file to `0020-one-folder-for-jotdown.mdx`.
-- **Env vars:** `NOATION_TOKEN` becomes `JOTDOWN_TOKEN` (and the docker secret id) only while the repo is private. Delete it if Jotdown goes public.
+- **Env vars:** `NOATION_TOKEN` becomes `JOTDOWN_TOKEN` (and the docker secret id) only while the repo is private. Deleted when Jotdown went public.
 - **Text written into repos:** "Edited in Jotdown." (`inplace/session.ts`), "Fixed in Jotdown." (`FixJsonFile.tsx`, `FrontmatterForm.tsx`), and the `AGENTS.md` note in `server/setup/plan.ts`.
 - **Identifiers:**
   - the clipboard marker `data-jotdown-blocks`
@@ -495,7 +495,7 @@ The trimmed studio becomes the Skinny renderer over both adapters, inside the ap
 - **3.3** Kept the `local/` prefix as the address of a folder: `favorites.json` records where each folder is, which is the explicit source. The setup wizard and the AsyncLocalStorage pinning stay as they are until they get in the way.
 - **3.4** `favorites.json` in the data folder holds GitHub favorites and folders; browser storage keeps only a cache of the last answer. Inside the app, **Add a local project** opens the native picker through the app's bridge.
 - **3.5** `publicUrl` is `url` and `version` is `1`.
-- **3.6** A `v*` tag runs `.github/workflows/release.yml`, which builds the DMG on `macos-15` and attaches it to a release. The Electrobun Updater needs a public `release.baseUrl`, so while the repository is private the welcome page checks the latest release with the signed-in token and links to it instead. Every story's play runs in Chromium and WebKit in CI (`bun run test:stories`). Turn into is skipped in WebKit: a scripted click there neither opens a Radix menu nor keeps the selection, while a real click does both.
+- **3.6** A `v*` tag runs `.github/workflows/release.yml`, which builds the DMG on `macos-15` and attaches it to a release. The release also carries the Electrobun Updater's `update.json` and `tar.zst`, read from `releases/latest/download` once the repository is public. The app checks every ten minutes, downloads in the background, and the welcome page and the switcher offer the restart. Every story's play runs in Chromium and WebKit in CI (`bun run test:stories`). Turn into is skipped in WebKit: a scripted click there neither opens a Radix menu nor keeps the selection, while a real click does both.
 - **3.7** `local-studio.mdx` is now "Installing the app". The setup wizard screenshots still show the browser studio.
 
 ## Phase 4: Own the UI layer
@@ -685,7 +685,7 @@ Copies a framework default into the project, shadcn-style.
 
 **App and canvas:**
 
-- A key on any page of a live site opens that page in the app, through a `jotdown://` link.
+- A key on any page of a live site opens that page in the app. Edit in Jotdown already does, with a `jotdown://open/<owner>/<repo>/<page>` link.
 - The last few canvases stay alive in hidden iframes, so switching projects is instant.
 - Deploy status per project in the sidebar, from GitHub deployment statuses.
 - A device-size switch on the canvas.

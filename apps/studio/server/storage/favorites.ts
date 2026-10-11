@@ -21,6 +21,9 @@ export type GitHubFavorite = { key: string; title: string };
 /** How a project is drawn: through its site's canvas, a canvas at another address, a dev server the studio starts, or by the studio itself. */
 export type Renderer = { mode: "site" } | { mode: "custom"; url: string } | { mode: "dev" } | { mode: "skinny" };
 
+/** Jotdown's own manual, listed first among the GitHub favorites for everybody and never taken off. */
+export const JOTDOWN_DOCS: GitHubFavorite = { key: "markomitranic/Jotdown", title: "Jotdown" };
+
 export type Favorites = { github: GitHubFavorite[]; folders: Folder[]; renderers: Record<string, Renderer> };
 
 /**

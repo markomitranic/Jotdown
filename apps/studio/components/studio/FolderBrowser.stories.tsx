@@ -21,10 +21,20 @@ const TREE: Record<string, FolderListing> = {
     path: "/Users/ada/Sites",
     display: "~/Sites",
     title: null,
-    parent: "/Users/ada",
+    parent: "~",
     entries: [
       { name: "handbook", path: "/Users/ada/Sites/handbook", title: "Handbook" },
       { name: "shop-frontend", path: "/Users/ada/Sites/shop-frontend", title: null },
+    ],
+  },
+  "~/Sites/handbook/": {
+    path: "/Users/ada/Sites/handbook",
+    display: "~/Sites/handbook",
+    title: "Handbook",
+    parent: "~/Sites",
+    entries: [
+      { name: "docs", path: "/Users/ada/Sites/handbook/docs", title: null },
+      { name: "src", path: "/Users/ada/Sites/handbook/src", title: null },
     ],
   },
 };
@@ -68,8 +78,11 @@ const meta = preview.meta({
 
 export const Home = meta.story();
 
-/** Inside a folder holding a Jotdown project, which Enter adds. */
+/** Inside a folder holding a Jotdown project, which Enter adds, under the row back up to the parent. */
 export const InSites = meta.story({ args: { start: "~/Sites/" } });
+
+/** Inside a folder that is a Jotdown project, whose header takes the project's colour and whose Add is ready. */
+export const InAProject = meta.story({ args: { start: "~/Sites/handbook/" } });
 
 /** Typing past the last slash narrows the folders listed. */
 export const Narrowing = meta.story({

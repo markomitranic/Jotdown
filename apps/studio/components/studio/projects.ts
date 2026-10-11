@@ -13,7 +13,7 @@ export type ProjectListing = { key: string; title: string; description: string; 
 /**
  * A favorite: a GitHub project or a folder the studio keeps.
  *
- * A locked bookmark is one GitHub will not show the editor, listed so they know
+ * A pinned bookmark is always listed and cannot be taken off. A locked bookmark is one GitHub will not show the editor, listed so they know
  * to ask for access, or a folder that is no longer a project. A folder bookmark
  * says where the folder is on this machine, and the GitHub organisation its git
  * `origin` belongs to, when it has one.
@@ -25,6 +25,8 @@ export type Bookmark = {
   locked: boolean;
   folder?: string;
   owner?: string;
+  /** Always listed, with no way to take it off. */
+  pinned?: boolean;
 };
 
 /**

@@ -54,7 +54,7 @@ export async function addFolder(raw: string): Promise<Folder> {
   return added;
 }
 
-/** One folder's listing for the folder browser: where it is, its title when it is a project, its parent, and the folders inside it. */
+/** One folder's listing for the folder browser: where it is, its title when it is a project, its parent as typed, and the folders inside it. */
 export type FolderListing = {
   path: string;
   display: string;
@@ -66,7 +66,7 @@ export type FolderListing = {
 /**
  * The folders inside one folder, with the title of each that is a Jotdown project, hidden ones left out.
  *
- * @example await browseFolder("~/Sites"); // { path: "/Users/ada/Sites", display: "~/Sites", title: null, parent: "/Users/ada", entries: [{ name: "handbook", path, title: "Handbook" }, …] }
+ * @example await browseFolder("~/Sites"); // { path: "/Users/ada/Sites", display: "~/Sites", title: null, parent: "~", entries: [{ name: "handbook", path, title: "Handbook" }, …] }
  */
 export async function browseFolder(raw: string): Promise<FolderListing> {
   const path = expandHome(raw || "~");
@@ -82,7 +82,7 @@ export async function browseFolder(raw: string): Promise<FolderListing> {
     path,
     display: homeRelative(path),
     title: projectTitle(path),
-    parent: dirname(path) === path ? null : dirname(path),
+    parent: dirname(path) === path ? null : homeRelative(dirname(path)),
     entries,
   };
 }

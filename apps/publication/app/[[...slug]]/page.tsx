@@ -62,6 +62,7 @@ export default async function Page({ params }: Props) {
             title={page.data.title}
             markdownUrl={`${project.assetBase}${markdownUrl(page.slugs)}`}
             githubUrl={githubBlobUrl(project.config, path)}
+            editUrl={jotdownUrl(project.config, page.slugs)}
           >
             <PageContent
               title={page.data.title}
@@ -85,6 +86,16 @@ export default async function Page({ params }: Props) {
  */
 function githubBlobUrl({ repository, branch, content }: ProjectConfig, path: string) {
   return repository ? `${repository}/blob/${branch ?? "main"}/${content ? `${content}/` : ""}${path}` : "";
+}
+
+/**
+ * The page in the Jotdown app, a `jotdown://` link to its project on GitHub, or empty when the project is not on GitHub.
+ *
+ * @example jotdownUrl(config, ["guides", "setup"]); // "jotdown://open/you/notes/guides/setup"
+ */
+function jotdownUrl({ repository }: ProjectConfig, slugs: string[]) {
+  const project = repository?.match(/^https:\/\/github\.com\/([^/]+\/[^/]+?)(?:\.git)?\/?$/)?.[1];
+  return project ? `jotdown://open/${[project, ...slugs.map(encodeURIComponent)].join("/")}` : "";
 }
 
 /**

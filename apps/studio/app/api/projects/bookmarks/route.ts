@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { z } from "zod";
 import { localSession } from "@/server/auth/session";
 import { storage } from "@/server/storage";
-import { forgetFavorite, keepFavorite, readFavorites } from "@/server/storage/favorites";
+import { forgetFavorite, JOTDOWN_DOCS, keepFavorite, readFavorites } from "@/server/storage/favorites";
 import { PROJECT_COOKIE, parseProjectKey } from "@/lib/project-key";
 
 const keepSchema = z.object({ key: z.string().min(1), title: z.string().min(1) });
@@ -10,12 +10,15 @@ const keepSchema = z.object({ key: z.string().min(1), title: z.string().min(1) }
 /**
  * `GET /api/projects/bookmarks`: the favorites, as GitHub and the disk answer for each, and the one last opened.
  *
- * A GitHub favorite GitHub will not show is listed locked, under the title it
+ * Jotdown's own manual comes first among the GitHub favorites, pinned. A
+ * GitHub favorite GitHub will not show is listed locked, under the title it
  * was kept with. While nobody is signed in, each is listed unchecked under that title.
  */
 export async function GET() {
   const session = await localSession();
-  const { github } = await readFavorites();
+  const pinned = JOTDOWN_DOCS.key.toLowerCase();
+  const kept = (await readFavorites()).github.filter((favorite) => favorite.key.toLowerCase() !== pinned);
+  const github = [JOTDOWN_DOCS, ...kept];
   const titles = new Map(github.map((favorite) => [favorite.key.toLowerCase(), favorite.title]));
 
   try {
@@ -23,11 +26,12 @@ export async function GET() {
       session,
       github.flatMap((favorite) => parseProjectKey(favorite.key) ?? []),
     );
-    const bookmarks = answered.map((bookmark) =>
-      bookmark.locked || !session.token
-        ? { ...bookmark, title: titles.get(bookmark.key.toLowerCase()) ?? bookmark.title }
-        : bookmark,
-    );
+    const bookmarks = answered.map((bookmark) => ({
+      ...bookmark,
+      title:
+        bookmark.locked || !session.token ? (titles.get(bookmark.key.toLowerCase()) ?? bookmark.title) : bookmark.title,
+      pinned: bookmark.key.toLowerCase() === pinned || undefined,
+    }));
     return Response.json({ bookmarks, selected: (await cookies()).get(PROJECT_COOKIE)?.value ?? null });
   } catch (error) {
     return Response.json(
