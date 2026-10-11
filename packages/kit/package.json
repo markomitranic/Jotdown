@@ -1,0 +1,21 @@
+{
+  "name": "@jotdown/kit",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./templates/*": "./templates/*.tsx"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "cn": "^0.4.0",
+    "fumadocs-core": "16.15.14",
+    "react": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "typescript": "^7.0.2"
+  }
+}

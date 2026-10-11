@@ -1,0 +1,30 @@
+---
+title: Environment variables
+icon: KeyRound
+description: Every variable the publication and the studio read, with what each does and where it is set.
+---
+
+The studio reads its variables through its `env.ts`, checked with Zod when it
+starts, so a missing or malformed value stops it with its name rather than
+failing a request later. An empty string counts as unset.
+`SKIP_ENV_VALIDATION`, set to anything, skips the check.
+
+## Publication
+
+| Variable | When | Default | What it does |
+| --- | --- | --- | --- |
+| `JOTDOWN_TOKEN` | build, secret | none | A fine-grained GitHub token with read access to `markomitranic/Jotdown`, used only to clone it. Taken back out of the clone before the build runs. See [Publishing the docs](../publication/publishing.mdx#give-the-build-a-token-for-jotdown). |
+| `JOTDOWN_PROJECT` | build | the repository holding `.jotdown/framework` | The project folder to build, which is how `jotdown build` points one checkout at any project. |
+
+## Studio
+
+The app sets what its studio needs. Running the studio from a checkout, you set
+these in the shell that starts it, as in
+`STUDIO_DEV_TOKEN="$(gh auth token)" bun run dev`. All optional.
+
+| Variable | What it does |
+| --- | --- |
+| `STUDIO_DEV_TOKEN` | A GitHub token to use instead of signing in. `gh auth token` is a good value. |
+| `DOCS_DATA_DIR` | Scratch space for copied commits and compiled pages. Defaults to `docs-studio` in the system's temp folder. |
+| `JOTDOWN_DATA_DIR` | Where the list of projects is kept. The app sets its own data folder. |
+| `XDG_CONFIG_HOME` | Where the list of projects is kept when `JOTDOWN_DATA_DIR` is unset, in `jotdown/` under `~/.config`. |

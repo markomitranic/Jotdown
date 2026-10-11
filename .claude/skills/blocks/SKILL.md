@@ -1,0 +1,1 @@
+../../../.agents/skills/blocks/SKILL.md

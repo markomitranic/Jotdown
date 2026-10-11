@@ -1,0 +1,51 @@
+---
+title: "ADR 0023: Renderers and the canvas"
+icon: Frame
+description: Why the studio can draw a project through its own site's build, how the two talk, and why the studio still draws pages itself when it has to.
+---
+
+**Accepted** · 2026-10-10
+
+## Context
+
+The studio drew every project in the framework's default look, with the
+project's colours on top. A site with its own components and layouts, the
+point of Phase 6, would never look like itself while being edited, and the
+studio would need every site's code to draw it.
+
+## Decision
+
+**Three renderers, chosen per project.** *Site* frames `<url>/_edit` from the
+site's own build. *Custom address* frames any canvas, usually a dev server, and
+for a folder the studio can start that dev server itself. *Skinny* is the
+studio drawing the page with the framework's defaults, for a project with no
+site or a site that is down. Site is the default when the config names a
+`url`, Skinny otherwise, and the choice is remembered outside the project.
+
+**Every site build carries a canvas.** `/_edit` is a client-only page with
+the site's layout, theme and blocks and the editor, and no content. Readers
+never load it. It draws whatever page the studio hands it, compiling the text
+in the browser with the same remark chain the build uses.
+
+**The canvas talks to the studio with a small, versioned protocol.** It says
+`hello` with its protocol, framework version and project; the studio checks
+all three and answers with a `load`. Every request the canvas's editor makes
+travels up as a `request` and is answered from the studio's own editing
+endpoints, so a save from a canvas is the same save as one from the studio and
+the storage code never knew. Either side can `navigate`, and the studio sets
+the colour mode. The canvas accepts any loopback studio, since the app's port
+changes, and holds nothing it was not given; the studio accepts only the
+origin it framed.
+
+**A canvas that cannot be used says why.** Nothing answering, a page that is
+not a canvas, a canvas too old or too new, and a canvas of another project each
+get a page with what to do and a button to the Skinny drawing.
+
+## Consequences
+
+- A site's custom components are edited in their own look, from the deployed
+  site or from a dev server with hot reload.
+- The protocol is a contract with every site ever built, so a change to a
+  message is a new version, not an edit.
+- An image uploaded from a canvas shows once the site has it, after the next
+  deploy or at once on a dev server.

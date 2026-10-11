@@ -1,0 +1,54 @@
+---
+title: Copy and paste test
+icon: ClipboardCopy
+description: Mixed blocks to select, copy, cut and paste round trip in the studio.
+---
+
+Drag from this paragraph down into the list below and the selection turns into whole blocks. Copy them, put the caret in the middle of the last paragraph on the page and paste: the paragraph breaks in two around them.
+
+## A heading to carry along
+
+A paragraph with **bold**, *italic*, `inline code` and a [link](./every-block.mdx), so the marks are checked as well as the blocks.
+
+- A bullet list
+- With a second item
+  - And a nested one
+
+1. An ordered list
+2. That keeps its numbers
+
+> A quote, which is a box of its own.
+
+:::note
+A callout with two paragraphs, so a selection can start inside a box and leave it.
+
+The second paragraph of the callout.
+:::
+
+```ts title="example.ts"
+export function greet(name: string) {
+  return `Hello, ${name}.`;
+}
+```
+
+| Block | Copies as |
+| --- | --- |
+| Paragraph | Its words, marks and all |
+| Fence | Its code, highlighted |
+
+---
+
+![A mock screenshot of the site: a sidebar on the left, a title bar and three lines of text on the right.](/img/docs/block-tests-sample.png)
+
+<Steps>
+  <Step>
+    ### First step
+    Steps are a box of their own too.
+  </Step>
+  <Step>
+    ### Second step
+    A step only means anything inside its `<Steps>`.
+  </Step>
+</Steps>
+
+The last paragraph on the page, long enough to paste into the middle of it and see both halves stand on either side of what arrived.

@@ -1,0 +1,26 @@
+/**
+ * The one stylesheet the app imports. Order is the whole content of this file.
+ *
+ * Tailwind first, so its layers exist before anything declares into them. Then
+ * the layout's own sheet, which makes the standard shadcn variables,
+ * `--background`, `--primary`, `--border` and the rest, into Tailwind colours,
+ * and the article's typography. Those values are declared in `brand.css`.
+ *
+ * Then our two sheets: `custom.css` is the blocks and `brand.css` is the default
+ * look, loaded last so a token it restates wins. A project's theme becomes a
+ * stylesheet the layout puts after all of this, so it wins over both.
+ *
+ * Tailwind finds the classes of the app it is built for on its own, and
+ * `@source` points it at this package, the editor and the kit too, which the apps draw from.
+ */
+
+@import "tailwindcss";
+@import "./ui.css";
+@import "./prose.css";
+
+@import "./custom.css";
+@import "./brand.css";
+
+@source "..";
+@source "../../editor";
+@source "../../kit";

@@ -1,0 +1,46 @@
+---
+title: "ADR 0021: One user, and the studio as an app"
+icon: AppWindow
+description: Why Jotdown edits for one person, on their own machine, inside a desktop app, with no sign-in pages, locks or comments.
+---
+
+**Accepted** · 2026-10-10
+
+## Context
+
+Jotdown began as Noation, a hosted studio for a team: sign-in pages, sessions,
+GitHub App installs per organisation, edit locks so two people did not save
+over each other, and comments in a ref of their own. All of it existed so a
+team could share one server.
+
+The person it is for now writes alone: their notes, their sites, the docs of
+what they build. Every one of those features was code to keep working for a
+problem they do not have, and a server they would have to run.
+
+## Decision
+
+**One user.** No locks, comments, presence, organisation installs, sign-in
+pages or password-protected sites. The editor is whoever `git config` names,
+and GitHub is reached with their own token.
+
+**The studio runs on your machine, as an app.** An Electrobun app starts the
+studio's own Next server with the Bun inside it, on loopback, and opens a
+window onto it. Quitting stops it. Nothing runs in the background and nothing
+needs a terminal.
+
+**GitHub sign-in is the device flow.** The app shows a code, you enter it on
+github.com, and the token goes into the macOS Keychain. `STUDIO_DEV_TOKEN`
+still wins when the studio runs from a checkout.
+
+**The local server guards itself.** The window opens with a secret the server
+trades for a cookie, every request without the cookie is refused, and so is
+any `Host` that is not loopback, since any web page in a browser can reach
+`127.0.0.1`.
+
+## Consequences
+
+- Phase 1 deleted every multi-user feature, and the code is a third smaller.
+- The app is ad-hoc signed, so its first launch needs Open Anyway in System
+  Settings until there is a Developer ID.
+- Two people editing one GitHub project still meet at a commit: a save over a
+  file that moved on is refused and offers a reload, as it always was.

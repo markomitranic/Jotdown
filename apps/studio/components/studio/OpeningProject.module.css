@@ -1,0 +1,117 @@
+/* The opening screen and everything on it ease into a project's colours when
+   its brand arrives, rather than switching in one frame. */
+.wearing,
+.wearing * {
+  transition-property: color, background-color, border-color, outline-color, fill, stroke, box-shadow;
+  transition-duration: 500ms;
+  transition-timing-function: ease-out;
+}
+
+/* The pages that travel from the source to the folder while a project opens.
+   Each one spans the whole track and carries its icon at the start, so moving
+   it by its own width, less the icon's, is the whole trip. Transform and
+   opacity only, which the compositor moves without repainting the page. Three
+   of them, a third of the trip apart, so there is always one in flight. */
+
+.page {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  opacity: 0;
+  animation: travel 1.8s ease-in-out infinite;
+}
+
+.page:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+.page:nth-child(4) {
+  animation-delay: 1.2s;
+}
+
+@keyframes travel {
+  0% {
+    opacity: 0;
+    transform: translate(0, -50%);
+  }
+  20%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(100% - 1rem), -50%);
+  }
+}
+
+/* The project's logo settles into the tile once, when its brand arrives. */
+.arrive {
+  animation: arrive 0.45s ease-out;
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
+/* A new line rises into place. The element is re-mounted per line, so this
+   runs once each time the sentence changes. */
+.line {
+  animation: rise 0.35s ease-out;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+}
+
+/* Lines that take turns without a script: five of them stacked in one cell,
+   each shown for a fifth of the cycle, started a fifth apart. */
+.turn {
+  grid-area: 1 / 1;
+  opacity: 0;
+  animation: turn 12s infinite;
+}
+
+@keyframes turn {
+  0% {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+  3%,
+  17% {
+    opacity: 1;
+    transform: none;
+  }
+  20%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wearing,
+  .wearing * {
+    transition: none;
+  }
+
+  .page,
+  .arrive,
+  .line,
+  .turn {
+    animation: none;
+  }
+
+  .turn:first-child {
+    opacity: 1;
+  }
+
+  .page:nth-child(2) {
+    opacity: 1;
+    transform: translate(calc(50% - 0.5rem), -50%);
+  }
+}

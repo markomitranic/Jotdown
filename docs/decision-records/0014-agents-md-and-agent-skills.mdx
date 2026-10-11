@@ -1,0 +1,34 @@
+---
+title: "ADR 0014: AGENTS.md and .agents/skills for every assistant"
+icon: Bot
+description: Why the authoring conventions moved from .claude/CLAUDE.md to AGENTS.md, why the skills moved to .agents/skills, and why the blocks list became a skill instead of a chapter.
+---
+
+**Accepted** · 2026-09-22
+
+## Context
+
+The authoring conventions lived in `.claude/CLAUDE.md` and the skills under `.claude/skills/`, because Claude Code loads both without being asked. That held while Claude Code was the only assistant anybody opened a project in.
+
+It is not any more. Codex reads `AGENTS.md` and discovers skills from `.agents/skills/`. OpenCode reads `AGENTS.md` too. Neither looks inside `.claude/`, so in every project they got the framework's conventions and skills not at all: an assistant would draw a `<div className="…">` around a paragraph or invent a block, and nothing in its context said not to.
+
+The file had also grown to 51 KB. Codex reads at most 32 KiB of project instructions by default and drops the rest without a word, so renaming the file as it stood would have handed Codex the first half, and the blocks list, the styling rules and the writing guide are in the second.
+
+## Decision
+
+The conventions are `AGENTS.md` at the project root, and `.claude/CLAUDE.md` is one line, `@../AGENTS.md`, which is Claude Code's import syntax. The framework ships both. No symlink is involved for that file, so a Windows checkout gets the same behaviour as any other.
+
+The skills are `.agents/skills/`, and `.claude/skills` is a symlink to that folder. Claude Code and OpenCode follow the link, Codex reads the folder directly. *Since amended:* the link is one per file, made by `scripts/link-skills.ts`, because pnpm 12 cannot install a git repository holding a symlink to a folder.
+
+The blocks list and the styling rules are a skill, `.agents/skills/blocks/SKILL.md`, rather than two chapters of `AGENTS.md`. The chapters on sections, generated pages and changelogs are cut to their rules and point at the manual page that teaches each. That brings `AGENTS.md` to about 26 KB. Since not every tool discovers skills, `AGENTS.md` names each skill by path with the task it is for, so a tool that lists nothing still gets told where to read.
+
+Every skill's description opens with "Use only when working on the docs site." A project in a monorepo links its skills into the repository root's `.agents/skills/`, where they are listed beside the skills for the application code, and the description is the only thing that stops a tool picking `figures` up for a React component.
+
+The figure skill's folder is renamed from `figure-designer` to `figures`, its `name`, since the skill format expects the two to match.
+
+## Consequences
+
+- Any assistant that reads `AGENTS.md` gets the conventions in every project with nothing set up. Claude Code keeps working through the import.
+- A project in a monorepo still needs two lines by hand, since its files sit in a content folder and tools read from the repository root: a pointer in the root `AGENTS.md` and a symlink per skill into the root's `.agents/skills/`.
+- The manual pages on sections and generated pages are now the long form and `AGENTS.md` the short one, so a change in how those work is written on the page first.
+- Anything that quoted `.claude/CLAUDE.md` as the place to read now says `AGENTS.md`. Older decision records keep the old name, as records do.

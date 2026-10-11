@@ -1,0 +1,54 @@
+---
+title: "ADR 0020: One folder for Jotdown"
+icon: FolderCog
+description: Why a project's config moved from docs.config.json at the repository root to .jotdown/config.json, beside the host files, with the publication's build cloning Jotdown into .jotdown/framework.
+---
+
+**Accepted** · 2026-10-01
+
+## Context
+
+A content project was meant to carry content and one config file, and in a
+repository that is only docs it did. Most projects are not that: the docs sit
+in an application's repository, beside its code, and that repository already
+has a `vercel.json` and a `Dockerfile` at its root, for the application.
+
+Publishing put Jotdown's own copies of those two files at the same root, where
+they hijack the application's. Putting them anywhere else made every command
+count its way back up, `cd ../..` and deeper, one more folder per level of the
+content folder, inside a Vercel command capped at 256 characters. Meanwhile
+`docs.config.json` sat at the root by itself, the build cloned the framework
+into a folder of its own beside it, and nothing tied the three together.
+
+## Decision
+
+Everything that is Jotdown's and not content lives in one committed folder at
+the repository root, `.jotdown/`, the way `.github/` and `.claude/` do.
+
+- **The config is `.jotdown/config.json`.** It is the one file every project
+  has, at a path that never changes, so the studio, the publication, the
+  command line and the setup wizard all look in one place. `CONFIG_FILE` in
+  `packages/core/server/config.ts` names it. There is no fallback to
+  `docs.config.json`: the framework was in alpha, and every project moved at once.
+- **A host's files sit beside it,** `.jotdown/vercel.json`, or
+  `.jotdown/Dockerfile` with its `Dockerfile.dockerignore`, under whatever
+  names they need, and never meet an application's files.
+- **The build happens inside it.** Jotdown is cloned into `.jotdown/framework`,
+  and on Vercel the docs are a project of their own whose Root Directory is
+  `.jotdown`, so `build.sh` writes `.jotdown/.vercel/output`. The repository
+  root is always one folder up, whatever `content` says. A `.gitignore` in the
+  folder keeps the clone and the output out of git.
+
+Pages stay where `content` puts them, the repository root unless it names
+another folder.
+
+## Consequences
+
+- No Jotdown file is ever in an application's way, and the repository root
+  gains one folder however a project is published.
+- Every path from a host's files back to the root is the same `..`, so neither
+  the wizard nor a person setting up a host does depth arithmetic.
+- A Docker image builds from the root with `docker build -f .jotdown/Dockerfile .`,
+  and BuildKit reads the ignore file named after it.
+- Projects set up before this, the earlier decision records included, name
+  `docs.config.json`. Records keep the name they were written with.

@@ -1,0 +1,1 @@
+../../../../../.agents/skills/figure/references/forms/fishbone.md

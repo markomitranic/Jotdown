@@ -1,0 +1,53 @@
+---
+title: Tables
+description: A markdown table, aligned, holding links, wider than the column, and widened past it.
+---
+
+| Column | Meaning | Default |
+| --- | --- | --- |
+| `title` | The page name in the sidebar | required |
+| `description` | The card subtitle and the search snippet | none |
+| `pages` | The order inside a folder | alphabetical |
+
+A colon under the header row moves the alignment:
+
+| Left | Centred | Right |
+| :--- | :---: | ---: |
+| `docs/index.mdx` | yes | 1 |
+| `docs/meta.json` | no | 24 |
+| `docs/decision-records/0006-fumadocs.mdx` | yes | 1,208 |
+
+Cells take inline markdown:
+
+| Page | Why it exists |
+| --- | --- |
+| [Browser editor](/manual/browser-editor) | **The** thing people ask about first |
+| [Mermaid diagrams](/manual/mermaid-diagrams) | Fences that render as `<Mermaid />` |
+
+A table wider than the column scrolls inside its own box:
+
+| Field | Type | Required | Default | Where it is read | What breaks without it |
+| --- | --- | --- | --- | --- | --- |
+| `title` | `string` | yes | none | `meta.json`, front matter | The sidebar row has no words in it |
+| `description` | `string` | yes | none | Section cards, search results | The card is a title and a blank space |
+| `icon` | Lucide name | no | none | Sidebar, page heading | Nothing; the row is text only |
+
+Inside `:::wide` it stands wider than the column, and inside `:::full` it runs to the edges of the page:
+
+:::wide
+
+| Field | Type | Required | Default | Where it is read | What breaks without it |
+| --- | --- | --- | --- | --- | --- |
+| `title` | `string` | yes | none | `meta.json`, front matter | The sidebar row has no words in it |
+| `description` | `string` | yes | none | Section cards, search results | The card is a title and a blank space |
+
+:::
+
+:::full
+
+| Field | Type | Required | Default | Where it is read | What breaks without it |
+| --- | --- | --- | --- | --- | --- |
+| `pages` | `string[]` | no | alphabetical | Sidebar order | Order follows the file names |
+| `root` | `boolean` | no | `false` | Section switcher | The folder joins its parent's tree |
+
+:::

@@ -1,0 +1,6 @@
+{
+  "title": "Changelog",
+  "icon": "RotateCcwClock",
+  "description": "An example app's releases, split by major version.",
+  "pages": ["v1", "v0"]
+}

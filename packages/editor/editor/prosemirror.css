@@ -1,0 +1,206 @@
+/**
+ * The handful of rules the editing surface cannot express as utilities.
+ *
+ * Everything else in the editor is Tailwind on the element. What is left here
+ * is the DOM ProseMirror owns and React never touches: the contenteditable
+ * root, the placeholder pseudo-elements, the cells of a cell selection, and the
+ * table markup a transaction rewrites on every keystroke. Colours are the
+ * theme's tokens, so both colour modes follow along.
+ */
+
+/* -------------------------------------------------------------- surface -- */
+
+/* A React node view's content is one element the view renders, carrying the
+   classes, and one element ProseMirror fills, inside it. For a grid of cards
+   that inner element is the grid's only child and every card lands in one
+   cell, so there it is made transparent and the cards are the grid's items. */
+.jd-grid-content > [data-node-view-content-react] {
+  display: contents;
+}
+
+.ProseMirror {
+  outline: none;
+  caret-color: var(--color-primary);
+}
+
+/* Collapsing whitespace is what markdown does, so the surface breaks its lines
+   where the rendered page breaks them rather than where the author's 80-column
+   wrapping happens to fall. Code blocks keep their own rule. The selector is
+   doubled up because Tiptap injects its own stylesheet at runtime, which is
+   later than this file, so a single class would lose the tie. */
+div.prose.ProseMirror {
+  white-space: normal;
+}
+
+/* The body's placeholder, and the frontmatter fields' own. `:empty` is not
+   usable for the fields: browsers leave a stray <br> behind when the last
+   character of a contenteditable goes, so a field flags itself instead. */
+.ProseMirror .is-empty::before,
+.le-field[data-empty="true"]::before {
+  float: left;
+  height: 0;
+  content: attr(data-placeholder);
+  color: var(--color-muted-foreground);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.ProseMirror-gapcursor::after {
+  border-top-color: var(--color-foreground);
+}
+
+/* A read-only page renders code through Shiki, which the editor has no
+   equivalent for, so a plain <pre> is dressed to match. Direct children only,
+   to keep this away from an inert block's source. */
+.ProseMirror > pre {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--jd-radius);
+  background: var(--color-secondary);
+  color: var(--color-foreground);
+}
+
+/* --------------------------------------------------------------- blocks -- */
+
+/* An image is an atom, so a click selects the whole thing rather than putting a
+   caret in it. The ring is what says so. */
+.ProseMirror img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--jd-radius);
+}
+
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------- tables -- */
+
+/* A cell wraps its text in a paragraph the reading view has no equivalent for,
+   and that paragraph's bottom margin would push every row taller than the same
+   table rendered. The minimum width is for the table you have just inserted,
+   whose columns would otherwise be a few pixels of padding each. */
+
+.ProseMirror .tableWrapper {
+  overflow-x: auto;
+}
+
+.ProseMirror :is(th, td) > p {
+  margin: 0;
+}
+
+.ProseMirror :is(th, td) {
+  min-width: 4rem;
+}
+
+/* ProseMirror renders every row into one <tbody>, so the header row misses the
+   rules the theme hangs off <thead>. Odd rows are the striped ones here. */
+.ProseMirror tr:nth-child(2n + 1) {
+  background-color: color-mix(in srgb, var(--color-muted) 60%, transparent);
+}
+
+.ProseMirror tr:first-child {
+  border-bottom: 2px solid var(--color-border);
+}
+
+/* prosemirror-tables marks the cells of a cell selection and leaves the look
+   to us. */
+.ProseMirror .selectedCell {
+  position: relative;
+}
+
+.ProseMirror .selectedCell::after {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  content: "";
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------- fences -- */
+
+/* A container that zeroes its first and last child's margins, a callout body
+   say, reaches the transparent host a node view sits in rather than the block
+   the view drew, so the block's own margin is zeroed from here. */
+.prose-no-margin > .react-renderer.contents:first-child > * > :first-child {
+  margin-top: 0;
+}
+
+.prose-no-margin > .react-renderer.contents:last-child > * > :last-child {
+  margin-bottom: 0;
+}
+
+/* The language control sits in the frame's corner beside the copy button and
+   only shows while the fence is pointed at or written in, so a fence being read
+   is the fence the build drew. The frame is the positioned ancestor, whether
+   the build drew it or the view did. */
+.jd-fence-language {
+  position: absolute;
+  top: 0.6rem;
+  right: 2.75rem;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 120ms;
+}
+
+/* A fence with a header keeps its copy button up there, so the corner beside
+   the code is free and the control moves into it. */
+figure:has(figcaption) .jd-fence-language {
+  right: 0.75rem;
+}
+
+figure:hover .jd-fence-language,
+figure:focus-within .jd-fence-language,
+.jd-fence-language:focus {
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------- uploads -- */
+
+/* A file on its way to the repository, drawn faded where its block will land.
+   Only the file itself fades, so a picture's spinner stays sharp over it. */
+.jd-ghosts {
+  pointer-events: none;
+  user-select: none;
+}
+
+.jd-ghosts :is(.jd-shot-img, .jd-ghost-frame, .jd-file) {
+  opacity: 0.45;
+}
+
+.jd-ghost-frame {
+  display: block;
+  width: 36rem;
+  max-width: 100%;
+  height: 10rem;
+  border: 1px dashed var(--jd-line-strong);
+  border-radius: 0.5rem;
+}
+
+/* An attachment asking about itself: the card comes up to full strength, its
+   line under the name takes the place of "Uploading", and the choices sit at
+   its end. */
+.jd-ghosts .jd-file[data-asking] {
+  opacity: 1;
+}
+
+.jd-file[data-asking] .jd-file-meta {
+  display: none;
+}
+
+.jd-file[data-asking] :is(.jd-file-kind, .jd-file-name) {
+  opacity: 0.6;
+}
+
+.jd-upload-actions {
+  align-self: center;
+}
+
+/* A placeholder with pictures held over it, which a drop fills. */
+.jd-missing-target {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 0.5rem;
+  border-radius: 0.5rem;
+}

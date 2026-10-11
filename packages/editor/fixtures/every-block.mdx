@@ -1,0 +1,383 @@
+---
+title: Block tests
+icon: Blocks
+description: One of every block the framework supports, on a single page, so a styling change can be checked by eye in one scroll.
+---
+
+Every block from the block list in the blocks skill (`.agents/skills/blocks/SKILL.md`), once each, with the variants that have a way to break. Open this page after touching `custom.css`, `brand.css` or anything under `packages/core/components/`, and scroll. If a block looks wrong here, it looks wrong everywhere.
+
+The same page, opened in the browser editor, is also the editor's test: each block here has to round-trip through a save without changing a byte.
+
+## Plain markdown
+
+Running text with **bold**, *italic*, `inline code`, a [relative link](./browser-editor.mdx), a [site-absolute link](/manual/mermaid-diagrams) and an <abbr title="A hover tooltip explaining a term in plain words">abbr</abbr> with a title. A second sentence, long enough to wrap onto another line at the default column width, so line height and the measure can be judged at the same time.
+
+> A blockquote. The plugin styles this; nothing of ours touches it any more.
+
+- An unordered list
+- With a second item
+  - And a nested one
+
+1. An ordered list
+2. With a second step
+3. And a third, because the numbering only shows at three
+
+---
+
+### A third-level heading
+
+#### And a fourth
+
+Text under the smallest heading anybody should use.
+
+## Tables
+
+A markdown table is a markdown table. There is no component to import and no
+wrapper to type: the framework's `table` puts the element in a scrolling box
+and the prose typography draws the rest.
+
+| Column | Meaning | Default |
+| --- | --- | --- |
+| `title` | The page name in the sidebar | required |
+| `description` | The card subtitle and the search snippet | none |
+| `pages` | The order inside a folder | alphabetical |
+
+The dashes under the header row carry the alignment, and a colon is what moves
+it. Left is the default, `:---:` centres, `---:` pushes right, which is the one
+you want for a column of numbers:
+
+| Left | Centred | Right |
+| :--- | :---: | ---: |
+| `docs/index.mdx` | yes | 1 |
+| `docs/meta.json` | no | 24 |
+| `docs/decision-records/0006-fumadocs.mdx` | yes | 1,208 |
+
+Cells take inline markdown, so a table of pages can link to them:
+
+| Page | Section | Why it exists |
+| --- | --- | --- |
+| [Browser editor](./browser-editor.mdx) | Docs manual | **The** thing people ask about first |
+| [Mermaid diagrams](./mermaid-diagrams.mdx) | Docs manual | Fences that render as `<Mermaid />` |
+| [ADR 0006](../decision-records/0006-fumadocs.mdx) | Decision records | Why the site is Fumadocs and not a theme |
+
+A table wider than the article column scrolls sideways inside its own box rather
+than pushing the page out, so grab this one and drag:
+
+| Field | Type | Required | Default | Where it is read | What breaks without it |
+| --- | --- | --- | --- | --- | --- |
+| `title` | `string` | yes | none | `meta.json`, front matter | The sidebar row has no words in it |
+| `description` | `string` | yes | none | Section cards, search results | The card is a title and a blank space |
+| `icon` | Lucide name | no | none | Sidebar, page heading | Nothing; the row is text only |
+| `pages` | `string[]` | no | alphabetical | Sidebar order | Order follows the file names |
+| `root` | `boolean` | no | `false` | Section switcher | The folder joins its parent's tree |
+| `pagesIndex` | `string` | no | none | Section switcher target | The switcher row opens whichever page is first |
+
+## Callouts
+
+:::note
+
+A note, with no label, so it prints its own name.
+
+:::
+
+:::tip[With a label]
+
+A tip carrying a custom label and *emphasis* inside.
+
+:::
+
+:::info
+
+An info callout.
+
+:::
+
+:::warning
+
+A warning. `:::warn` and `:::caution` are the same block.
+
+:::
+
+:::danger
+
+A danger callout, for the thing that loses data.
+
+:::
+
+:::source
+
+The grey one with a bookmark, for where a pattern comes from. Fowler, *Refactoring*, 2nd edition, 2018.
+
+:::
+
+## Code fences
+
+A fence with a title and line numbers:
+
+```ts title="lib/source.ts" lineNumbers
+import { loader } from "fumadocs-core/source";
+import { docs } from "@/.source/server";
+
+export const source = loader({
+  baseUrl: "/",
+  source: docs.toFumadocsSource(),
+});
+```
+
+Annotations, one of each kind:
+
+```ts
+const before = "this line is highlighted"; // [!code highlight]
+const removed = "this line is a deletion"; // [!code --]
+const added = "this line is an addition"; // [!code ++]
+const word = parseDocument(source); // [!code word:parseDocument]
+```
+
+Focus dims everything that is not marked:
+
+```ts
+function unrelated() {}
+
+export function theOneThatMatters() {} // [!code focus]
+
+function alsoUnrelated() {}
+```
+
+Two adjacent fences with `tab="…"` become one tabbed block:
+
+```bash tab="bun"
+bun add fumadocs-core fumadocs-ui
+```
+
+```bash tab="npm"
+npm install fumadocs-core fumadocs-ui
+```
+
+A fence with no language at all:
+
+```
+plain text, no highlighting, still framed
+```
+
+## Images
+
+A screenshot with alt text and a caption:
+
+![A mock screenshot of the site: a sidebar on the left, a title bar and three lines of text on the right.](/img/docs/block-tests-sample.png "The caption comes from the quoted title after the path. Click the image to zoom.")
+
+The same file with no alt and no caption, which marks it decorative:
+
+![](/img/docs/block-tests-sample.png)
+
+## Mermaid
+
+```mermaid
+flowchart LR
+  A[Markdown in the repo] --> B[remark plugins]
+  B --> C[React components]
+  C --> D[The page you are reading]
+  D -. pencil in the margin .-> A
+```
+
+```mermaid
+sequenceDiagram
+  participant E as Editor
+  participant R as Route handler
+  participant G as GitHub
+  E->>R: PUT /api/live-edit/save
+  R->>G: commit on main
+  G-->>R: new sha
+  R-->>E: { commitSha }
+```
+
+## Video
+
+Both this and the card below are insertable from the browser editor, and both write a JSX tag, so the slash menu withholds them on a `.md` page where a tag renders as literal text. See [the browser editor](./browser-editor.mdx).
+
+<VideoEmbed url="https://www.youtube.com/watch?v=dQw4w9WgXcQ" />
+
+## Link embed
+
+Every prop set, the way a paste writes it:
+
+<LinkEmbed
+  url="https://fumadocs.dev/"
+  title="Fumadocs"
+  description="The React.js documentation framework."
+  site="Fumadocs"
+  image="https://www.fumadocs.dev/banner.png"
+  favicon="https://www.fumadocs.dev/icon.png?icon.1j4qb02i3kfg4.png"
+/>
+
+A repository, its picture a wide social card:
+
+<LinkEmbed
+  url="https://github.com/vercel/next.js"
+  title="GitHub - vercel/next.js: The React Framework"
+  description="The React Framework. Contribute to vercel/next.js development by creating an account on GitHub."
+  site="GitHub"
+  image="https://repository-images.githubusercontent.com/70107786/4602445c-10a2-4903-a360-c96d70531f67"
+  favicon="https://github.githubassets.com/favicons/favicon.png"
+/>
+
+Only the required prop, as a page behind a sign-in answers:
+
+<LinkEmbed url="https://dev.azure.com/contoso/handbook/_wiki/wikis/handbook.wiki/1/Getting-started" />
+
+## File attachment
+
+Every prop set:
+
+<FileAttachment
+  href="/files/docs/block-tests-sample.txt"
+  name="block-tests-sample.txt"
+  size="158"
+  uploadedAt="2026-09-09"
+  note="A two-line text file that exists so this card has something real to download."
+/>
+
+Only the required prop:
+
+<FileAttachment href="/files/docs/block-tests-sample.txt" />
+
+## Figures
+
+An inline SVG figure drawn against the `--jd-fig-*` palette, so it follows the colour mode. Click it: it opens on the fullscreen stage, in the same palette, with the labels still in the mono face:
+
+<figure className="jd-fig">
+  <div className="jd-fig-frame">
+    <svg viewBox="0 0 920 240" role="img" aria-label="Three boxes in a row, labelled Presentation, Domain and Infrastructure, each in its own layer colour, joined by arrows left to right, with a small accent-coloured chip below them.">
+      <defs>
+        <marker id="bt-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--jd-fig-line)" />
+        </marker>
+      </defs>
+      <text x="40" y="44" fontSize="10" letterSpacing="1.5" fill="var(--jd-fig-muted)">THE THREE LAYER COLOURS, AND THE ACCENT</text>
+      <rect x="40" y="70" width="240" height="90" rx="10" fill="var(--jd-fig-p-bg)" stroke="var(--jd-fig-line-soft)" />
+      <text x="160" y="110" fontSize="15" fontWeight="600" textAnchor="middle" fill="var(--jd-fig-p-ink)">Presentation</text>
+      <text x="160" y="134" fontSize="11.5" textAnchor="middle" fill="var(--jd-fig-muted)">--jd-fig-p-*</text>
+      <line x1="280" y1="115" x2="336" y2="115" stroke="var(--jd-fig-line)" strokeWidth="1.5" markerEnd="url(#bt-arrow)" />
+      <rect x="340" y="70" width="240" height="90" rx="10" fill="var(--jd-fig-d-bg)" stroke="var(--jd-fig-line-soft)" />
+      <text x="460" y="110" fontSize="15" fontWeight="600" textAnchor="middle" fill="var(--jd-fig-d-ink)">Domain</text>
+      <text x="460" y="134" fontSize="11.5" textAnchor="middle" fill="var(--jd-fig-muted)">--jd-fig-d-*</text>
+      <line x1="580" y1="115" x2="636" y2="115" stroke="var(--jd-fig-line)" strokeWidth="1.5" markerEnd="url(#bt-arrow)" />
+      <rect x="640" y="70" width="240" height="90" rx="10" fill="var(--jd-fig-i-bg)" stroke="var(--jd-fig-line-soft)" />
+      <text x="760" y="110" fontSize="15" fontWeight="600" textAnchor="middle" fill="var(--jd-fig-i-ink)">Infrastructure</text>
+      <text x="760" y="134" fontSize="11.5" textAnchor="middle" fill="var(--jd-fig-muted)">--jd-fig-i-*</text>
+      <rect x="40" y="184" width="232" height="32" rx="4" fill="var(--jd-fig-accent-soft)" stroke="var(--jd-fig-accent)" strokeWidth="1.5" />
+      <text x="156" y="205" fontSize="11.5" textAnchor="middle" fill="var(--jd-fig-accent)">--jd-fig-accent</text>
+      <text x="880" y="205" fontSize="11.5" textAnchor="end" fill="var(--jd-fig-ink)">Switch the colour mode: every fill and stroke should follow.</text>
+    </svg>
+  </div>
+  <figcaption>A figure caption, under the frame.</figcaption>
+</figure>
+
+The escape hatch is an HTML figure, for the cases SVG is worse at: real text
+wrapping, a long list, a comparison dressed as a figure. It has no drawing for
+the stage to show, so it offers none of the stage's affordances. Hover it: no
+zoom cursor, no border brightening, no Click to expand.
+
+<figure className="jd-fig fig-bt-html">
+  <style>{`
+    .fig-bt-html .fig-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .fig-bt-html .fig-cell { flex: 1 1 12rem; padding: 0.9rem 1rem; border-radius: 8px; background: var(--jd-fig-surface); border: 1px solid var(--jd-fig-line-soft); }
+    .fig-bt-html .fig-cell.is-staged { background: var(--jd-fig-d-bg); border-color: var(--jd-fig-d-ink); }
+    .fig-bt-html .fig-name { font-family: var(--font-label); font-size: 0.75rem; letter-spacing: 0.08em; color: var(--jd-fig-muted); }
+    .fig-bt-html .fig-body { margin-top: 0.3rem; font-size: 0.875rem; color: var(--jd-fig-ink); }
+  `}</style>
+  <div className="jd-fig-frame">
+    <div className="fig-row">
+      <div className="fig-cell is-staged">
+        <div className="fig-name">SVG FIGURE</div>
+        <div className="fig-body">Holds a drawing, so it opens on the stage.</div>
+      </div>
+      <div className="fig-cell">
+        <div className="fig-name">HTML FIGURE</div>
+        <div className="fig-body">Holds text, so it stays on the page.</div>
+      </div>
+    </div>
+  </div>
+  <figcaption>An HTML figure. The colours are the same `--jd-fig-*` tokens, so it follows the colour mode too.</figcaption>
+</figure>
+
+## Layout components
+
+Five families of layout components are registered, so a page uses them with no import. Each one gets its own heading here so a styling change can be checked against it directly.
+
+Three of the six open as themselves in the browser editor: Tabs, Steps and Accordions each edit as their panels, with the prose inside them ordinary prose. The other three cannot be inserted yet, and each says below what it is waiting on. They still round-trip: the editor draws one as a greyed-out inert block and writes it back byte for byte, which is why they belong on this page. The queue lives above `ITEMS` in `apps/studio/src/plugins/live-edit/editor/menus/slashSuggestion.ts`, and [the browser editor](./browser-editor.mdx) explains why an entry cannot be added before a node is.
+
+### Tabs
+
+<Tabs items={['bun', 'npm', 'pnpm']}>
+  <Tab value="bun">Content of the bun tab.</Tab>
+  <Tab value="npm">Content of the npm tab.</Tab>
+  <Tab value="pnpm">Content of the pnpm tab.</Tab>
+</Tabs>
+
+### Steps
+
+<Steps>
+  <Step>
+    ### Write the page
+    Create the `.mdx` file and give it front matter.
+  </Step>
+  <Step>
+    ### List it
+    Add its name to the folder's `meta.json`.
+    ```json
+    { "pages": ["index", "block-tests", "..."] }
+    ```
+  </Step>
+  <Step>
+    ### Build
+    Run `pnpm build` before you commit.
+  </Step>
+</Steps>
+
+### Files
+
+<Files>
+  <Folder name="docs" defaultOpen>
+    <File name="index.mdx" />
+    <File name="meta.json" />
+    <Folder name="manual" defaultOpen>
+      <File name="block-tests.mdx" />
+      <File name="meta.json" />
+    </Folder>
+  </Folder>
+</Files>
+
+### Cards
+
+<Cards>
+  <Card title="Browser editor" description="How a save becomes a commit." href="/manual/browser-editor" />
+  <Card title="Mermaid diagrams" description="Ten diagram types, worked through." href="/manual/mermaid-diagrams" />
+</Cards>
+
+### Accordions
+
+<Accordions defaultValue="Why is this one already open?">
+  <Accordion title="Why is this one already open?">
+    `defaultValue` on `<Accordions>` is the title of the panel that starts
+    expanded. Leave it off and every panel starts closed.
+  </Accordion>
+  <Accordion title="Can a panel hold a code block?" id="panel-with-code">
+    Yes. A panel is ordinary MDX, so anything else on this page goes inside one.
+    This panel also carries an `id`, which is what puts the link button on its
+    right and makes the panel open when somebody arrives on that anchor.
+
+    ```json
+    { "pages": ["index", "block-tests", "..."] }
+    ```
+  </Accordion>
+  <Accordion title="Can two panels be open at once?">
+    Only with `type="multiple"` on `<Accordions>`. The default is `"single"`,
+    where opening one closes the last.
+  </Accordion>
+</Accordions>
+
+## Card grid
+
+The section's own card grid, bound to this page, with a custom title. This page is never listed in it:
+
+<DocCardList title="The rest of this section" />

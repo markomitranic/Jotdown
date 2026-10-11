@@ -1,0 +1,21 @@
+---
+title: Accordions
+description: Panels that open one at a time, one open from the start and one holding code.
+---
+
+<Accordions defaultValue="Why is this one already open?">
+  <Accordion title="Why is this one already open?">
+    `defaultValue` on `<Accordions>` is the title of the panel that starts
+    expanded. Leave it off and every panel starts closed.
+  </Accordion>
+  <Accordion title="Can a panel hold a code block?" id="panel-with-code">
+    Yes. A panel is ordinary MDX, so anything else on a page goes inside one.
+
+    ```json
+    { "pages": ["index", "block-tests", "..."] }
+    ```
+  </Accordion>
+  <Accordion title="Can two panels be open at once?">
+    Only with `type="multiple"` on `<Accordions>`.
+  </Accordion>
+</Accordions>

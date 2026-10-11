@@ -1,0 +1,22 @@
+---
+title: Steps
+description: Numbered steps, each with a heading and prose, one holding a code fence.
+---
+
+<Steps>
+  <Step>
+    ### Write the page
+    Create the `.mdx` file and give it front matter.
+  </Step>
+  <Step>
+    ### List it
+    Add its name to the folder's `meta.json`.
+    ```json
+    { "pages": ["index", "block-tests", "..."] }
+    ```
+  </Step>
+  <Step>
+    ### Build
+    Run `bun run check:links` before you commit.
+  </Step>
+</Steps>

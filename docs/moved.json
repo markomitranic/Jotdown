@@ -1,0 +1,130 @@
+[
+  {
+    "from": "docs/manual/index.mdx",
+    "to": "docs/technical-introduction.mdx"
+  },
+  {
+    "from": "docs/manual/local-studio.mdx",
+    "to": "docs/studio/local-studio.mdx"
+  },
+  {
+    "from": "docs/manual/publishing.mdx",
+    "to": "docs/publication/publishing.mdx"
+  },
+  {
+    "from": "docs/manual/sections.mdx",
+    "to": "docs/how-it-works/sections.mdx"
+  },
+  {
+    "from": "docs/manual/sidebar-links.mdx",
+    "to": "docs/how-it-works/sidebar-links.mdx"
+  },
+  {
+    "from": "docs/manual/theming.mdx",
+    "to": "docs/studio/branding.mdx"
+  },
+  {
+    "from": "docs/manual/whiteboards.mdx",
+    "to": "docs/how-it-works/whiteboards.mdx"
+  },
+  {
+    "from": "docs/manual/mermaid-diagrams.mdx",
+    "to": "docs/how-it-works/mermaid-diagrams.mdx"
+  },
+  {
+    "from": "docs/manual/agents.mdx",
+    "to": "docs/context-warehouse/connecting-agents.mdx"
+  },
+  {
+    "from": "docs/manual/changelog.md",
+    "to": "docs/how-it-works/changelog.md"
+  },
+  {
+    "from": "docs/manual/browser-editor.mdx",
+    "to": "docs/how-it-works/browser-editor.mdx"
+  },
+  {
+    "from": "docs/manual/block-tests.mdx",
+    "to": "docs/examples/every-block.mdx"
+  },
+  {
+    "from": "docs/copy-paste-test.mdx",
+    "to": "docs/examples/copy-paste.mdx"
+  },
+  {
+    "from": "docs/changelog/v0.md",
+    "to": "docs/examples/changelog/v0.md"
+  },
+  {
+    "from": "docs/changelog/v1.md",
+    "to": "docs/examples/changelog/v1.md"
+  },
+  {
+    "from": "docs/changelog/v2.md",
+    "to": "docs/examples/changelog/v2.md"
+  },
+  {
+    "from": "docs/concepts.mdx",
+    "to": "docs/technical-introduction.mdx"
+  },
+  {
+    "from": "docs/local-studio.mdx",
+    "to": "docs/studio/local-studio.mdx"
+  },
+  {
+    "from": "docs/guides/theming.mdx",
+    "to": "docs/studio/branding.mdx"
+  },
+  {
+    "from": "docs/publishing.mdx",
+    "to": "docs/publication/publishing.mdx"
+  },
+  {
+    "from": "docs/guides/agents.mdx",
+    "to": "docs/context-warehouse/connecting-agents.mdx"
+  },
+  {
+    "from": "docs/guides/reviewing-agent-pages.mdx",
+    "to": "docs/context-warehouse/reviewing-agent-pages.mdx"
+  },
+  {
+    "from": "docs/reference/index.mdx",
+    "to": "docs/how-it-works/index.mdx"
+  },
+  {
+    "from": "docs/reference/configuration.mdx",
+    "to": "docs/how-it-works/configuration.mdx"
+  },
+  {
+    "from": "docs/reference/pages-and-folders.mdx",
+    "to": "docs/how-it-works/pages-and-folders.mdx"
+  },
+  {
+    "from": "docs/reference/changelog.md",
+    "to": "docs/how-it-works/changelog.md"
+  },
+  {
+    "from": "docs/guides/editing.mdx",
+    "to": "docs/how-it-works/editing.mdx"
+  },
+  {
+    "from": "docs/guides/pages.mdx",
+    "to": "docs/how-it-works/pages.mdx"
+  },
+  {
+    "from": "docs/guides/sections.mdx",
+    "to": "docs/how-it-works/sections.mdx"
+  },
+  {
+    "from": "docs/guides/sidebar-links.mdx",
+    "to": "docs/how-it-works/sidebar-links.mdx"
+  },
+  {
+    "from": "docs/guides/mermaid-diagrams.mdx",
+    "to": "docs/how-it-works/mermaid-diagrams.mdx"
+  },
+  {
+    "from": "docs/guides/whiteboards.mdx",
+    "to": "docs/how-it-works/whiteboards.mdx"
+  }
+]

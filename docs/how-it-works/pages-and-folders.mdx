@@ -1,0 +1,82 @@
+---
+title: Pages and folders
+icon: FolderTree
+description: Every front matter field a page may carry, and every field and row of a folder's meta.json.
+---
+
+A page is an `.mdx` file under `docs/`, and its address is its path:
+`docs/guides/theming.mdx` is served at `/guides/theming`. A folder is a group
+in the sidebar, and its `meta.json` says what it is called and what order its
+pages come in.
+
+## Page front matter
+
+```yaml
+---
+title: Code review
+description: One sentence. Shows up in search results and on section cards.
+icon: GitPullRequest
+---
+```
+
+| Field | Required | What it does |
+| --- | --- | --- |
+| `title` | yes | The page's heading and its sidebar label. |
+| `description` | yes | Printed under the title, and shown in search and on section cards. |
+| `icon` | no | A [Lucide](https://lucide.dev/icons/) icon name, beside the title and the sidebar row. |
+| `changelog` | no | `true` draws the page as a filterable release timeline. The page is `.md`. |
+| `generated` | no | `true` marks a page a tool writes, so the studio will not edit it. |
+
+Any other field is dropped. `slug`, `sidebar_label` and `sidebar_position` from
+other frameworks do nothing here.
+
+## A folder's meta.json
+
+```json title="docs/runbooks/meta.json"
+{
+  "title": "Runbooks",
+  "icon": "Siren",
+  "description": "What to do when production is on fire.",
+  "pages": ["deploys", "rollbacks", "..."]
+}
+```
+
+| Field | What it does |
+| --- | --- |
+| `title` | The folder's sidebar label. |
+| `icon` | A Lucide icon name. |
+| `description` | What the folder's card says on the page above it. In a section, the switcher's subtitle, so about thirty characters. |
+| `pages` | The order of what is inside. See the rows below. |
+| `root` | `true` makes the folder a section, with its own sidebar and a row in the switcher. See [Sections and the switcher](./sections.mdx). |
+| `defaultOpen` | `true` opens the folder in the sidebar on first visit. |
+
+`docs/meta.json` is the main tree's, and its `title` and `description` are the
+first row of the switcher.
+
+## Rows of pages
+
+| Row | What it draws |
+| --- | --- |
+| `"theming"` | The page `theming.mdx`, or the folder `theming/`. |
+| `"index"` | The folder's `index.mdx` as a row of its own. Only the main tree and a section list it; in an ordinary folder that page is already the folder row's, and listing it takes it off the row. |
+| `"..."` | Everything not named, alphabetically. Keep it last, or a new page never shows up. |
+| `"!examples"` | Leaves `examples/` out of this tree. A section is held out of the main tree this way. |
+| `"...reference"` | The contents of `reference/`, spread in place, without the folder row. |
+| `"---Runbooks---"` | A label over the rows after it. An icon goes in front: `"---[Siren]Runbooks---"`. |
+| `"[Status](https://status.example.com)"` | A link out of the site. An icon goes in front: `"[Activity][Status](https://status.example.com)"`. See [Putting a link in the sidebar](./sidebar-links.mdx). |
+
+## moved.json
+
+`docs/moved.json` records every page that changed address, so an old link
+still lands. The studio appends to it whenever you move or delete a page in the
+sidebar; a move in git is yours to record by hand.
+
+```json title="docs/moved.json"
+[
+  { "from": "docs/manual/theming.mdx", "to": "docs/guides/theming.mdx" },
+  { "from": "docs/scratch.mdx", "to": null }
+]
+```
+
+`to` is `null` for a page that was deleted. A page moved twice has two
+entries, followed one after the other.

@@ -1,0 +1,24 @@
+node_modules
+/build
+
+.DS_Store
+.env.local
+.env.*.local
+*.log
+
+# Next.js output
+.next
+next-env.d.ts
+*.tsbuildinfo
+.vercel
+
+/dist
+/out
+
+# Storybook
+storybook-static
+debug-storybook.log
+build-storybook.log
+
+# A static site the publication wrote.
+out/

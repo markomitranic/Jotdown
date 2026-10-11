@@ -1,0 +1,35 @@
+---
+title: "ADR 0022: GitHub and folders, side by side"
+icon: HardDrive
+description: Why a project is read and written either through GitHub or straight from a folder, why the studio keeps a list of favorites, and why neither touches the project.
+---
+
+**Accepted** · 2026-10-10
+
+## Context
+
+An agent writes pages in a folder on disk. A site is built from a branch on
+GitHub. Somebody editing wants both in one list, and a save that does the
+natural thing for each: a commit on GitHub, a file written in place on disk.
+
+## Decision
+
+**Two adapters behind one storage.** A GitHub project reads its branch head
+and saves as a commit, as you. A folder reads and writes files in place and
+commits nothing; you review with `git diff`. Both notice outside changes, the
+branch moving or a file's fingerprint changing, and both refuse a save over a
+file that changed since it was read.
+
+**A project is a located config, nothing more.** The studio keeps a list of
+favorites in `favorites.json` in the app's data folder: GitHub projects by
+`owner/repo`, folders by path with the `local/<name>` address they are served
+under. Adding one locates a `.jotdown/config.json`; removing one never touches
+the project. How each project is drawn is kept in the same file and never in
+the project's config.
+
+## Consequences
+
+- An agent's uncommitted pages open at once in a folder project, and a
+  GitHub project is editable from any machine signed in to GitHub.
+- The browser keeps nothing but a cache of the last answer, so the list
+  survives a change of port or browser.

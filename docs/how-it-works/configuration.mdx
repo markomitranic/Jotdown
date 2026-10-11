@@ -1,0 +1,51 @@
+---
+title: Configuration
+icon: Settings2
+description: Every field of .jotdown/config.json, the one file of Jotdown's own a project carries.
+---
+
+A project is a repository with `.jotdown/config.json` in it. The file is plain
+JSON, so nothing in a project runs code, and every field is optional: a project
+without the file takes its repository's name as its title. The studio only
+lists a GitHub repository among its projects once the file exists.
+
+```json title=".jotdown/config.json"
+{
+  "version": 1,
+  "jotdown": "main",
+  "title": "Notes",
+  "description": "What I learn, written down where I can find it",
+  "repository": "https://github.com/you/notes",
+  "url": "https://notes.example.com",
+  "branch": "main",
+  "content": "site",
+  "logo": { "alt": "Notes", "src": "/uploads/logo.svg" },
+  "favicon": "/uploads/favicon.png",
+  "theme": { "light": { "primary": "#433a86" }, "dark": { "primary": "#b9acff" } }
+}
+```
+
+## Fields
+
+| Field | Default | What it does |
+| --- | --- | --- |
+| `version` | `1` | The config format. Only `1` is read. |
+| `jotdown` | `main` | The Jotdown tag or branch a publication builds with. |
+| `title` | the repository's name | The project's name in the sidebar, the switcher and the browser tab. |
+| `description` | empty | One line under the title in the switcher. |
+| `repository` | found from the checkout | The GitHub URL. |
+| `url` | none | Where the site is hosted, domain and base path. The studio hands out reader links from it. |
+| `branch` | the default branch | Where a save in the studio lands. |
+| `content` | the repository root | The folder holding `docs/`, as in `site` or `apps/docs`. |
+| `uploads` | `docs/_uploads` | The folder of `content` holding images, files, whiteboards and fonts. Inside `docs/`, its name starts with `_`, which keeps it out of the pages. |
+| `logo` | none | `alt`, `src` and an optional `srcDark`, each an upload address. Drawn in the sidebar's corner. |
+| `favicon` | none | The publication's tab icon, an upload address. The studio always shows its own. |
+| `theme` | the default palette | The project's colours per mode, its radius and its typefaces. See [Branding](../studio/branding.mdx). |
+
+## Addresses
+
+A value that points at a file is an upload address: what a reader's browser
+asks for, starting with a slash, like `/uploads/logo.svg`, `/img/docs/hero.png`,
+`/files/docs/brief.pdf` or `/whiteboards/flow.png`. `logo`, `favicon` and a
+font's `src` take these. `/uploads/` means the uploads folder wherever it is,
+so moving the uploads never changes an address.

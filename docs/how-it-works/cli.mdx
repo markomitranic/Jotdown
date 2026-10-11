@@ -1,0 +1,28 @@
+---
+title: CLI
+icon: SquareTerminal
+description: The jotdown command lints a project's pages from its folder.
+---
+
+```
+jotdown check [<path>...]
+```
+
+Run it from a checkout of Jotdown as `bun scripts/jotdown.ts`, or put the
+checkout's `jotdown` on your path with `bun link`. It needs Bun 1.4.2 or newer.
+
+## `jotdown check`
+
+Lints the pages in the files or folders given, `docs` when given nothing,
+without building anything. Errors exit 1: front matter the page schema refuses,
+MDX that does not parse, anything that would run code, and a `meta.json` its
+schema refuses. Warnings are the house style and exit 0: a missing
+`description`, a front matter field that does nothing, a `#` heading, a link in
+backticks, a component in a `.md` page, and an ordinary folder's `meta.json`
+listing `"index"`.
+
+Each problem prints as `file:line:column  severity  message  rule`, so an
+editor or an agent can jump to it. In a checkout of Jotdown it is
+`bun run lint:docs`.
+
+Nothing is written into your repository.

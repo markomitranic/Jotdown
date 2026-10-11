@@ -1,0 +1,7 @@
+{
+  "title": "Examples",
+  "icon": "FlaskConical",
+  "description": "Demo pages and test content",
+  "root": true,
+  "pages": ["index", "changelog", "---Test pages---", "every-block", "copy-paste", "..."]
+}

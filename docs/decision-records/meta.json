@@ -1,0 +1,22 @@
+{
+  "title": "Decision records",
+  "icon": "ScrollText",
+  "description": "Why it is built this way",
+  "root": true,
+  "pages": [
+    "index",
+    "0006-fumadocs",
+    "0014-agents-md-and-agent-skills",
+    "0016-theme-in-the-config",
+    "0017-project-in-the-address",
+    "0018-publication-is-its-own-app",
+    "0020-one-folder-for-jotdown",
+    "0021-one-user-and-the-app",
+    "0022-storage-adapters",
+    "0023-renderers-and-the-canvas",
+    "0024-content-at-runtime-code-at-build-time",
+    "0025-a-site-is-static",
+    "0026-blocks-edited-from-inside",
+    "..."
+  ]
+}

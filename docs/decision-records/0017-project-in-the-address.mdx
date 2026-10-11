@@ -1,0 +1,69 @@
+---
+title: "ADR 0017: The project is in the address"
+icon: Link
+description: Why the studio serves each project under its owner/repo, why docs.config.json always sits at the repository root, and why a key no longer names a folder or a branch.
+---
+
+**Accepted** · 2026-09-25
+
+## Context
+
+The studio kept the open project in a cookie and served its pages from the site
+root. `/manual/sections` meant a different page in every browser, depending on
+what that browser had open last. A link saved in a note opened whatever project
+was open when you clicked it, and usually landed on a 404. `?project=owner/repo` on any
+address fixed that for a link somebody remembered to build, and for no other.
+
+The cookie also made `/` two things at once: the welcome page for a visitor,
+and the open project's Overview for everybody else. Once a project was open,
+the welcome page could not be reached again.
+
+A project key could name a folder and a branch, `acme/web/apps/docs@next`, which
+is what a monorepo needed. That made a key something the switcher could not
+list, since GitHub lists repositories, so the switcher also kept a list of keys
+this browser had typed before. Pinning a branch was never used.
+
+## Decision
+
+**A project is a repository.** Its key is `owner/repo` and nothing more. One
+repository holds one project.
+
+**`docs.config.json` always sits at the repository root.** A monorepo names the
+folder holding `docs/` and `uploads/` with `"content": "apps/docs"`. The paths
+inside the config, such as `brand`, are read from that folder. Finding every
+project you can reach is one read of `docs.config.json` per repository.
+
+**The studio serves a project under its key.** `/you/notes/manual/sections`
+is the page `docs/manual/sections.mdx` of `you/notes`. `/` is always the
+welcome page, which offers the project this browser last had open. The proxy
+takes the first two segments off the address and names the project in a request
+header, so the routes serve every project the way a publication serves one
+site, and nothing below them reads a cookie to find out which project it is in.
+
+**Pages are still written for a site at the root.** A publication serves
+the same page at `/manual/sections`, so a page links to `/manual/sections` or
+`./sections.mdx` and the studio moves the link under the project as it renders.
+An upload asked for at the site root, from a component or a brand stylesheet, is
+sent under the project of the page that asked, read off its `Referer`.
+
+**`url` in the config (once `publicUrl`) says where the publication is hosted.** The studio will
+use it to hand out the reader's address of a page, since the studio's own
+address is not one a reader can open.
+
+## Consequences
+
+- Every studio address can be bookmarked or kept in a note, and reloading one
+  never changes project.
+- The studio's addresses differ from the published site's by the `/owner/repo`
+  in front. A link copied out of the studio works only in the studio.
+- A repository cannot hold two projects. If that is ever needed, it is a new
+  major version of the config.
+- A GitHub account named like one of the studio's own top-level folders, `api`,
+  `icons`, `fonts`, `studio`, `uploads`, `img`, `files`, `whiteboards` or
+  `markdown`, cannot be opened.
+- Moving between projects is a full page load, because the whole shell around a
+  page belongs to its project. The switcher already did one.
+- Renaming or transferring a repository changes its studio addresses. GitHub
+  forwards its own old addresses; the studio does not.
+- Addresses shared before this change open the welcome page or a 404. The
+  studio was a release candidate with no shared links to keep.

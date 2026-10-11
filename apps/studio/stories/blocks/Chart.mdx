@@ -1,0 +1,81 @@
+---
+title: Charts
+description: Every chart type in the brand's chart palette, with a legend once there is more than one series.
+---
+
+<Chart
+  type="bar"
+  x="month"
+  data={[
+    { month: "Apr", saves: 186, builds: 80 },
+    { month: "May", saves: 305, builds: 200 },
+    { month: "Jun", saves: 237, builds: 120 },
+    { month: "Jul", saves: 73, builds: 190 },
+    { month: "Aug", saves: 209, builds: 130 },
+    { month: "Sep", saves: 214, builds: 140 }
+  ]}
+  series={{ saves: "Studio saves", builds: "Publication builds" }}
+  caption="Studio saves and publication builds per month."
+/>
+
+<Chart
+  type="bar"
+  horizontal
+  x="page"
+  unit="ms"
+  data={[
+    { page: "Overview", ms: 210 },
+    { page: "Manual", ms: 160 },
+    { page: "ADRs", ms: 120 }
+  ]}
+  series={{ ms: "First paint" }}
+/>
+
+<Chart
+  type="line"
+  x="week"
+  data={[
+    { week: "W1", readers: 40, editors: 4 },
+    { week: "W2", readers: 64, editors: 6 },
+    { week: "W3", readers: 58, editors: 9 },
+    { week: "W4", readers: 91, editors: 11 }
+  ]}
+  series={{ readers: "Readers", editors: "Editors" }}
+/>
+
+<Chart
+  type="area"
+  stacked
+  x="month"
+  data={[
+    { month: "Apr", saves: 186, builds: 80 },
+    { month: "May", saves: 305, builds: 200 },
+    { month: "Jun", saves: 237, builds: 120 },
+    { month: "Jul", saves: 73, builds: 190 }
+  ]}
+  series={{ saves: "Studio saves", builds: "Publication builds" }}
+/>
+
+<Chart
+  type="pie"
+  x="host"
+  data={[
+    { host: "Vercel", sites: 12 },
+    { host: "Docker", sites: 7 },
+    { host: "S3", sites: 3 }
+  ]}
+  series={{ sites: "Sites" }}
+/>
+
+<Chart
+  type="radar"
+  x="skill"
+  data={[
+    { skill: "Writing", team: 80 },
+    { skill: "Figures", team: 55 },
+    { skill: "Charts", team: 40 },
+    { skill: "Code", team: 90 },
+    { skill: "Review", team: 70 }
+  ]}
+  series={{ team: "Team" }}
+/>

@@ -1,0 +1,4 @@
+# What a site's build leaves in .jotdown: the Jotdown it cloned, and the site it wrote.
+framework/
+out/
+.vercel/

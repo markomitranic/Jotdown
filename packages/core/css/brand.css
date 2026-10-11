@@ -1,0 +1,210 @@
+/**
+ * The default brand: a neutral palette, Inter for reading and JetBrains Mono for code.
+ *
+ * `custom.css` is the framework stylesheet: the blocks a page can carry and
+ * the tokens they paint with. A project picks its own colours in the `theme`
+ * of its `.jotdown/config.json`, which is turned into shadcn tokens that load
+ * after this file, and anything else in the stylesheet `brand` names, which
+ * loads last. Nobody edits this file for one site.
+ *
+ * It loads after `custom.css`, so anything restated here wins there. This is a
+ * shallow skin, colours and fonts. Two vocabularies come out of it:
+ *
+ *   --background, --foreground, --primary, --border …
+ *                  the standard shadcn palette, which the layout's sheet makes
+ *                  into Tailwind colours, so the whole shell is painted from
+ *                  this one list.
+ *   --font-*       the faces, as Tailwind theme tokens, which is what makes
+ *                  `font-serif` and `font-label` usable in a component.
+ *
+ * Every name the layout reads is defined here, light in `:root` and dark in
+ * `.dark`, dark second because both are unlayered and source order decides.
+ * The colours are shadcn's zinc neutrals with its default chart palette, so a
+ * site that sets nothing still reads as deliberate rather than unstyled.
+ */
+
+/* ------------------------------------------------------------ typefaces -- */
+
+/* One file covers 100 to 900, and it carries an optical-size axis that a static
+   cut does not. A second `@font-face` naming a static file at one weight wins
+   at that weight, so bold would come off a different design than semibold at
+   the same pixel size. */
+@font-face {
+  font-family: "Inter";
+  src: url("../fonts/InterVariable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+/* JetBrains Mono 2.304, OFL, the variable cut. A true italic file rather than a
+   synthesised slant, because syntax themes set comments and keywords in italic
+   and a sheared monospace smears the character grid.
+
+   The unsubsetted upstream files, not a latin subset. Inline code names menu
+   paths with U+2192 and U+22EF, and the figures label their arrows with the
+   same glyphs, neither of which a latin subset carries. A missing glyph is
+   handed to a fallback face mid-line, which is the one thing a monospace grid
+   cannot survive. */
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../fonts/JetBrainsMonoVariable.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../fonts/JetBrainsMonoVariable-Italic.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* `static` rather than plain `@theme`, because Tailwind emits only the theme
+   variables it can see a utility for, and these are read from hand-written CSS
+   as often as from a `font-label` class. The serif is the system's own, New
+   York on a Mac, for the few display titles that want one. */
+@theme static {
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-serif: ui-serif, "New York", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
+  --font-label: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* What the browser puts on <body> and inside a <code>, which is the one pair
+   Tailwind takes from its own names rather than from ours. */
+@theme inline {
+  --default-font-family: var(--font-sans);
+  --default-mono-font-family: var(--font-mono);
+}
+
+/* Inter runs about a size large for its em: its x-height is tall enough that
+   14px of it sits like 15px of the system face a shell like this is usually
+   drawn in. So the tree drops a step, to the 13px between Tailwind's 12 and 14,
+   and takes a shade more negative tracking than the article does. Line-height
+   comes down with it, which is what pulls a row from 36px to 35px and tightens
+   the whole list.
+
+   Both ids: `#jd-sidebar` is the aside, `#jd-sidebar-mobile` the phone drawer. */
+#jd-sidebar,
+#jd-sidebar-mobile {
+  font-size: var(--text-1sm);
+  line-height: var(--text-1sm--line-height);
+  letter-spacing: -0.014em;
+}
+
+/* 22px wider than the shell's own default, which is the difference between an
+   ADR title wrapping to two lines and fitting on one.
+
+   On the layout root and inside the same breakpoint the shell uses, because
+   that is where the width actually resolves: the class naming it sits on the
+   sidebar placeholder, but it is read through a `:has()` on this element, and
+   below the breakpoint the column has to stay at zero or a phone reserves
+   space for a sidebar it never shows. */
+@media (width >= 48rem) {
+  #jd-docs-layout {
+    --jd-sidebar-width: 290px;
+  }
+}
+
+/* ---------------------------------------------------------------- light -- */
+
+:root {
+  --background: #ffffff;
+  --foreground: #09090b;
+  --card: #fafafa;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+  --primary: #18181b;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #a1a1aa;
+  --radius: 0.5rem;
+
+  /* The sidebar sits on its own surface, which is the seam that separates the
+     tree from the article. */
+  --sidebar: #fafafa;
+  --sidebar-foreground: #09090b;
+  --sidebar-primary: #18181b;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent: #f4f4f5;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #a1a1aa;
+
+  /* The tints shadcn has no token for, stated flat so a hairline over a
+     coloured surface stays a hairline. */
+  --jd-heading: #09090b;
+  --jd-ink-soft: #3f3f46;
+  --jd-line-soft: #f4f4f5;
+  --jd-line-strong: #d4d4d8;
+  --jd-accent-soft: rgba(24, 24, 27, 0.06);
+
+  /* The categorical palette figures and charts draw with, shadcn's own. */
+  --chart-1: #e76e50;
+  --chart-2: #2a9d90;
+  --chart-3: #274754;
+  --chart-4: #e8c468;
+  --chart-5: #f4a462;
+
+  /* The main tree's accent in the section switcher; a project names its own
+     sections' colours in the `sections` of its theme. */
+  --jd-section-home: var(--primary);
+}
+
+/* ----------------------------------------------------------------- dark -- */
+
+.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #111113;
+  --card-foreground: #fafafa;
+  --popover: #111113;
+  --popover-foreground: #fafafa;
+  --primary: #fafafa;
+  --primary-foreground: #18181b;
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
+  --destructive: #f87171;
+  --destructive-foreground: #09090b;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #52525b;
+
+  --sidebar: #111113;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #fafafa;
+  --sidebar-primary-foreground: #18181b;
+  --sidebar-accent: #27272a;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #27272a;
+  --sidebar-ring: #52525b;
+
+  --jd-heading: #ffffff;
+  --jd-ink-soft: #d4d4d8;
+  --jd-line-soft: #18181b;
+  --jd-line-strong: #3f3f46;
+  --jd-accent-soft: rgba(250, 250, 250, 0.08);
+
+  --chart-1: #2662d9;
+  --chart-2: #2eb88a;
+  --chart-3: #e88c30;
+  --chart-4: #af57db;
+  --chart-5: #e23670;
+}

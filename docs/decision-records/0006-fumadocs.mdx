@@ -1,0 +1,182 @@
+---
+title: "ADR 0006: Fumadocs on Next.js, not Docusaurus"
+icon: PanelsTopLeft
+description: Why the documentation framework moved off Docusaurus 3 onto Fumadocs 16 on Next.js 16, what it cost, and what an author has to do differently.
+---
+
+**Accepted** · 2026-09-09
+
+## Context
+
+Everything this framework is for happens above the page. The in-page editor
+swaps an article for a rich-text editor and commits the result. The sidebar is
+something you drag. None of that is documentation-site behaviour, and all of it
+has to reach into the page that is already on screen.
+
+Docusaurus 3 gave us that reach through
+<abbr title="Docusaurus' mechanism for replacing one of its own React components with your own copy of it. You run a command, it writes the component into your repo, and yours renders instead.">swizzling</abbr>:
+copy a theme component out of the framework, edit it, and hope the next minor
+release still calls it the same way. Four of those, plus a plugin to register
+them, plus a sidebar generator reading our own order file, was the price of the
+editor. Every one of them is a file we own that Docusaurus also owns, which is
+the kind of coupling that turns a patch release into an afternoon.
+
+Three things then arrived at once and made the coupling expensive rather than
+merely annoying.
+
+**We want our own components inside the prose.** A page should be able to put
+a component of ours right next to the paragraphs explaining it. Docusaurus
+puts anything that big in a separate route tree with its own theme, so "next
+to" is the one thing it does not do.
+
+**The design system is Tailwind and shadcn.** The Docusaurus theme is styled
+with
+<abbr title="Docusaurus' own CSS framework. It themes the whole site from a set of --ifm-* custom properties.">Infima</abbr>,
+so this repository was the one place where a component could not be written
+the way every other React component is written today, and a shadcn component
+could not be dropped in at all.
+
+**The editor turned out to be portable.** The markdown bridge in
+`markdown/` is a string in and a string out, with no DOM and no framework in it.
+The endpoints were already plain functions talking to the GitHub API. What
+was actually tied to Docusaurus was the shell: four swizzled components and a
+plugin. About 400 lines out of 20,000.
+
+Staying was an option, and cheap for now. It just meant paying the swizzle tax
+on every release, and answering "can this component sit on this page" with no.
+Nextra was the other candidate and is the same bet with a smaller component
+library and no editor story either way. Plain Next.js plus MDX means writing
+the search, the sidebar, the table of contents and the breadcrumbs ourselves,
+which is a month of work to arrive at what Fumadocs already is.
+
+## Decision
+
+Fumadocs 16 on Next.js 16, Tailwind CSS v4, React 19.2 and Bun 1.4.
+
+Fumadocs is a content layer and a component library rather than a site
+generator. It gives us the loader over `docs/`, the search, the sidebar, the
+table of contents, the MDX pipeline and a set of UI components. What it
+deliberately does not give us is the page: `app/[[...slug]]/page.tsx` is
+seventy lines of our own React, and that is where `ArticleOrEditor` wraps the
+article. The sidebar is a slot in the layout, filled with `ArrangeableSidebar`.
+No component is copied out of a framework and no override can drift, because
+there is nothing to override.
+
+<figure className="jd-fig">
+  <div className="jd-fig-frame">
+    <svg viewBox="0 0 960 300" role="img" aria-label="Four things that changed shape: two order files became one meta.json per folder, .md became .mdx, static became public, and swizzled theme components became our own app and components folders">
+      <defs>
+        <marker id="fdMove" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0,0 L8,4 L0,8 z" fill="var(--jd-fig-muted)"/>
+        </marker>
+      </defs>
+
+      <text x="40" y="34" fontSize="10" letterSpacing="1.5" fill="var(--jd-fig-muted)">DOCUSAURUS 3</text>
+      <text x="470" y="34" fontSize="10" letterSpacing="1.5" fill="var(--jd-fig-d-ink)">FUMADOCS 16</text>
+
+      <rect x="40" y="48" width="330" height="40" rx="3" fill="var(--jd-fig-i-bg)" stroke="var(--jd-fig-i-ink)"/>
+      <text x="56" y="73" fontSize="11.5" fill="var(--jd-fig-i-ink)">order.json + \_category\_.json</text>
+      <line x1="382" y1="68" x2="458" y2="68" stroke="var(--jd-fig-muted)" strokeWidth="1.2" markerEnd="url(#fdMove)"/>
+      <rect x="470" y="48" width="450" height="40" rx="3" fill="var(--jd-fig-d-bg)" stroke="var(--jd-fig-d-ink)"/>
+      <text x="486" y="73" fontSize="11.5" fill="var(--jd-fig-d-ink)">one meta.json per folder: title, description, pages</text>
+
+      <rect x="40" y="104" width="330" height="40" rx="3" fill="var(--jd-fig-i-bg)" stroke="var(--jd-fig-i-ink)"/>
+      <text x="56" y="129" fontSize="11.5" fill="var(--jd-fig-i-ink)">.md, and .mdx when it had imports</text>
+      <line x1="382" y1="124" x2="458" y2="124" stroke="var(--jd-fig-muted)" strokeWidth="1.2" markerEnd="url(#fdMove)"/>
+      <rect x="470" y="104" width="450" height="40" rx="3" fill="var(--jd-fig-d-bg)" stroke="var(--jd-fig-d-ink)"/>
+      <text x="486" y="129" fontSize="11.5" fill="var(--jd-fig-d-ink)">.mdx everywhere, and no imports to write</text>
+
+      <rect x="40" y="160" width="330" height="40" rx="3" fill="var(--jd-fig-i-bg)" stroke="var(--jd-fig-i-ink)"/>
+      <text x="56" y="185" fontSize="11.5" fill="var(--jd-fig-i-ink)">static/</text>
+      <line x1="382" y1="180" x2="458" y2="180" stroke="var(--jd-fig-muted)" strokeWidth="1.2" markerEnd="url(#fdMove)"/>
+      <rect x="470" y="160" width="450" height="40" rx="3" fill="var(--jd-fig-d-bg)" stroke="var(--jd-fig-d-ink)"/>
+      <text x="486" y="185" fontSize="11.5" fill="var(--jd-fig-d-ink)">public/, same URLs inside the pages</text>
+
+      <rect x="40" y="216" width="330" height="40" rx="3" fill="var(--jd-fig-i-bg)" stroke="var(--jd-fig-i-ink)"/>
+      <text x="56" y="241" fontSize="11.5" fill="var(--jd-fig-i-ink)">four swizzled theme components</text>
+      <line x1="382" y1="236" x2="458" y2="236" stroke="var(--jd-fig-muted)" strokeWidth="1.2" markerEnd="url(#fdMove)"/>
+      <rect x="470" y="216" width="450" height="40" rx="3" fill="var(--jd-fig-d-bg)" stroke="var(--jd-fig-d-ink)"/>
+      <text x="486" y="241" fontSize="11.5" fill="var(--jd-fig-d-ink)">app/ and components/, ours outright</text>
+
+      <text x="40" y="284" fontSize="10.5" fill="var(--jd-fig-muted)">The content moves once, by hand. The row underneath it is the one that stops costing us anything on every release.</text>
+    </svg>
+  </div>
+  <figcaption>Three of these four rows are a morning of renaming in a project. The fourth is the reason for the other three.</figcaption>
+</figure>
+
+The editor came across almost unchanged. `src/plugins/live-edit/` still holds
+the client, the TipTap editor, the structure queue and the markdown bridge. The
+endpoints moved from `api/*.ts` to `server/live-edit/*.ts`, with a one-line
+re-export in `app/api/live-edit/*/route.ts` for each.
+
+## What changed for an author
+
+Six things:
+
+- **`meta.json` per folder** replaces `docs/order.json` and every
+  `_category_.json`. It carries `title`, `description` and a `pages` array, and
+  that array ends with `"..."` so an unlisted page still appears after the named
+  ones instead of vanishing.
+- **Every page is `.mdx`.** A `.md` file compiles as plain markdown, which means
+  a `<VideoEmbed />` or an SVG figure inside one renders as nothing and reports
+  nothing.
+- **`public/` replaces `static/`.** The URLs inside the pages are unchanged.
+- **Global components need no import.** `DocCardList`, `VideoEmbed`,
+  `FileAttachment` and `Mermaid` are registered in `components/mdx.tsx`, so the
+  `import` line at the top of a landing page is gone.
+- **Front matter is `title` and `description`.** `slug` and `sidebar_label` no
+  longer do anything, and `sidebar_position` already did not.
+- **Callouts are unchanged**, `:::source` included: `source.config.ts` maps every
+  keyword we accepted before onto `components/Callout.tsx`.
+
+## Consequences
+
+- **The page layer is ours.** Putting something on a page is now writing React
+  in `app/`, not finding out which theme component to copy and whether the next
+  release renames it.
+- **The design system is Tailwind and shadcn.** Tailwind v4 utilities, the
+  shadcn palette in `src/css/brand.css`, and Fumadocs' `shadcn` preset mapping
+  it onto the tokens the shell paints itself from. A shadcn component dropped in
+  later is already skinned.
+- **Search works in development.** It is a route handler, not a production-only
+  build artefact, so the thing readers use is the thing we test.
+- **Code fences gained annotations.** Shiki's `[!code highlight]`,
+  `[!code ++]`, `[!code focus]` and `tab="…"` all work, which replaces a good
+  deal of prose that used to say "the third line is the one that matters".
+- **`Tabs`, `Steps`, `Files` and `Cards` are available**, each one line in
+  `components/mdx.tsx` away from being usable without an import.
+- **Link validation is gone for now.** Docusaurus failed the build on a broken
+  relative link. The build still compiles and prerenders every page, so a moved
+  route or a bad component fails here, but a relative link pointing at nothing
+  renders as a dead link instead of stopping the deploy. It is a follow-up.
+- **Small losses, listed so nobody hunts for them.** There is no `/search`
+  results page, only the dialog. Leaving a dirty editor by an in-page link
+  prompts with a `confirm()`, but the browser's back and forward buttons no
+  longer warn at all, because the App Router has no equivalent of
+  `history.block`. There is no sitemap.
+
+## Risks
+
+- **Fumadocs is essentially one maintainer.** It is well made, actively worked
+  on and widely used, and it is still a bus factor of one. The mitigation is
+  where the boundary sits: the editor, the bridge, the endpoints and the
+  stylesheets are ours, and Fumadocs is the loader, the search and the shell. A
+  fork or a replacement is a shell-sized job, not a rewrite.
+- **Releases are frequent, and a major lands every three to twelve months.** A
+  minor upgrade is routine; a major has moved component paths and config shapes
+  before, so it is checked against a real project's `typecheck`, `test` and
+  `build` before it lands.
+- **The floor is Next 16 and React 19.2.** The framework cannot lag behind
+  either of those.
+- **No Edge runtime.** Fumadocs needs Node, so `proxy.ts` and every route
+  handler run on the Node runtime. Nothing here needs the Edge.
+
+## Follow-ups
+
+- **Link validation** as a build step, so a relative link pointing at nothing
+  fails the deploy the way it used to.
+- **The editor's chrome**, restyled from CSS modules onto Tailwind and shadcn,
+  done alongside this migration.
+- **The shape of the framework itself** is deliberately still open: how a
+  project gets the framework is parked, not decided, and gets its own record
+  when it is. [ADR 0018](./0018-publication-is-its-own-app.mdx) is that record.

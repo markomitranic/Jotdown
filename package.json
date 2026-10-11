@@ -1,0 +1,41 @@
+{
+  "name": "jotdown",
+  "version": "0.3.0",
+  "repository": "github:markomitranic/Jotdown",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "jotdown": "scripts/jotdown.ts"
+  },
+  "packageManager": "bun@1.4.2",
+  "engines": {
+    "bun": ">=1.4.2"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "bun run --cwd apps/studio dev",
+    "preview": "bun run --cwd apps/publication dev",
+    "typecheck": "tsc --noEmit -p . && bun run --filter '@jotdown/*' typecheck",
+    "test": "bun run --bun vitest run",
+    "lint": "biome check . && bun run typecheck && bun run lint:docs",
+    "format": "biome format --write .",
+    "check:links": "bun scripts/check-links.ts",
+    "lint:docs": "bun packages/lint/cli.ts",
+    "prune-uploads": "bun scripts/prune-uploads.ts",
+    "storybook": "bun run --cwd apps/studio storybook"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "@types/node": "^24.13.6",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  },
+  "trustedDependencies": [
+    "esbuild"
+  ]
+}

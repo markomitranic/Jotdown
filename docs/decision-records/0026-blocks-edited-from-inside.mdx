@@ -1,0 +1,47 @@
+---
+title: "ADR 0026: A project's blocks are edited from inside"
+icon: Blocks
+description: Why a project's own block edits its props in its opening tag and its prose in place, rather than through a form or a schema.
+---
+
+**Accepted** · 2026-10-11
+
+## Context
+
+[ADR 0024](./0024-content-at-runtime-code-at-build-time.mdx) lets a project
+bring components of its own, drawn by its site. The editor knows the
+framework's blocks node by node; it cannot know a block somebody wrote last
+week. Asking every block for a schema up front would make the simplest one a
+chore, and a form beside the page would hide the thing being edited.
+
+## Decision
+
+**The block says what is editable, by how it draws it.** The kit's
+`Editable.Text` and `Editable.Image` draw a prop, and `Slot` draws the prose
+between the tags. On a site they draw plain markup; in the canvas they take a
+caret. `defineBlock` adds a `/` entry and a field per prop, and is optional.
+
+**A prop is written into the opening tag, the prose by the page's own
+editors.** The tag is a stretch of the file of its own in the draft, starting
+after the `<`, and the block's children are stamped like top-level blocks, so
+both edits sit inside the block's slice without overlapping. The block's grip
+carries them along when it moves, and its source can still be rewritten
+whole, which every edit inside it gives way to.
+
+**Project code is copied into the build and runs in the browser.**
+`.jotdown/components` and `.jotdown/layouts` are copied into the publication
+before it compiles, as client components, with `.jotdown/package.json`
+installed beside them. A layout is a component handed the page, the site and
+the page's content; `docs` and `blank` are built in.
+
+**A tag nobody draws is a stand-in in the app and an error in a build.** The
+app labels it and keeps it movable; a site refuses to publish a page with a
+hole in it.
+
+## Consequences
+
+- Any component becomes editable by swapping a `{title}` for an `Editable.Text`.
+- Props are strings, since a page holds no code.
+- A block inserted from `/` reads as its source until the page is saved and
+  the site draws it.
+- An unsaved prop edit is not part of the page's undo history.

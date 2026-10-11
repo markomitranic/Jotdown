@@ -1,0 +1,26 @@
+{
+  "title": "How it works",
+  "icon": "Cog",
+  "description": "Detailed user manual",
+  "root": true,
+  "pages": [
+    "index",
+    "---Setting it up---",
+    "configuration",
+    "environment-variables",
+    "cli",
+    "pages-and-folders",
+    "---The studio---",
+    "editing",
+    "pages",
+    "sections",
+    "sidebar-links",
+    "mermaid-diagrams",
+    "whiteboards",
+    "---Under the hood---",
+    "browser-editor",
+    "---Releases---",
+    "changelog",
+    "..."
+  ]
+}

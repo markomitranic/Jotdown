@@ -1,0 +1,79 @@
+---
+title: "ADR 0016: A project's colours live in its config"
+icon: Palette
+description: Why a project names a handful of shadcn tokens under theme in docs.config.json, why the rest are mixed from them, and why the brand stylesheet stays for fonts.
+---
+
+**Accepted** · 2026-09-25
+
+## Context
+
+A project changed its colours by writing a stylesheet under `uploads/` and
+naming it as `brand` in `docs.config.json`. The stylesheet restated shadcn's
+palette, about forty CSS variables per mode. Half of them were shades of the
+other half: `card` a touch off `background`, `border` a little further,
+`sidebar` equal to `card`, `sidebar-ring` equal to `ring`. Every one had to be
+picked by hand and kept in step when the ground changed, and a variable that was
+forgotten in one mode wore the default's value there.
+
+The stripe across the top of the window was painted from two fixed brand
+colours, magenta and volt, that existed nowhere else in a theme. A project could only
+switch the stripe off, and this repository's own theme did exactly that.
+
+A stylesheet is also the one part of a project that is not plain data. It is
+CSS the studio serves as written, and the studio later needs to read and write
+a theme through a form, which is awkward to do to a stylesheet.
+
+## Decision
+
+**The theme is a field of `docs.config.json`.** `theme.light` and `theme.dark`
+are objects keyed by shadcn's own token names, the vocabulary shadcn themes,
+VS Code themes and terminal schemes already share.
+
+**A theme picks the core colours and the rest are worked out.** The core is
+`background`, `foreground`, `primary`, `destructive` and `chart-1` to
+`chart-5`. Every other shadcn token may be set too, and when it is left out it
+is mixed from the core with CSS `color-mix()`, `card` as 3% foreground into
+background and `border` as 13%, or it points at another token, `ring` at
+`primary` and `sidebar` at `card`. A core token the theme leaves out keeps the
+framework default, the default palette, for that mode.
+
+**Each mode the theme sets is written out in full.** The server turns the theme
+into one stylesheet with a block per mode, and every derived token is declared in
+it. Light mode's block matches only when dark mode is off, so a value set only in
+light never leaks into dark. A mode the theme does not set keeps the default
+palette whole.
+
+**Sections name a token, not a colour.** `theme.sections` maps a folder to a
+token name, `{ "manual": "chart-4" }`, which has a value in each mode, so one
+line replaces a `--jd-section-<folder>` declaration per mode.
+
+**The stripe is framework CSS** painted with `chart-1`, `chart-2` and
+`chart-3`, so every theme gets a stripe in its own colours.
+
+**Values are checked like the rest of the config.** A colour is `#hex` or one
+colour function with plain arguments, and a token name must be shadcn's.
+Anything that could end the CSS rule it is written into fails the config check,
+which keeps the promise that nothing in a project runs code.
+
+**The brand stylesheet stays, last in line.** Framework CSS loads first, then
+the theme, then the project's `brand` stylesheet, which still wins. It is for
+fonts and one-off rules. Fonts are not theme tokens yet: shadcn themes carry
+`font-sans`, `font-serif` and `font-mono`, but a font name means nothing without
+its files, and shipping those is a separate problem. A panel in the studio for
+editing the theme is planned, and the config field is what it will write.
+
+## Consequences
+
+- A theme is about nine colours per mode instead of forty, and a new ground
+  moves every surface and hairline with it.
+- The derived shades are one formula for every project. A project that wants a
+  particular card or border sets that token by name.
+- Every theme has a stripe. A project that wants none needs a rule in its brand
+  stylesheet.
+- A project that already wrote its palette in the brand stylesheet keeps
+  working unchanged, since that stylesheet loads after the theme.
+- A mode a theme sets takes the mixed shades rather than the default palette's
+  hand-picked ones. A theme with only `sections` leaves both modes as they were.
+- Colours now live in two places a reader might look. The manual page
+  [Giving your project its colours](../studio/branding.mdx) says which one to use.

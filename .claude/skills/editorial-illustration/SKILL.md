@@ -1,0 +1,1 @@
+../../../.agents/skills/editorial-illustration/SKILL.md

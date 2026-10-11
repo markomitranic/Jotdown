@@ -1,0 +1,19 @@
+{
+  "title": "Guide",
+  "description": "Start here",
+  "pages": [
+    "---Getting started---",
+    "index",
+    "technical-introduction",
+    "---Studio---",
+    "...studio",
+    "---Publication---",
+    "...publication",
+    "---Context Warehouse---",
+    "...context-warehouse",
+    "!how-it-works",
+    "!decision-records",
+    "!examples",
+    "..."
+  ]
+}

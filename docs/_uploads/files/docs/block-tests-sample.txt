@@ -1,0 +1,2 @@
+This file exists so the <FileAttachment /> block on the block-tests page has something real to download.
+It carries no data and can be deleted with the page.

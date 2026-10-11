@@ -1,0 +1,57 @@
+---
+title: Figures
+description: A hand-drawn SVG figure that opens on the stage, and an HTML figure that stays on the page.
+---
+
+<figure className="jd-fig">
+  <div className="jd-fig-frame">
+    <svg viewBox="0 0 920 240" role="img" aria-label="Three boxes in a row, labelled Presentation, Domain and Infrastructure, each in its own layer colour, joined by arrows left to right, with a small accent-coloured chip below them.">
+      <defs>
+        <marker id="bt-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--jd-fig-line)" />
+        </marker>
+      </defs>
+      <text x="40" y="44" fontSize="10" letterSpacing="1.5" fill="var(--jd-fig-muted)">THE THREE LAYER COLOURS, AND THE ACCENT</text>
+      <rect x="40" y="70" width="240" height="90" rx="10" fill="var(--jd-fig-p-bg)" stroke="var(--jd-fig-line-soft)" />
+      <text x="160" y="110" fontSize="15" fontWeight="600" textAnchor="middle" fill="var(--jd-fig-p-ink)">Presentation</text>
+      <text x="160" y="134" fontSize="11.5" textAnchor="middle" fill="var(--jd-fig-muted)">--jd-fig-p-*</text>
+      <line x1="280" y1="115" x2="336" y2="115" stroke="var(--jd-fig-line)" strokeWidth="1.5" markerEnd="url(#bt-arrow)" />
+      <rect x="340" y="70" width="240" height="90" rx="10" fill="var(--jd-fig-d-bg)" stroke="var(--jd-fig-line-soft)" />
+      <text x="460" y="110" fontSize="15" fontWeight="600" textAnchor="middle" fill="var(--jd-fig-d-ink)">Domain</text>
+      <text x="460" y="134" fontSize="11.5" textAnchor="middle" fill="var(--jd-fig-muted)">--jd-fig-d-*</text>
+      <line x1="580" y1="115" x2="636" y2="115" stroke="var(--jd-fig-line)" strokeWidth="1.5" markerEnd="url(#bt-arrow)" />
+      <rect x="640" y="70" width="240" height="90" rx="10" fill="var(--jd-fig-i-bg)" stroke="var(--jd-fig-line-soft)" />
+      <text x="760" y="110" fontSize="15" fontWeight="600" textAnchor="middle" fill="var(--jd-fig-i-ink)">Infrastructure</text>
+      <text x="760" y="134" fontSize="11.5" textAnchor="middle" fill="var(--jd-fig-muted)">--jd-fig-i-*</text>
+      <rect x="40" y="184" width="232" height="32" rx="4" fill="var(--jd-fig-accent-soft)" stroke="var(--jd-fig-accent)" strokeWidth="1.5" />
+      <text x="156" y="205" fontSize="11.5" textAnchor="middle" fill="var(--jd-fig-accent)">--jd-fig-accent</text>
+      <text x="880" y="205" fontSize="11.5" textAnchor="end" fill="var(--jd-fig-ink)">Switch the colour mode: every fill and stroke should follow.</text>
+    </svg>
+  </div>
+  <figcaption>A figure caption, hidden on the page and shown under the drawing when it is expanded.</figcaption>
+</figure>
+
+An HTML figure has no drawing for the stage to show, so it offers none of its affordances:
+
+<figure className="jd-fig fig-bt-html">
+  <style>{`
+    .fig-bt-html .fig-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .fig-bt-html .fig-cell { flex: 1 1 12rem; padding: 0.9rem 1rem; border-radius: 8px; background: var(--jd-fig-surface); border: 1px solid var(--jd-fig-line-soft); }
+    .fig-bt-html .fig-cell.is-staged { background: var(--jd-fig-d-bg); border-color: var(--jd-fig-d-ink); }
+    .fig-bt-html .fig-name { font-family: var(--font-label); font-size: 0.75rem; letter-spacing: 0.08em; color: var(--jd-fig-muted); }
+    .fig-bt-html .fig-body { margin-top: 0.3rem; font-size: 0.875rem; color: var(--jd-fig-ink); }
+  `}</style>
+  <div className="jd-fig-frame">
+    <div className="fig-row">
+      <div className="fig-cell is-staged">
+        <div className="fig-name">SVG FIGURE</div>
+        <div className="fig-body">Holds a drawing, so it opens on the stage.</div>
+      </div>
+      <div className="fig-cell">
+        <div className="fig-name">HTML FIGURE</div>
+        <div className="fig-body">Holds text, so it stays on the page.</div>
+      </div>
+    </div>
+  </div>
+  <figcaption>An HTML figure. The colours are the same `--jd-fig-*` tokens, so it follows the colour mode too.</figcaption>
+</figure>

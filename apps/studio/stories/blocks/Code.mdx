@@ -1,0 +1,41 @@
+---
+title: Code fences
+description: A titled fence with line numbers, every annotation, focus, tabs and a fence with no language.
+---
+
+```ts title="lib/source.ts" lineNumbers
+import { loader } from "fumadocs-core/source";
+import { docs } from "@/.source/server";
+
+export const source = loader({
+  baseUrl: "/",
+  source: docs.toFumadocsSource(),
+});
+```
+
+```ts
+const before = "this line is highlighted"; // [!code highlight]
+const removed = "this line is a deletion"; // [!code --]
+const added = "this line is an addition"; // [!code ++]
+const word = parseDocument(source); // [!code word:parseDocument]
+```
+
+```ts
+function unrelated() {}
+
+export function theOneThatMatters() {} // [!code focus]
+
+function alsoUnrelated() {}
+```
+
+```bash tab="bun"
+bun add fumadocs-core fumadocs-ui
+```
+
+```bash tab="npm"
+npm install fumadocs-core fumadocs-ui
+```
+
+```
+plain text, no highlighting, still framed
+```

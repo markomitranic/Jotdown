@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "title": "Jotdown",
+  "description": "How to write, edit and publish with Jotdown.",
+  "repository": "https://github.com/markomitranic/Jotdown",
+  "branch": "main",
+  "logo": {
+    "alt": "Jotdown",
+    "src": "/uploads/icon.png"
+  },
+  "favicon": "/uploads/icon.png",
+  "theme": {
+    "light": {
+      "background": "#ffffff",
+      "foreground": "#1c1a33",
+      "primary": "#433a86",
+      "destructive": "#c4321f",
+      "card": "#f7f6fc",
+      "ring": "#5b6fd6",
+      "chart-1": "#5b45c9",
+      "chart-2": "#2f5fc4",
+      "chart-3": "#9a5800",
+      "chart-4": "#a83c78",
+      "chart-5": "#0b7a66"
+    },
+    "dark": {
+      "background": "#0d0c1b",
+      "foreground": "#ecebf5",
+      "primary": "#b9acff",
+      "destructive": "#f2b8b5",
+      "card": "#141229",
+      "popover": "#1a1834",
+      "ring": "#e9d9a6",
+      "chart-1": "#a99cff",
+      "chart-2": "#86a6ff",
+      "chart-3": "#f0c987",
+      "chart-4": "#f2a3cf",
+      "chart-5": "#7fdcc4"
+    },
+    "radius": "0.375rem",
+    "sections": {
+      "reference": "chart-2",
+      "how-it-works": "chart-4",
+      "decision-records": "chart-5",
+      "examples": "chart-3"
+    }
+  }
+}

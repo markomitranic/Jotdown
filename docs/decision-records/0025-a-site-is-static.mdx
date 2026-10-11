@@ -1,0 +1,34 @@
+---
+title: "ADR 0025: A site is static files"
+icon: FileStack
+description: Why a project's site is built into plain files any static host serves, and what took the place of its server.
+---
+
+**Accepted** · 2026-10-10 · Supersedes the server half of [ADR 0018](./0018-publication-is-its-own-app.mdx)
+
+## Context
+
+[ADR 0018](./0018-publication-is-its-own-app.mdx) kept a publication a
+Next.js server, so it could grow features that need one. None arrived, and the
+server cost every site a host that runs Node, a Docker image or Vercel's
+adapter beta, and a health check. The canvas needs no server either: it takes
+everything it draws from the studio.
+
+## Decision
+
+**`output: "export"`.** Every page, upload, markdown twin, `llms.txt` and
+search section is a file in `.jotdown/out`. Search builds its index in the
+reader's browser from those files. An address a page moved away from is a
+small page that forwards the reader. A site hosted below a domain's root,
+like a GitHub Pages project site, is built under the path its config's `url`
+names.
+
+**Hosts are GitHub Pages, static Vercel, or anything that serves files.** The
+deployment templates are a GitHub Actions workflow and a `vercel.json` with no
+functions; the Docker image and the Vercel adapter are gone.
+
+## Consequences
+
+- A site needs no server, no secret and no sign-in, and costs nothing to host.
+- A feature that needs a server is now a reason to reopen this decision, not
+  an afternoon's route handler.

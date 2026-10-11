@@ -1,0 +1,34 @@
+---
+title: "ADR 0024: Content at runtime, code at build time"
+icon: Layers
+description: Why pages arrive as data from disk, GitHub or the studio, while components and layouts are bundled when a site is built.
+---
+
+**Accepted** · 2026-10-10
+
+## Context
+
+A page changes many times a day; a component a few times a year. Rebuilding a
+site's code to show a new sentence in the editor would make editing wait on a
+build, and compiling a site's components at runtime would mean running a
+project's code inside the studio.
+
+## Decision
+
+**Content is data.** Markdown and MDX, uploads, `meta.json` and the config
+arrive at runtime: from disk, from GitHub, or from the studio over the canvas
+protocol. A page may not run code: `import`, `export` and expressions are
+refused before anything compiles it.
+
+**Code is code.** A project's components and layouts are bundled when its site
+is built or served by its dev server, together with the framework's own. The
+studio never runs a project's code; a canvas does, inside the site's own
+build.
+
+## Consequences
+
+- An edit shows at once in every renderer, without a build.
+- A new component shows once the site is rebuilt, or at once on its dev
+  server, which is where components are written.
+- The framework is cloned into a project at build time rather than copied into
+  it, so a project stays content and its own components only.

@@ -1,0 +1,1437 @@
+/**
+ * Framework stylesheet.
+ *
+ * Shared by every project. Nothing here names a brand colour or a typeface:
+ * those are declared in `brand.css`, the default brand, which loads
+ * after this file, then in the `theme` of a project's `.jotdown/config.json`.
+ *
+ * The layout's own sheet and the prose typography paint the sidebar, the
+ * article, the callouts, the code blocks and the cards. This sheet leaves the
+ * article scale and measure alone (no heading scale, no column arithmetic), and
+ * only tunes one card detail (`[data-card] > h3`) for scanability. The rest is
+ * the blocks a page can carry (`jd-fig`, `jd-shot`, `jd-diagram`, `jd-stage`, `jd-video`,
+ * `jd-file`) and the tokens they paint with. Sizes in those blocks are plain
+ * rem on Tailwind's own scale, so a component next to them writes `text-sm` or
+ * `gap-6` and lands on the same step.
+ *
+ * The contract `brand.css` has to satisfy:
+ *
+ *   the shadcn palette          --background, --foreground, --card, --popover,
+ *                               --primary, --secondary, --muted, --accent,
+ *                               --border, --ring and their -foreground pairs,
+ *                               plus --radius and the --sidebar-* set, in both
+ *                               colour modes. The layout's sheet turns each
+ *                               of them into the matching --color-*.
+ *   --font-sans                 running text
+ *   --font-mono                 code
+ *   --font-label                uppercase micro-labels
+ *   --chart-1 … --chart-5       shadcn's categorical palette, in both modes.
+ *                               Figures take their three hues from the first
+ *                               three, a chart from all five, and the stripe
+ *                               across the top of the window from the first
+ *                               three.
+ *   --jd-section-home           the accent of the main tree, plus one
+ *                               --jd-section-<folder> for every section that
+ *                               wants a colour of its own. Both are optional
+ *                               and fall back to --primary.
+ *
+ * The `--jd-*` colour tokens below are aliases onto the shadcn colours, so a
+ * block written against `--jd-surface` follows the brand without knowing it
+ * exists. The five with no shadcn equivalent get a derived default here and a
+ * flat value from `brand.css`, which loads later and wins.
+ *
+ * Dark mode is the `.dark` class on <html>, set by next-themes. Every rule that
+ * needs a second value states it under `.dark` *after* the light one in this
+ * file, because both are unlayered and source order is what decides.
+ */
+
+/* ----------------------------------------------------------- type scale -- */
+
+/* One step Tailwind does not have, written as `text-1sm`. Its scale jumps 12px
+   to 14px, and the navigation tree wants the 13px in between: 14px is a
+   reading size and a sidebar is not read, it is scanned. The line-height ratio
+   is the one Tailwind gives `text-sm`, so a row on this step keeps the same
+   rhythm as the rest of the shell. */
+@theme {
+  --text-1sm: 0.8125rem;
+  --text-1sm--line-height: calc(1.25 / 0.875);
+}
+
+/* A slow fade to almost nothing and back, written as `animate-breathe`, for a
+   dot that says work is still going. Tailwind's own pulse only dims to half,
+   which on a dot this small reads as standing still. Opacity alone, so the
+   compositor runs it without repainting. */
+@theme {
+  --animate-breathe: breathe 1.6s ease-in-out infinite;
+
+  @keyframes breathe {
+    50% {
+      opacity: 0.15;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------- tokens -- */
+
+:root {
+  /* Three text tints, three jobs. Anything muted on the page picks one of
+     these rather than inventing another near-identical grey. */
+  --jd-ink: var(--color-foreground);
+  --jd-muted: var(--color-muted-foreground);
+  --jd-ink-soft: color-mix(in srgb, var(--color-foreground) 78%, var(--color-background));
+  --jd-heading: var(--color-foreground);
+
+  --jd-ground: var(--color-background);
+  --jd-surface: var(--color-card);
+  --jd-code-bg: var(--color-muted);
+
+  /* Three line weights, weakest first. Column dividers in a table take the soft
+     one, most hairlines take --jd-line, and anything that has to separate two
+     bands takes the strong one. An instance restates all three as flat colours
+     in `brand.css`: a translucent hairline over a dark surface goes muddy
+     instead of lighter. */
+  --jd-line: var(--color-border);
+  --jd-line-soft: color-mix(in srgb, var(--color-border) 55%, var(--color-background));
+  --jd-line-strong: color-mix(in srgb, var(--color-border) 55%, var(--color-foreground));
+
+  /* The accent at wash strength, behind anything that means "you are here". */
+  --jd-accent-soft: color-mix(in srgb, var(--color-primary) 9%, transparent);
+
+  /* The one corner radius on the site, taken from the shadcn `--radius` the
+     brand sheet sets, so a block written in CSS and a shadcn component dropped
+     in beside it round the same amount. */
+  --jd-radius: var(--radius, 0.375rem);
+
+  /* Keyboard focus, one ring for the whole site. Drawn in the accent with an
+     offset so it reads as a ring around the control rather than as a border it
+     grew, and never removed without something equally visible put in its
+     place. WCAG 2.2 asks for two CSS pixels and a 3:1 contrast against what is
+     behind it; the accent clears both in either mode. */
+  --jd-focus-width: 2px;
+  --jd-focus-offset: 2px;
+}
+
+/* The stripe across the top of the window, fixed, above everything but a
+   dialog. It runs through the first three chart colours, so every theme gets
+   one in its own colours without naming any.
+
+   The stripe is twice the window wide and mirrored, so the colours can drift
+   and stretch like a lava lamp. Drift and stretch run on separate clocks that
+   never line up, and only move the stripe, so the compositor runs it without
+   repainting. */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 45;
+  width: 200vw;
+  height: 3px;
+  background: linear-gradient(90deg, var(--chart-1), var(--chart-2), var(--chart-3), var(--chart-2), var(--chart-1));
+  transform-origin: left center;
+  animation:
+    jd-stripe-drift 47s ease-in-out infinite alternate,
+    jd-stripe-stretch 31s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes jd-stripe-drift {
+  0% {
+    translate: 0;
+  }
+  35% {
+    translate: -9%;
+  }
+  55% {
+    translate: -6%;
+  }
+  100% {
+    translate: -20%;
+  }
+}
+
+@keyframes jd-stripe-stretch {
+  0% {
+    scale: 1 1;
+  }
+  40% {
+    scale: 1.12 1;
+  }
+  70% {
+    scale: 0.94 1;
+  }
+  100% {
+    scale: 1.05 1;
+  }
+}
+
+/* No pinch or double-tap zoom anywhere. Safari ignores the viewport's
+   `user-scalable=no` in a browser tab, so the page says it again here. A block
+   that zooms, like the diagram stage, handles its own gestures. */
+html {
+  touch-action: pan-x pan-y;
+}
+
+/* Figure tokens. Inline SVG figures paint with these instead of hex, and every
+   one is derived from the theme, so a figure wears whatever palette the brand
+   stylesheet sets, in both colour modes, without restating anything.
+
+   The neutrals come from the shell: ink is the foreground, lines are the
+   border weights, and a box is one step raised off the card the figure frame
+   sits on. The accent is the brand primary, the "you are here" of a drawing.
+
+   The three hues (p, d, i) are the first three `--chart-*` colours, shadcn's
+   categorical palette, so they are the brand's to pick. The ink is the hue
+   itself, for strokes and small text, and the bg is a wash of it over the box
+   surface. The letters are historical: Presentation, Domain, Infrastructure. */
+:root {
+  --jd-fig-ink: var(--color-foreground);
+  --jd-fig-muted: var(--color-muted-foreground);
+  --jd-fig-line: var(--jd-line-strong);
+  --jd-fig-line-soft: var(--jd-line);
+  --jd-fig-surface: color-mix(in srgb, var(--color-foreground) 4%, var(--color-card));
+  --jd-fig-accent: var(--color-primary);
+  --jd-fig-accent-soft: color-mix(in srgb, var(--color-primary) 12%, var(--jd-fig-surface));
+  --jd-fig-p-ink: var(--chart-1);
+  --jd-fig-p-bg: color-mix(in srgb, var(--chart-1) 14%, var(--jd-fig-surface));
+  --jd-fig-d-ink: var(--chart-2);
+  --jd-fig-d-bg: color-mix(in srgb, var(--chart-2) 14%, var(--jd-fig-surface));
+  --jd-fig-i-ink: var(--chart-3);
+  --jd-fig-i-bg: color-mix(in srgb, var(--chart-3) 14%, var(--jd-fig-surface));
+}
+
+/* The switcher above the sidebar tree: one row per section, each with its icon
+   boxed in that section's accent. The box fills the slot the switcher gives it,
+   36px on a phone and 20px on a desktop, and the glyph sits inside it.
+
+   `--jd-section` arrives as an inline style on the element, resolved from the
+   `--jd-section-*` token the section is named by. */
+.jd-section-icon {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: calc(var(--jd-radius) * 0.8);
+  background: color-mix(in srgb, var(--jd-section) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--jd-section) 40%, transparent);
+  color: var(--jd-section);
+}
+
+.jd-section-icon svg {
+  width: 68%;
+  height: 68%;
+}
+
+/* A card in the grid is scanned, not read: the eye jumps from title to title
+   and stops on one. The card sets the title at 14px and weight 500, the same
+   size as the description under it, and a display face that ships in 400 and
+   700 renders 500 as regular, so nothing stood out. One step up in size and the
+   true bold, in the heading colour, gives the eye a row of anchors. */
+[data-card] > h3 {
+  font-size: 1rem;
+  line-height: 1.35;
+  font-weight: 700;
+  color: var(--jd-heading);
+}
+
+/* ---------------------------------------------------------------- shell -- */
+
+/* The docs shell scrolls like an application rather than a web page. The
+   window never scrolls, so the elastic overscroll a trackpad gives it cannot
+   drag the sidebar along with the article. The shell itself is the one scroll
+   container, exactly a screen tall: it keeps the vertical bounce, and it has
+   no sideways scroll or bounce at all.
+
+   Only while the shell is on screen, because a page without it, the project
+   picker for one, still scrolls the window as usual. */
+:root:has(#jd-docs-layout),
+:root:has(#jd-docs-layout) body {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* On the root only. Chrome stops handing the wheel to the shell when the body
+   carries it too. */
+:root:has(#jd-docs-layout) {
+  overscroll-behavior: none;
+}
+
+#jd-docs-layout {
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-x: none;
+}
+
+/* The sidebar is pinned to the viewport rather than stuck inside the scroll
+   container, so the article's bounce leaves it where it is. Its column in the
+   grid still reserves the width.
+
+   A long list that reaches its end keeps the wheel rather than handing it on
+   to the article. A list short enough to fit has nothing to scroll, and Chrome
+   passes the wheel on as it would from any margin.
+
+   Below the breakpoint the sidebar is a drawer and none of this applies. */
+@media (width >= 48rem) {
+  #jd-docs-layout > [data-sidebar-placeholder] {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: var(--jd-sidebar-width);
+    height: auto;
+  }
+
+  #jd-sidebar [data-radix-scroll-area-viewport] {
+    overscroll-behavior: contain;
+  }
+}
+
+/* While a clicked page is on its way, the article it replaces fades back, so
+   the click reads as taken even on a slow server. The delay keeps a quick
+   page from flashing, and with no transition back the new page lands at full
+   strength. Opacity alone, so the fade costs the compositor nothing. */
+:root[data-navigating] {
+  cursor: progress;
+}
+
+:root[data-navigating] #jd-page {
+  opacity: 0.5;
+  transition: opacity 200ms ease 150ms;
+}
+
+/* A page that is one screen by design, the welcome sky for one, never moves
+   at all: no scroll and no elastic bounce past its edges. */
+:root:has([data-one-screen]),
+:root:has([data-one-screen]) body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* --------------------------------------------------------------- window -- */
+
+/* The desktop app draws its own title bar. Its window has no title bar of its
+   own, only the traffic lights inset over the page, and the studio marks the
+   page with `data-app` on `<html>` when it is drawn there. Everything below
+   applies only then: in a browser tab the page is laid out exactly as before.
+
+   The strip itself is `WindowTitleBar`, one fixed bar in the page's background
+   that drags the window. These rules move the shell out of its way: the
+   sidebar's header drops below the traffic lights, the page's table of
+   contents moves up into the strip, and the phone header becomes the strip. */
+@custom-variant wco (&:where([data-app], [data-app] *));
+
+:root[data-app] {
+  --titlebar-start: 76px;
+  --titlebar-height: 38px;
+  --titlebar-end: 0px;
+}
+
+/* Anything somebody can press keeps its clicks, even where it sits over the
+   strip. The strip comes first in the page, and a later region wins. */
+:root[data-app] :is(a, button, input, textarea, select, [role="dialog"], [data-radix-popper-content-wrapper]) {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+/* A page drawn without the shell starts below the strip rather than under
+   it, unless it paints to the window's edge and makes room itself. */
+:root[data-app]:not(:has(#jd-docs-layout, [data-edge-to-edge])) body {
+  padding-top: var(--titlebar-height);
+}
+
+@media (width >= 48rem) {
+  /* The header clears the traffic lights, which sit on the sidebar's own
+     surface, the way a native sidebar runs to the top of its window. */
+  :root[data-app] #jd-sidebar:not([data-collapsed="true"]) > :first-child {
+    padding-top: calc(var(--titlebar-height) + 0.25rem);
+  }
+
+  /* Folded and peeking, it floats clear of the strip instead. */
+  :root[data-app] #jd-sidebar[data-collapsed="true"] {
+    inset-block-start: calc(var(--titlebar-height) + 0.5rem);
+  }
+
+  /* The folded sidebar's floating buttons: the strip carries both now. */
+  :root[data-app] [data-sidebar-panel] {
+    display: none;
+  }
+
+  /* The contents bar is the strip over the article: as tall, and dragging the
+     window from wherever its button is not. */
+  :root[data-app] #jd-docs-layout:has([data-toc-popover]) {
+    --jd-toc-popover-height: var(--titlebar-height);
+  }
+
+  :root[data-app] [data-toc-popover] > header {
+    padding-inline-end: var(--titlebar-end);
+    -webkit-app-region: drag;
+    app-region: drag;
+  }
+
+  :root[data-app] [data-toc-popover-trigger] {
+    width: fit-content;
+    max-width: 100%;
+    height: var(--titlebar-height);
+  }
+
+  /* With the sidebar folded, the bar runs to the window's edge, so it starts
+     after the traffic lights and the buttons beside them. */
+  :root[data-app] #jd-docs-layout[data-sidebar-collapsed="true"] [data-toc-popover] > header {
+    padding-inline-start: calc(var(--titlebar-start) + 3rem);
+  }
+
+  /* With no contents bar, the page's own top margin is shorter than the
+     strip, so the title would start underneath it. */
+  :root[data-app] #jd-docs-layout:not(:has([data-toc-popover])) #jd-page {
+    padding-top: calc(var(--titlebar-height) + 2rem);
+  }
+}
+
+@media (width < 48rem) {
+  /* A narrow window has no sidebar, so its header is the strip. */
+  :root[data-app] #jd-docs-layout:has(#jd-subnav) {
+    --jd-header-height: var(--titlebar-height);
+  }
+
+  :root[data-app] #jd-subnav {
+    padding-inline: calc(var(--titlebar-start) + 0.5rem) calc(var(--titlebar-end) + 0.25rem);
+    -webkit-app-region: drag;
+    app-region: drag;
+  }
+
+  :root[data-app] #jd-sidebar-mobile {
+    padding-top: var(--titlebar-height);
+  }
+}
+
+/* --------------------------------------------------------------- widths -- */
+
+/* A table or an image written inside `:::wide` or `:::full` stands wider than
+   the column, centred on it. Wide stops at `--jd-wide-width`, full runs to
+   `--jd-bleed` short of the main area's edges, the sidebar and the table of
+   contents left alone. Neither is ever narrower than the column, so on a
+   screen with no room to spare both read as an ordinary block.
+
+   The main area's width is worked out from the docs grid's own columns,
+   because the article is centred in it and nothing inside the article can
+   measure it otherwise without becoming a containing block for every fixed
+   overlay the page opens. Outside the docs shell the variables are unset and
+   the window is the main area. */
+:root {
+  --jd-wide-width: 75rem;
+  --jd-bleed: 1.5rem;
+}
+
+[data-block-width] {
+  --jd-beside-main: calc(var(--jd-sidebar-col, 0px) + var(--jd-toc-width, 0px));
+  --jd-main-cap: calc(var(--jd-layout-width, 97rem) - var(--jd-sidebar-width, 0px) - var(--jd-toc-width, 0px));
+  --jd-main-width: min(100vw - var(--jd-beside-main), var(--jd-main-cap));
+
+  width: max(100%, var(--jd-block-width));
+  max-width: none;
+  margin-inline: min(0px, (100% - var(--jd-block-width)) / 2);
+}
+
+[data-block-width="wide"] {
+  --jd-block-width: min(var(--jd-main-width) - 2 * var(--jd-bleed), var(--jd-wide-width));
+}
+
+[data-block-width="full"] {
+  --jd-block-width: calc(var(--jd-main-width) - 2 * var(--jd-bleed));
+}
+
+/* ------------------------------------------------------------- pictures -- */
+
+/* A content image, and the caption under it if the author wrote one. The
+   wrapper comes from `components/blocks/DocImage.tsx`, which is also where the
+   markdown title becomes the caption.
+
+   An image is drawn at its own size up to the width of the text, and on a
+   screen wide enough to have margin to spare, 3rem past it on either side, the
+   way a picture in a magazine runs wider than its column. Only an image in a
+   paragraph of the article itself bleeds; one in a callout, a list or a tab
+   stays inside its box. The height cap keeps a tall export from filling the
+   window on its own. Scaled rather than cropped, so nothing in the picture is
+   decided for the reader, and one click still opens the original. */
+.jd-shot {
+  display: block;
+  margin-inline: auto;
+}
+
+@media (min-width: 96rem) {
+  .prose > p .jd-shot {
+    margin-inline: -3rem;
+  }
+}
+
+.jd-shot-img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: var(--jd-shot-height, 80svh);
+  height: auto;
+}
+
+.jd-shot__frame {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.jd-shot__open {
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: zoom-in;
+}
+
+/* A widened image fills its block rather than stopping at its own pixel width
+   and the height cap, since being bigger is the whole point of widening it,
+   and it bleeds no further than the width it was given. */
+.prose > p[data-block-width] .jd-shot {
+  margin-inline: 0;
+}
+
+[data-block-width] :is(.jd-shot__frame, .jd-shot__open) {
+  width: 100%;
+}
+
+[data-block-width] .jd-shot-img {
+  width: 100%;
+  max-height: none;
+}
+
+/* The toolbar over a picture, shown while it is pointed at or a control in it
+   has the keyboard. On a touch screen a tap opens the stage, which has the
+   same controls. */
+.jd-shot__tools {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.1875rem;
+  color: var(--jd-ink-soft);
+  background: var(--color-popover);
+  border: 1px solid var(--jd-line);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.1);
+  opacity: 0;
+  translate: 0 -0.125rem;
+  pointer-events: none;
+  transition:
+    opacity 120ms ease,
+    translate 120ms ease;
+}
+
+.jd-shot__frame:hover .jd-shot__tools,
+.jd-shot__frame:has(:focus-visible) .jd-shot__tools {
+  opacity: 1;
+  translate: 0;
+  pointer-events: auto;
+}
+
+.jd-shot__tools > :is(button, a) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.375rem;
+  color: inherit;
+  font-family: var(--font-label);
+  font-size: 0.8125rem;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  border-radius: 0.3125rem;
+  cursor: pointer;
+}
+
+.jd-shot__tools > :is(button, a):hover {
+  color: var(--jd-ink);
+  background: var(--jd-code-bg);
+}
+
+.jd-shot__field {
+  width: 16rem;
+  max-width: 60vw;
+  height: 1.75rem;
+  padding: 0 0.5rem;
+  color: var(--jd-ink);
+  font: inherit;
+  font-size: 0.8125rem;
+  background: var(--jd-code-bg);
+  border: 0;
+  border-radius: 0.3125rem;
+  outline: none;
+}
+
+.jd-shot__tools svg,
+.jd-stage__toolbar svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.jd-shot__rule {
+  width: 1px;
+  height: 1rem;
+  margin-inline: 0.25rem;
+  background: var(--jd-line);
+}
+
+/* A copy button says it worked with a tick, says it did not in red, and is
+   dimmed while the original is still being fetched. */
+.jd-copy .jd-copy__done,
+.jd-copy[data-state="copied"] .jd-copy__idle {
+  display: none;
+}
+
+.jd-copy[data-state="copied"] .jd-copy__done {
+  display: block;
+}
+
+.jd-copy[data-state="copied"] {
+  color: var(--color-primary);
+}
+
+.jd-copy[data-state="failed"] {
+  color: var(--destructive);
+}
+
+.jd-copy[data-state="copying"] {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+/* While a picture is busy, its original on its way to the stage or the file
+   still going up to the repository, a spinner sits over it. It waits a moment before showing, so an original the
+   browser already has opens without a flicker. Only `rotate` and `opacity`
+   move, which the compositor does on its own. */
+.jd-shot__frame::after {
+  content: "";
+  position: absolute;
+  top: calc(50% - 1.25rem);
+  left: calc(50% - 1.25rem);
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--color-popover);
+  border: 3px solid var(--jd-line);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.jd-shot[data-busy] .jd-shot__frame::after {
+  animation:
+    jd-shot-spin 0.8s linear infinite,
+    jd-shot-appear 0.2s ease 0.15s both;
+}
+
+.jd-shot[data-busy] .jd-shot__open {
+  cursor: progress;
+}
+
+@keyframes jd-shot-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+@keyframes jd-shot-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.jd-shot-caption {
+  display: block;
+  margin: 0.75rem auto 0;
+  color: var(--jd-muted);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+/* An image with no address, which a paste writes for a picture it could not
+   download: a torn frame where the picture would be, and a line saying so. */
+.jd-missing-art {
+  display: block;
+  width: 15rem;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
+}
+
+/* A placeholder in the editor, which asks for a picture to fill it. */
+.jd-missing--pick {
+  width: 100%;
+  padding: 1rem;
+  font: inherit;
+  background: none;
+  border: 0;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.jd-missing--pick:hover {
+  background: var(--jd-code-bg);
+}
+
+.jd-missing--pick:hover .jd-shot-caption {
+  color: var(--jd-ink);
+}
+
+/* An inline SVG figure, drawn by the figure skill. The frame matches
+   every other artifact on the page; the drawing paints with the `--jd-fig-*`
+   tokens above. A narrow column scales the drawing down instead of scrolling
+   it; the stage is where a reader goes to read it at full size. */
+.jd-fig {
+  margin-block: 2rem;
+}
+
+.jd-fig-frame {
+  background: var(--jd-surface);
+  border: 1px solid var(--jd-line);
+  border-radius: var(--jd-radius);
+  padding: 1.35rem 1.25rem;
+}
+
+.jd-fig svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* An editorial illustration is a plate: a painting with its own ground and its
+   own palette, so it fills the frame edge to edge. */
+.jd-fig--plate .jd-fig-frame {
+  padding: 0;
+  overflow: hidden;
+}
+
+.jd-fig svg text {
+  font-family: var(--font-mono);
+}
+
+/* Captions are sentences, so they stay in the sans face; the label face renders
+   caps-only and a multi-line uppercase caption is unreadable. */
+.jd-fig figcaption {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--jd-muted);
+}
+
+/* A drawing speaks for itself on the page. Its caption stays in the document
+   for screen readers and search, and is shown on the stage when it opens. An
+   HTML figure has no stage, so its caption stays visible under it. */
+.jd-fig--stage figcaption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* A figure that opens on the stage (`components/blocks/JdFigure.tsx`). The drawing is
+   the control, the hint fades in on hover the way the Mermaid preview's does,
+   and it is a real button so the keyboard reaches it. */
+.jd-fig--stage {
+  position: relative;
+}
+
+.jd-fig--stage .jd-fig-frame {
+  cursor: zoom-in;
+}
+
+.jd-fig--stage:hover .jd-fig-frame {
+  border-color: var(--jd-line-strong);
+}
+
+.jd-fig__hint {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  padding: 0.2rem 0.55rem;
+  background: var(--jd-surface);
+  border: 1px solid var(--jd-line);
+  border-radius: 999px;
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  color: var(--jd-muted);
+  cursor: zoom-in;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.jd-fig--stage:hover .jd-fig__hint,
+.jd-fig__hint:focus-visible {
+  opacity: 1;
+}
+
+/* On the stage the drawing is outside `.jd-fig`, so its labels would fall back
+   to the sans face and run a different width than they were drawn for. */
+.jd-stage--figure svg text {
+  font-family: var(--font-mono);
+}
+
+/* ------------------------------------------------------------- diagrams -- */
+
+.jd-diagram {
+  position: relative;
+  margin-block: 2rem;
+  padding: 1rem;
+  background: var(--jd-surface);
+  border: 1px solid var(--jd-line);
+  border-radius: var(--jd-radius);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.jd-diagram:has(.jd-diagram__preview:hover),
+.jd-diagram:has(.jd-diagram__preview:focus-visible) {
+  background: color-mix(in srgb, var(--jd-surface), var(--color-foreground) 4%);
+  border-color: var(--jd-line-strong);
+}
+
+.jd-diagram svg {
+  display: block;
+  margin-inline: auto;
+  width: 100%;
+  height: auto;
+}
+
+/* The button the preview is wrapped in when the fence is interactive. Bare, so
+   the frame above stays the one frame around the drawing. */
+.jd-diagram__preview {
+  display: block;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: zoom-in;
+  text-align: left;
+}
+
+.jd-diagram__preview::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--jd-radius);
+}
+
+/* Mermaid renders in its light palette in both modes; dark mode inverts the
+   drawing instead. Authors hard-code lane and note colours in the source, and
+   a real dark theme would leave those as white slabs on a dark page. The hue
+   rotation keeps a blue lane blue after the flip. A `jd-fig` figure on the
+   stage is not inverted: it paints with the theme's own tokens. */
+.dark .jd-diagram svg,
+.dark .jd-stage--mermaid svg {
+  filter: invert(0.92) hue-rotate(180deg);
+}
+
+/* The stage: the page ground, near-opaque, over everything. The canvas is the
+   drawing at its natural pixel size and only ever moves by transform, so
+   panning never triggers layout.
+
+   No `will-change` on the canvas, on purpose. A tall sequence diagram is a few
+   thousand pixels by twelve thousand, and promoting that to one composited
+   layer overflows the GPU's maximum texture: the drawing then tiles, smears or
+   drops out while it moves. Painting on demand is smooth at this size. */
+.jd-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: color-mix(in srgb, var(--jd-ground) 96%, transparent);
+}
+
+.jd-stage--source {
+  background: var(--jd-ground);
+}
+
+.jd-stage--editing {
+  --mw-accent: var(--color-primary);
+  --mw-chrome-bg: var(--color-popover);
+  --mw-chrome-fg: var(--color-popover-foreground);
+  --mw-chrome-dim: var(--color-muted-foreground);
+  --mw-chrome-border: var(--color-border);
+  --mw-chrome-hover: var(--color-accent);
+  --mw-editor-bg: var(--color-popover);
+}
+
+.jd-stage--editing .jd-stage__canvas img {
+  display: block;
+  max-width: none;
+}
+
+.jd-stage__toolbar {
+  max-width: calc(100% - 2rem);
+  flex-wrap: wrap;
+}
+
+.jd-stage__viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}
+
+.jd-stage__viewport:active {
+  cursor: grabbing;
+}
+
+.jd-stage__canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  user-select: none;
+  pointer-events: none;
+}
+
+.jd-stage__canvas svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none !important;
+}
+
+.jd-stage__toolbar {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1;
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--jd-surface);
+  border: 1px solid var(--jd-line);
+  border-radius: 999px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+}
+
+.jd-stage__toolbar :is(button, a) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.7rem;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  font-family: var(--font-label);
+  font-size: 0.85rem;
+  color: var(--jd-ink-soft);
+  cursor: pointer;
+}
+
+.jd-stage__toolbar :is(button, a):hover {
+  background: var(--jd-code-bg);
+  color: var(--jd-ink);
+}
+
+/* The caption of the drawing on the stage, set along the bottom edge under a
+   viewport that stops short of it, so a fitted drawing never runs into it. */
+.jd-stage:has(.jd-stage__caption) .jd-stage__viewport {
+  bottom: 4.5rem;
+}
+
+.jd-stage__caption {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  z-index: 1;
+  width: min(40rem, calc(100% - 2rem));
+  margin: 0;
+  transform: translateX(-50%);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--jd-ink);
+  text-align: center;
+  pointer-events: none;
+}
+
+/* The minimap: the whole drawing, small, with a frame showing what the
+   viewport covers. It appears while the reader pans or zooms and fades once
+   they stop, staying put under the cursor so it can be clicked. */
+.jd-stage__minimap {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1;
+  overflow: hidden;
+  background: var(--jd-surface);
+  border: 1px solid var(--jd-line);
+  border-radius: var(--jd-radius);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  cursor: crosshair;
+}
+
+.jd-stage__minimap[data-active],
+.jd-stage__minimap:hover {
+  opacity: 1;
+}
+
+.jd-stage__minimap-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+.jd-stage__minimap-frame {
+  position: absolute;
+  border: 2px solid var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------- video -- */
+
+/* A YouTube embed, from the <VideoEmbed /> block. The frame matches a figure's,
+   the ground under it is black so a player that has not painted yet reads as a
+   video rather than as a hole in the page, and the ratio is fixed at 16:9,
+   which is what every YouTube player is. */
+.jd-video {
+  position: relative;
+  margin-block: 2rem;
+  border: 1px solid var(--jd-line);
+  border-radius: var(--jd-radius);
+  background: #000;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.jd-video iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* ----------------------------------------------------------- attachment -- */
+
+/* A downloadable file, from the <FileAttachment /> block. The whole card is the
+   link, and `download` on it is what makes the reader's browser save the real
+   filename rather than the content hash the file is stored under. The prose
+   plugin underlines and thickens every link; the card turns both off, because
+   an underline on an anchor paints through every descendant. */
+.jd-file {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  margin-block: 1.75rem;
+  padding: 0.95rem 1.1rem;
+  border: 1px solid var(--jd-line);
+  border-radius: var(--jd-radius);
+  background: var(--jd-surface);
+  color: var(--jd-ink);
+  font-weight: inherit;
+  text-decoration: none;
+  transition: border-color 140ms ease;
+}
+
+.jd-file:hover {
+  border-color: var(--jd-line-strong);
+  color: var(--jd-ink);
+  text-decoration: none;
+}
+
+/* The border does the work in dark mode, where the chip's fill and the card's
+   are only a few values apart and it would otherwise dissolve into it. */
+.jd-file-kind {
+  flex: none;
+  min-width: 3.2rem;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--jd-line);
+  border-radius: 4px;
+  background: var(--jd-code-bg);
+  color: var(--jd-muted);
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* `min-width: 0` lets a long filename wrap instead of pushing the arrow off. */
+.jd-file-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.jd-file-name {
+  display: block;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.jd-file-meta {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--jd-muted);
+  font-size: 0.8125rem;
+}
+
+.jd-file-note {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--jd-ink-soft);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.jd-file-go {
+  flex: none;
+  align-self: center;
+  color: var(--jd-muted);
+  transition:
+    transform 140ms ease,
+    color 140ms ease;
+}
+
+.jd-file:hover .jd-file-go {
+  transform: translateY(2px);
+  color: var(--jd-ink);
+}
+
+/* ---------------------------------------------------------- link embed -- */
+
+/* A link drawn as a card, from the <LinkEmbed /> block: the words on the left,
+   the page's picture on the right. Like the attachment card, the whole card is
+   the link and turns off the underline and weight the prose plugin gives one.
+   The picture is hotlinked, so its tile carries a ground of its own: a picture
+   that no longer loads leaves the tile, not a broken image. A card too narrow
+   for both drops the picture. */
+.jd-link-frame {
+  margin-block: 1.75rem;
+}
+
+.jd-link {
+  display: flex;
+  container-type: inline-size;
+  border: 1px solid var(--jd-line);
+  border-radius: var(--jd-radius);
+  background: var(--jd-surface);
+  color: var(--jd-ink);
+  font-weight: inherit;
+  text-decoration: none;
+  overflow: hidden;
+  transition: border-color 140ms ease;
+}
+
+.jd-link:hover {
+  border-color: var(--jd-line-strong);
+  color: var(--jd-ink);
+  text-decoration: none;
+}
+
+.jd-link-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+  min-width: 0;
+  padding: 0.85rem 1.1rem;
+}
+
+.jd-link-title {
+  display: -webkit-box;
+  overflow: hidden;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.jd-link-description {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--jd-ink-soft);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.jd-link-site {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  margin-top: 0.35rem;
+  color: var(--jd-muted);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.jd-link .jd-link-icon {
+  position: relative;
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  border: 0;
+  border-radius: 3px;
+  object-fit: contain;
+}
+
+/* A picture or an icon that fails to load draws its pseudo-elements, which a
+   loaded one never does, so this covers the browser's broken-image glyph. */
+.jd-link img::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--jd-code-bg);
+}
+
+.jd-link img.jd-link-icon::before {
+  background: var(--jd-surface);
+}
+
+.jd-link-name {
+  flex: none;
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jd-link-address {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jd-link-address::before {
+  content: "·";
+  margin-right: 0.45rem;
+}
+
+.jd-link-image {
+  position: relative;
+  flex: none;
+  width: min(34%, 15rem);
+  min-height: 7rem;
+  border-left: 1px solid var(--jd-line);
+  background: var(--jd-code-bg);
+}
+
+.jd-link-image img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+@container (max-width: 26rem) {
+  .jd-link-image {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------ focus, motion -- */
+
+/* One focus ring for the whole site.
+
+   Browsers ship a usable one and sites remove it, usually while styling a
+   search field. `:focus-visible` rather than `:focus`, so a mouse click does
+   not draw it and the keyboard always does. Everything that takes focus is
+   listed, because a bare `*` selector loses to a component's own rule.
+
+   A field you type into is left out. Its caret already says where focus is,
+   and a hard ring around a search box or a text area frames something the
+   reader is plainly looking at; a field that wants more draws its own border.
+   Every input that has no caret, a checkbox or a slider, still gets the ring. */
+a:focus-visible,
+button:focus-visible,
+input:is(
+  [type="checkbox"],
+  [type="radio"],
+  [type="range"],
+  [type="color"],
+  [type="file"],
+  [type="button"],
+  [type="submit"],
+  [type="reset"]
+):focus-visible,
+select:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: var(--jd-focus-width) solid var(--color-primary);
+  outline-offset: var(--jd-focus-offset);
+}
+
+input:not(
+  [type="checkbox"],
+  [type="radio"],
+  [type="range"],
+  [type="color"],
+  [type="file"],
+  [type="button"],
+  [type="submit"],
+  [type="reset"]
+):focus-visible,
+textarea:focus-visible {
+  outline: none;
+}
+
+/* ----------------------------------------------------------- code fences -- */
+
+.jd-fence-content {
+  position: relative;
+  font-family: var(--font-mono);
+}
+
+.jd-fence-lines {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: calc(7 * var(--spacing));
+  color: color-mix(in oklab, var(--color-muted-foreground) 60%, transparent);
+  text-align: right;
+  pointer-events: none;
+  user-select: none;
+}
+
+.shiki [data-node-view-content] {
+  padding-inline: calc(var(--padding-left) + 7 * var(--spacing)) var(--padding-right);
+}
+
+/* The dark theme's colours, for a fence being written.
+
+   Shiki can spell a two-theme token either way: as `--shiki-light` and
+   `--shiki-dark` for a stylesheet to choose between, which is what the build
+   asks for and what the rule above this file already paints from, or as a
+   plain `color` for the light theme with `--shiki-dark` carried alongside it.
+   The editor's highlighter only offers the second, so the dark value rides
+   along on every token and nothing ever reads it: an inline `color` beats any
+   selector, and a typed fence stayed in daylight on a dark page.
+
+   Weight is the only lever a stylesheet has against an inline style, so this
+   is the one place in the sheet that needs `!important`. It reaches only the
+   tokens inside an editor's own fence, and only in dark mode, so a built fence
+   keeps choosing for itself. */
+.dark .shiki [data-node-view-content] span {
+  color: var(--shiki-dark, inherit) !important;
+}
+
+/* The same highlighter writes the light theme's page colour and ink onto the
+   fence node itself, as inline styles. A built fence paints no theme colour at
+   all, its frame is the card, so the node paints none either, and in dark mode
+   its plain text takes the dark ink the same way the tokens above do. */
+.node-codeBlock.shiki {
+  background-color: transparent !important;
+}
+
+.dark .node-codeBlock.shiki {
+  color: var(--shiki-dark, inherit) !important;
+}
+
+/* The corners of a tabbed fence, which are a different colour from the rest of
+   it in both themes.
+
+   Two fences sharing a `tab="…"` are drawn as one frame with a panel inside it.
+   The frame rounds all four corners, paints `--color-card` and does not clip;
+   the panel paints `--color-secondary`, rounds only its own bottom two, and
+   hangs a pixel past the frame on each side so their borders meet. Two arcs of
+   the same radius a pixel apart do not coincide, so a crescent of the frame's
+   colour shows at each bottom corner. It is not a light-mode artefact: the two
+   tokens differ in both themes, so the crescent only changes colour.
+
+   So the panel stops rounding and the frame starts clipping. The panel then
+   reaches the frame's edge everywhere and the frame's own radius is what cuts
+   the corner, which is one arc instead of two. */
+:is(div, figure):has(> * > figure.shiki.-mx-px) {
+  overflow: hidden;
+}
+
+figure.shiki.-mx-px {
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+
+/* ------------------------------------------------------- editable blocks -- */
+
+/* A block the reader can write in. ProseMirror takes over the element the
+   article already drew, so there is no editor markup to style: the paragraph
+   keeps its own tag, its own classes and its place in the prose. These are the
+   two things the view needs from CSS to behave, and nothing else.
+
+   `pre-wrap` is what lets a typed double space survive long enough to be typed
+   after. The outline override has to name `[contenteditable]` because the focus
+   ring above matches on `[tabindex]`, which the view puts on its own root, and
+   would otherwise draw a box around the paragraph you are writing in. */
+.ProseMirror[contenteditable] {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.ProseMirror[contenteditable]:focus-visible {
+  outline: none;
+}
+
+/* A list written without blank lines between its items renders as bare text in
+   each `<li>`, and the article's spacing is built on that. ProseMirror wraps
+   every item in a `<p>` instead, which would hand a tight list the margins the
+   theme reserves for a loose one and spring it apart the moment it became
+   editable. The class comes from the schema, so only a list the reader can
+   write in ever carries it. */
+.jd-list-tight > li > p {
+  margin-block: 0;
+}
+
+/* The page's own title and description, which are front matter rather than
+   article. Each is taken over by a one-line editor like any block, and each can
+   be emptied, at which point there is nothing on screen to click back into. So
+   an emptied one says what it is for.
+
+   `:empty` is no use here: a browser leaves a stray `<br>` behind when the last
+   character of a contenteditable goes, so the element is never really empty and
+   the flag is written by the editor instead. */
+.jd-field[data-empty="true"]::before {
+  content: attr(data-placeholder);
+  color: var(--color-muted-foreground);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------- comments -- */
+
+/* Under `prefers-reduced-motion` every transition is cut to almost nothing
+   rather than to zero, because a few libraries wait on `transitionend` and a
+   duration of exactly 0 never fires it. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

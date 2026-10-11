@@ -1,0 +1,48 @@
+# Builds the docs into a static site with Jotdown and publishes it on GitHub Pages, on every push to main.
+#
+# In the repository's settings, set Pages to "GitHub Actions". While Jotdown's
+# repository is private, add a JOTDOWN_TOKEN secret that can read it.
+name: Docs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - name: Clone Jotdown at the version the config names
+        env:
+          JOTDOWN_TOKEN: ${{ secrets.JOTDOWN_TOKEN }}
+        run: |
+          ref="$(bun --print "require('./.jotdown/config.json').jotdown || 'main'")"
+          git clone --quiet --depth 1 --branch "$ref" "https://${JOTDOWN_TOKEN:+x-access-token:$JOTDOWN_TOKEN@}github.com/markomitranic/Jotdown.git" .jotdown/framework
+      - run: bash .jotdown/framework/apps/publication/build.sh
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .jotdown/out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

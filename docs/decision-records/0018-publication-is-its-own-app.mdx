@@ -1,0 +1,110 @@
+---
+title: "ADR 0018: A publication is its own app"
+icon: Boxes
+description: Why the studio and the publication are two Next.js apps on a shared core, and why a content repository names its Jotdown version in its config instead of installing anything.
+---
+
+**Accepted** · 2026-09-28 · Its server is superseded by [ADR 0025](./0025-a-site-is-static.mdx)
+
+## Context
+
+A publication used to be a static export of the studio's own app. A script
+copied the framework into a scratch folder, deleted the studio's API routes,
+swapped `force-dynamic` for `force-static` and ran `next build` with
+`output: "export"`. That had two problems.
+
+A folder of HTML cannot grow. What a site wants next, a search box, a route
+that answers a form, an assistant to ask about the pages, all needs a server
+behind the page.
+
+And one app was two apps wearing flags. The layout and the page branched on
+`DOCS_PUBLICATION`, `DOCS_PROJECT_DIR` and whether the project came from
+GitHub. The routing was the studio's, with a welcome page and `/owner/repo`
+addresses the export had to undo. Deleting files from a copy works for a whole
+route and nothing smaller, and a feature only a publication should have would
+have needed a flag pointing the other way.
+
+## Decision
+
+<figure className="jd-fig">
+  <div className="jd-fig-frame">
+    <svg viewBox="0 0 960 240" role="img" aria-label="The studio app and the publication app both import the shared core, and the core imports neither">
+      <defs>
+        <marker id="adr18-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--jd-fig-line)" />
+        </marker>
+      </defs>
+
+      <path d="M 440,72 H 492 Q 500,72 500,80 V 104 Q 500,112 508,112 H 560" fill="none" stroke="var(--jd-fig-line)" strokeWidth="1.5" markerEnd="url(#adr18-arrow)" />
+      <path d="M 440,168 H 492 Q 500,168 500,160 V 144 Q 500,136 508,136 H 560" fill="none" stroke="var(--jd-fig-line)" strokeWidth="1.5" markerEnd="url(#adr18-arrow)" />
+
+      <text x="468" y="64" textAnchor="middle" fontSize="10" fill="var(--jd-fig-muted)">imports</text>
+      <text x="468" y="188" textAnchor="middle" fontSize="10" fill="var(--jd-fig-muted)">imports</text>
+
+      <rect x="200" y="40" width="240" height="64" rx="4" fill="var(--jd-fig-surface)" stroke="var(--jd-fig-line)" />
+      <rect x="200" y="136" width="240" height="64" rx="4" fill="var(--jd-fig-surface)" stroke="var(--jd-fig-line)" />
+      <rect x="560" y="88" width="240" height="72" rx="4" fill="var(--jd-fig-accent-soft)" stroke="var(--jd-fig-accent)" strokeWidth="1.5" />
+
+      <text x="320" y="68" textAnchor="middle" fontSize="12" fontWeight="600" fill="var(--jd-fig-ink)">apps/studio</text>
+      <text x="320" y="84" textAnchor="middle" fontSize="9.5" opacity="0.75" fill="var(--jd-fig-muted)">editor, every project</text>
+      <text x="320" y="164" textAnchor="middle" fontSize="12" fontWeight="600" fill="var(--jd-fig-ink)">apps/publication</text>
+      <text x="320" y="180" textAnchor="middle" fontSize="9.5" opacity="0.75" fill="var(--jd-fig-muted)">one project, read-only</text>
+      <text x="680" y="120" textAnchor="middle" fontSize="12" fontWeight="600" fill="var(--jd-fig-ink)">packages/core</text>
+      <text x="680" y="136" textAnchor="middle" fontSize="9.5" opacity="0.75" fill="var(--jd-fig-muted)">compiler, blocks, page, shell</text>
+    </svg>
+  </div>
+  <figcaption>Both apps are built from the same core, and the core knows neither of them.</figcaption>
+</figure>
+
+**Three workspaces in one repository.** `packages/core` is the renderer:
+compiling a folder of content, the blocks, the page, the docs shell, the
+theme and search. `apps/studio` is the studio. `apps/publication` is one
+project at the site root. Each app is a whole Next.js app with its own routes
+and config. The core never imports an app.
+
+**Nothing is switched by a flag.** The editor is code in the studio, wrapped
+around the core's blocks; the publication imports the blocks without it. What
+only one side does lives only on that side, so a publication-only feature is
+code in `apps/publication` and nothing else.
+
+**A publication renders at build time.** Every page, markdown twin and upload
+is rendered once, from the content repository `DOCS_PROJECT_DIR` names, and
+`docs/moved.json` becomes redirects. The running app reads no content and asks
+GitHub nothing, and it is still a Next.js server, so a route handler or a
+`proxy.ts` can be added to it the day a feature needs one.
+
+**A content repository names its Jotdown version in its config.**
+`"jotdown": "v0.2.0"`, `main` when unset. The host clones Jotdown at that ref
+beside the content and runs its `apps/publication/build.sh`. The content
+repository gets no `package.json`, no lockfile and no framework image to pull.
+Being able to read Jotdown's repository is what lets a host build a site.
+[ADR 0020](./0020-one-folder-for-jotdown.mdx) later moved the clone into
+`.jotdown/framework`.
+
+**Hosts are files the project owns.** Jotdown's `deployment/` folder holds a
+`Dockerfile` that clones, builds and runs `next start`, and a `vercel.json`
+that clones and builds. Any other host runs the same two commands. On Vercel
+the build script writes `.vercel/output` through Next's Vercel adapter,
+because Vercel looks for a Next.js app in the repository it cloned and a
+publication's app only appears halfway through the build.
+
+## Consequences
+
+- A feature for readers goes in the publication app and a feature for editors
+  in the studio, and neither needs the other's switch.
+- The local preview is the publication app in development, so what you preview
+  is what your readers get.
+- A publication has no search yet. The studio's search is served by the
+  studio; a publication gets it when its app serves the same index. *Since
+  amended:* a site now serves its own.
+- While Jotdown's repository is private, every host needs `JOTDOWN_TOKEN`.
+  Making the repository public removes it.
+- A publication left on `main` picks up every Jotdown change on its next
+  build, good or bad. Pinning a tag is one line in its config.
+- On Vercel the build leans on `@next-community/adapter-vercel`, still a beta,
+  and on Next's `NEXT_PRIVATE_OUTPUT_TRACE_ROOT`, so its server functions name
+  their files from the content repository's root.
+- The published framework image, its workflow and the Nginx template are gone.
+  A project that wants an image builds its own from the `Dockerfile`.
+- A build of this repository's own docs, 390 routes, takes about 20 seconds
+  after a cold install of 15, on an 8-core machine.
