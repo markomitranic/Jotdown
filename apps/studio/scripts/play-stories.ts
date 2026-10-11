@@ -20,6 +20,17 @@ import { type Browser, chromium, webkit } from "playwright";
 type Entry = { id: string; type: string; tags?: string[] };
 type Outcome = { done: boolean; error: string };
 
+const TYPES: Record<string, string> = {
+  ".html": "text/html",
+  ".js": "text/javascript",
+  ".mjs": "text/javascript",
+  ".css": "text/css",
+  ".json": "application/json",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".woff2": "font/woff2",
+};
+
 const [where = "storybook-static", only, filter = ""] = process.argv.slice(2);
 const server = where.startsWith("http") ? null : await serveFolder(where);
 const base = server ? `http://localhost:${(server.address() as AddressInfo).port}` : where;
@@ -95,17 +106,6 @@ function listenToStorybook() {
   };
   attach();
 }
-
-const TYPES: Record<string, string> = {
-  ".html": "text/html",
-  ".js": "text/javascript",
-  ".mjs": "text/javascript",
-  ".css": "text/css",
-  ".json": "application/json",
-  ".svg": "image/svg+xml",
-  ".png": "image/png",
-  ".woff2": "font/woff2",
-};
 
 /**
  * Serves a built Storybook from a folder on a free port.
