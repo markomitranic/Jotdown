@@ -64,6 +64,14 @@ Keep the stories up to date whenever you change a component. Use Storybook
 for quick prototyping, iteration and testing before you try it in the dev
 server.
 
+Test in the browser with `agent-browser`, but on Linux, when you need WebKit,
+the engine of the macOS app, script Playwright's build of it
+(`bunx playwright install webkit`, and once
+`sudo bunx playwright install-deps webkit` for its system libraries): it
+shares Safari's layout, CSS and SVG engine but paints on the CPU with Skia and
+other fonts, so trust it for rendering and relative timings, never for GPU
+cost or pixel-exact screenshots.
+
 ### Before you commit
 
 Run `bun run lint`, `bun run test` and `bun run check:links`. `bun run lint`
