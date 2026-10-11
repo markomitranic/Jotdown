@@ -10,8 +10,10 @@ import { z } from "zod";
  * the colour mode with `theme`, the studio says with `window` whether it is
  * the desktop app, and the canvas hands back the studio's own shortcuts as
  * `shortcut` and a press on its title bar as `drag`, for the app to move the
- * window. A message one side does not know is ignored, so adding one is not a
- * new protocol.
+ * window. While the project's settings hold an unsaved theme, the studio sends
+ * it as `look` for the canvas to wear, and `look` with none to take it off. A
+ * message one side does not know is ignored, so adding one is not a new
+ * protocol.
  *
  * Every site ever built speaks this, so a change to a message's shape is a new
  * `CANVAS_PROTOCOL`, and the studio names the version it can talk to.
@@ -88,11 +90,14 @@ const theme = z.object({ type: z.literal("theme"), mode: colourMode });
 /** Whether the studio is the desktop app, whose window has no title bar but the one the page draws. */
 const appWindow = z.object({ type: z.literal("window"), app: z.boolean() });
 
+/** A draft of the project's theme for the canvas to wear until it is saved, or null to wear the built one again. */
+const look = z.object({ type: z.literal("look"), theme: z.unknown() });
+
 /** Anything a canvas may send. */
 export const fromCanvas = z.discriminatedUnion("type", [hello, request, navigate, theme, shortcut, drag]);
 
 /** Anything the studio may send. */
-export const fromStudio = z.discriminatedUnion("type", [load, response, navigate, theme, appWindow]);
+export const fromStudio = z.discriminatedUnion("type", [load, response, navigate, theme, appWindow, look]);
 
 export type FromCanvas = z.infer<typeof fromCanvas>;
 export type FromStudio = z.infer<typeof fromStudio>;

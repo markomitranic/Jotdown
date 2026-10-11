@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type MouseEvent, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronsUpDown, CodeXml, HardDrive, RotateCw, Settings } from "lucide-react";
@@ -13,6 +13,8 @@ import type { Update } from "@/server/updates";
 import { UpdateNotice } from "../account/UpdateNotice";
 import { RendererMenu } from "../canvas/RendererMenu";
 import { useWorkspace } from "../Workspace";
+import { useDraft } from "../settings/draft";
+import { closeSettings, openSettings, useSettings } from "../settings/store";
 import { BranchMenu } from "./BranchMenu";
 import { ITEM, note, useNote } from "./note";
 
@@ -43,9 +45,7 @@ export function StatusStrip() {
       <RefreshButton />
       {folder && <EditorButton />}
       <RendererMenu className={ITEM} />
-      <Unbuilt label="Project settings">
-        <Settings className="size-3.5" />
-      </Unbuilt>
+      <SettingsButton />
     </footer>
   );
 }
@@ -172,34 +172,30 @@ function Tool({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-/**
- * A tool that is not built yet, which answers a click with a tooltip saying so.
- *
- * @example <Unbuilt label="Project settings"><Settings /></Unbuilt>
- */
-function Unbuilt({ label, children }: { label: string; children: ReactNode }) {
-  const [open, setOpen] = useState(false);
-
-  function tell(event: MouseEvent) {
-    event.preventDefault();
-    setOpen(true);
-  }
+/** Opens the project's settings, marked while a draft of them is unsaved. */
+function SettingsButton() {
+  const { open } = useSettings();
+  const { dirty } = useDraft();
 
   return (
-    <Tooltip open={open} onOpenChange={setOpen}>
+    <Tooltip>
       <TooltipTrigger asChild>
         <button
           type="button"
-          aria-label={label}
-          aria-disabled="true"
-          className={cn(ITEM, "cursor-default opacity-50 hover:bg-transparent hover:text-muted-foreground")}
-          onClick={tell}
+          aria-label="Project settings"
+          aria-pressed={open}
+          onClick={() => (open ? closeSettings() : openSettings())}
+          className={cn(ITEM, "relative aria-pressed:bg-accent aria-pressed:text-accent-foreground")}
         >
-          {children}
+          <Settings className="size-3.5" aria-hidden="true" />
+          {dirty && <span className="absolute top-0.5 right-0.5 size-1.5 rounded-full bg-primary ring-2 ring-card" />}
         </button>
       </TooltipTrigger>
       <TooltipContent side="top" align="end">
-        {label} · Coming soon
+        <ShortcutHint
+          label={dirty ? "Project settings · unsaved changes" : "Project settings"}
+          chords={SHORTCUTS.settings}
+        />
       </TooltipContent>
     </Tooltip>
   );

@@ -708,8 +708,8 @@ Copies a framework default into the project, shadcn-style.
 - A default icon for every page.
 - Page preview (peek).
 - Private pages.
-- Icon versus logo.
-- A project settings panel with theme presets.
+- Icon versus logo. Done (2026-10-11): `favicon` is the square icon every square slot draws, fitted in; `logo` is an optional wordmark that stands in when there is no icon.
+- A project settings panel with theme presets. Done (2026-10-11): the gear and ⌘, open every config field over the window, saved as one commit, with palettes, contrast badges, derive dark, a pasted shadcn theme, Google Fonts copied into the uploads, the config's history, search and health checks. The draft repaints the studio, and a canvas through the new `look` message; a site deployed before it ignores that. Still open: a personal preferences tab, and importing a theme from Figma.
 - Image compression and download.
 
 **Branding:** a Jotdown icon.

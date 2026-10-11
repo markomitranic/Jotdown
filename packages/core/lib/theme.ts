@@ -11,7 +11,7 @@ import { z } from "zod";
  */
 
 /** The colours a theme picks. Every other token is worked out from these. */
-const CORE_TOKENS = [
+export const CORE_TOKENS = [
   "background",
   "foreground",
   "primary",
@@ -67,10 +67,17 @@ const FRAMEWORK_TINTS = {
 
 type DerivedToken = keyof typeof DERIVED_TOKENS;
 
-const TOKEN_NAMES = [...CORE_TOKENS, ...(Object.keys(DERIVED_TOKENS) as DerivedToken[])] as [string, ...string[]];
+/** A colour token a theme may set. */
+export type ThemeToken = (typeof CORE_TOKENS)[number] | DerivedToken;
+
+/** The tokens worked out from the core ones unless a theme pins them, in the order shadcn lists them. */
+export const DERIVED_TOKEN_NAMES = Object.keys(DERIVED_TOKENS) as DerivedToken[];
+
+/** Every colour token a theme may set, the core ones first. */
+export const TOKEN_NAMES = [...CORE_TOKENS, ...DERIVED_TOKEN_NAMES] as [ThemeToken, ...ThemeToken[]];
 
 /** A CSS colour that cannot close the rule it sits in: hex, or one colour function with plain arguments. */
-const COLOUR = /^(#[0-9a-f]{3,8}|(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch)\([0-9a-z.%\s,/+-]*\))$/i;
+export const COLOUR = /^(#[0-9a-f]{3,8}|(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch)\([0-9a-z.%\s,/+-]*\))$/i;
 
 const colour = z.string().regex(COLOUR, "Write a colour as #hex, rgb(), hsl() or oklch().");
 const mode = z.partialRecord(z.enum(TOKEN_NAMES), colour);

@@ -15,6 +15,7 @@ import {
   type FromStudio,
 } from "@jotdown/core/lib/canvas";
 import { Button } from "@jotdown/core/components/ui/button";
+import { useDraftTheme } from "../settings/LiveTheme";
 
 type Props = {
   /** The canvas's address, `<site>/_edit` or one of your own. */
@@ -59,6 +60,7 @@ export function CanvasFrame({ src, project }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const draftTheme = useDraftTheme();
   const queries = useQueryClient();
 
   const slug = pathname.startsWith(project.base) ? pathname.slice(project.base.length).replace(/^\//, "") : "";
@@ -133,6 +135,11 @@ export function CanvasFrame({ src, project }: Props) {
     const mode = colourMode.safeParse(theme);
     if (hello && mode.success) post({ type: "theme", mode: mode.data });
   }, [hello, theme]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the draft theme is sent again whenever it or the canvas changes
+  useEffect(() => {
+    if (hello) post({ type: "look", theme: draftTheme });
+  }, [hello, JSON.stringify(draftTheme)]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: a canvas learns once, as it says hello, whether the app frames it
   useEffect(() => {

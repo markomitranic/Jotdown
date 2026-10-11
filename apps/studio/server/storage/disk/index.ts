@@ -1,4 +1,4 @@
-import { contentDirectory, readProjectConfig } from "@jotdown/core/server/config";
+import { CONFIG_FILE, contentDirectory, readProjectConfig } from "@jotdown/core/server/config";
 import type { ProjectStorage } from "../types";
 import * as editing from "./editing";
 import type { Folder } from "./folders";
@@ -32,5 +32,10 @@ export function diskStorage(folder: Folder): ProjectStorage {
 
     listPageHistory: (path, page, head) => history.listPageHistory(directory, path, page, head),
     readRevision: (path, sha) => history.readRevision(directory, path, sha),
+
+    readConfig: () => editing.readSource(folder.path, CONFIG_FILE),
+    saveConfig: (save) => editing.commitFile(folder.path, folder.path, { ...save, path: CONFIG_FILE }),
+    listConfigHistory: (page, head) => history.listPageHistory(folder.path, CONFIG_FILE, page, head),
+    readConfigRevision: (sha) => history.readRevision(folder.path, CONFIG_FILE, sha),
   };
 }

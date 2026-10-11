@@ -71,6 +71,28 @@ stylesheet is in [ADR 0016](../decision-records/0016-theme-in-the-config.mdx).
   <figcaption>You pick the colours on the left. Every other shade is mixed from them, and every part of the site paints from the result.</figcaption>
 </figure>
 
+## Change it from the studio
+
+You rarely type any of this by hand. The gear at the right end of the status
+strip, or <kbd>Ctrl</kbd> + <kbd>,</kbd> (<kbd>⌘</kbd> + <kbd>,</kbd> on a Mac), opens the project's settings: every field
+of `.jotdown/config.json` as a form, over the whole window.
+
+- **Theme** starts you from a palette, lists every colour of both modes with its
+  contrast against the background, and works a dark mode out of the light one
+  in a click. **Paste a theme** takes the CSS variables a
+  [tweakcn](https://tweakcn.com) or shadcn theme exports, since the names match.
+  A typeface picked from Google Fonts is copied into your uploads, so readers
+  never fetch it from Google.
+- Every change repaints the page at once, before anything is saved. Hold
+  **Peek** to see the page behind the settings in the draft, or close them: the
+  draft stays on until you save or discard it.
+- **Save** writes the config as one commit, like a page. **History** lists every
+  commit that changed it, and restoring one puts it back into the draft for
+  you to look over and save.
+
+The rest of this page is what those settings write, for when you want to read
+the file or an agent edits it.
+
 ## Pick the core colours for each mode
 
 Add a `theme` to `.jotdown/config.json` with a `light` and a `dark` object, and set
@@ -225,7 +247,7 @@ A token has a value in each mode, so one line covers both, and the section
 already clears the contrast you checked for the chart colours. A section
 without an entry wears `primary`, and the main tree always does.
 
-## Set the logo and favicon
+## Set the icon and logo
 
 Both are uploads, named by their public address:
 
@@ -236,11 +258,14 @@ Both are uploads, named by their public address:
 }
 ```
 
-The logo is the mark at the top of the sidebar and in the switcher, drawn as a
-square, so a square image of about 512 px reads best. `srcDark` is optional,
-for a mark that disappears on a dark ground. `favicon` is the tab icon of the
-site and the local preview; the studio keeps its own. The setup wizard
-writes both from the icon you drop on it.
+`favicon` is the project's icon: the browser tab, the top of the sidebar, the
+switcher and the app. It is always drawn in a square, so a square image of about
+512 px reads best, and the settings fit whatever you upload into one. The
+`logo` is an optional wide wordmark for places that fit one. A project with no
+`favicon` has its logo fitted into the square instead, so an old wide logo
+shrinks rather than pushing the title aside. `srcDark` is optional, for a logo
+that disappears on a dark ground. The setup wizard writes both from the icon you
+drop on it.
 
 ## Pick the typefaces
 

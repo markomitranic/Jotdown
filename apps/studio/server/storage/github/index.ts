@@ -27,4 +27,9 @@ export const githubStorage: Storage = {
 
   listPageHistory: editing.listPageHistory,
   readRevision: editing.readRevision,
+
+  readConfig: editing.readConfigFile,
+  saveConfig: editing.saveConfigFile,
+  listConfigHistory: editing.listConfigHistory,
+  readConfigRevision: editing.readConfigRevision,
 };

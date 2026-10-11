@@ -23,6 +23,8 @@ import { TitleBarControls, WindowTitleBar } from "@jotdown/core/components/Windo
 import { SHORTCUTS, pressed } from "@jotdown/core/components/shortcuts";
 import { DocCardList } from "@jotdown/core/components/blocks/DocCardList";
 import { compileInBrowser } from "@jotdown/core/lib/browser-page";
+import { wearDraftTheme } from "@jotdown/core/lib/draft-theme";
+import { themeSchema, themeStylesheet } from "@jotdown/core/lib/theme";
 import {
   CANVAS_PROTOCOL,
   colourMode,
@@ -75,8 +77,9 @@ type Drawing = Omit<Props, "project" | "framework">;
  * rather than leaving, and the studio's own shortcuts are handed back to it.
  * Framed by the desktop app, it lays itself out as the app's window does, and
  * a press on its title bar moves the window. The colour mode is the studio's,
- * and a mode picked on the canvas is handed up for the studio to keep. Opened
- * on its own, outside the studio, it says what it is.
+ * and a mode picked on the canvas is handed up for the studio to keep. A theme
+ * the studio's settings are trying on is worn until they save or drop it.
+ * Opened on its own, outside the studio, it says what it is.
  *
  * @example <Canvas title={title} project={{ title: "Notes" }} site={site} layout="docs" blocks={{ Hero }} layouts={{}} framework="0.3.0" />
  */
@@ -114,6 +117,7 @@ export function Canvas({ project, framework, ...drawing }: Props) {
       }
       if (message.data.type === "theme") followStudio(message.data.mode);
       if (message.data.type === "window") document.documentElement.toggleAttribute("data-app", message.data.app);
+      if (message.data.type === "look") wearLook(message.data.theme);
     }
 
     window.addEventListener("message", listen);
@@ -369,4 +373,16 @@ function Alone({ title }: { title: string }) {
 /** Posts one message to the studio. */
 function post(target: Window, origin: string, message: FromCanvas) {
   target.postMessage(message, origin);
+}
+
+/**
+ * Wears the theme the studio's settings are trying on, or the site's own again for null.
+ *
+ * A theme that does not read is ignored. Its fonts are looked for at the site's
+ * root, where the canvas is served.
+ */
+function wearLook(theme: unknown) {
+  if (theme === null) return wearDraftTheme(null);
+  const parsed = themeSchema.safeParse(theme);
+  if (parsed.success) wearDraftTheme(themeStylesheet(parsed.data));
 }
