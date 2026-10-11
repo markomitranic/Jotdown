@@ -1,10 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Globe, PenLine, Share2 } from "lucide-react";
+import { Globe, Share2 } from "lucide-react";
 import { GitHubMark } from "@jotdown/core/components/brand-icons";
 import { PageActions } from "@jotdown/core/components/PageActions";
-import { Button } from "@jotdown/core/components/ui/button";
 import { PageDrawer, usePageDrawer } from "@jotdown/core/components/PageDrawer";
 import { CopyField, ShareLink } from "@jotdown/core/components/ShareLinks";
 import { TabsContent, TabsList, TabsTrigger } from "@jotdown/core/components/ui/tabs";
@@ -16,34 +15,24 @@ type Props = {
   markdownUrl: string;
   /** The page's file on GitHub, or empty when the project names no repository. */
   githubUrl: string;
-  /** The page in the Jotdown app, a `jotdown://` link, or empty when the project is not on GitHub. */
-  editUrl?: string;
   /** The whole readable page: the title, the description and the body. */
   children: ReactNode;
 };
 
 /**
- * A page as a reader gets it: Edit in Jotdown, the page menu and the page drawer in its top right corner.
+ * A page as a reader gets it: the page menu and the page drawer in the top right corner, beside the title.
  *
  * The drawer holds the addresses to share the page by, and Share in the page
- * menu opens it on those. Edit in Jotdown opens the same page in the app.
+ * menu opens it on those.
  *
- * @example <ReadingArticle title="Setup" markdownUrl="/markdown/setup.md" githubUrl="" editUrl="jotdown://open/you/notes/setup"><PageContent … /></ReadingArticle>
+ * @example <ReadingArticle title="Setup" markdownUrl="/markdown/setup.md" githubUrl=""><PageContent … /></ReadingArticle>
  */
-export function ReadingArticle({ title, markdownUrl, githubUrl, editUrl, children }: Props) {
+export function ReadingArticle({ title, markdownUrl, githubUrl, children }: Props) {
   const drawer = usePageDrawer("share");
 
   return (
-    <>
+    <div className="relative">
       <div className="absolute top-0 right-0 z-2 flex items-center gap-2">
-        {editUrl && (
-          <Button variant="ghost" size="sm" className="not-prose text-muted-foreground" asChild>
-            <a href={editUrl}>
-              <PenLine />
-              Edit in Jotdown
-            </a>
-          </Button>
-        )}
         <PageActions markdownUrl={markdownUrl} githubUrl={githubUrl} onShare={() => drawer.show("share")} />
         <PageDrawer drawer={drawer} title={title}>
           <TabsList>
@@ -59,7 +48,7 @@ export function ReadingArticle({ title, markdownUrl, githubUrl, editUrl, childre
         </PageDrawer>
       </div>
       {children}
-    </>
+    </div>
   );
 }
 

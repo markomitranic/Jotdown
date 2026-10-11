@@ -685,7 +685,7 @@ Copies a framework default into the project, shadcn-style.
 
 **App and canvas:**
 
-- A key on any page of a live site opens that page in the app. Edit in Jotdown already does, with a `jotdown://open/<owner>/<repo>/<page>` link.
+- A key on any page of a live site opens that page in the app. The sidebar's Edit this page offer already does, with a `jotdown://open/<owner>/<repo>/<page>` link.
 - The last few canvases stay alive in hidden iframes, so switching projects is instant.
 - Deploy status per project in the sidebar, from GitHub deployment statuses.
 - A device-size switch on the canvas.
