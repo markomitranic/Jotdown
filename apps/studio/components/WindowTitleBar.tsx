@@ -9,12 +9,11 @@ import { SHORTCUTS, ShortcutHint } from "@jotdown/core/components/shortcuts";
 import { SidebarToggle } from "@jotdown/core/components/SidebarToggle";
 
 /**
- * The installed app's title bar: a strip that drags the window, in the page's background under the docs shell.
+ * The installed app's title bar: a see-through strip that drags the window.
  *
  * Drawn only while the browser lets the page paint beside the window's own
  * buttons. It comes first in the page, so every control drawn later over it
- * keeps its clicks. Without the shell it is see-through, so a page that paints
- * to the window's edge shows under it.
+ * keeps its clicks, and it paints nothing, so the page scrolls on under it.
  *
  * @example <WindowTitleBar />
  */
@@ -22,7 +21,7 @@ export function WindowTitleBar() {
   return (
     <div
       aria-hidden
-      className="fixed inset-x-0 top-0 z-5 wco:block hidden h-(--titlebar-height) [-webkit-app-region:drag] [app-region:drag] [:root:has(#jd-docs-layout)_&]:bg-background"
+      className="fixed inset-x-0 top-0 z-5 wco:block hidden h-(--titlebar-height) [-webkit-app-region:drag] [app-region:drag]"
     />
   );
 }

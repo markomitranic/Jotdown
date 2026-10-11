@@ -111,7 +111,7 @@
   --jd-focus-offset: 2px;
 }
 
-/* The stripe across the top of the window, fixed, above everything but a
+/* The stripe along the bottom of the window, fixed, above everything but a
    dialog. It runs through the first three chart colours, so every theme gets
    one in its own colours without naming any.
 
@@ -122,11 +122,11 @@
 body::before {
   content: "";
   position: fixed;
-  top: 0;
+  bottom: 0;
   left: 0;
   z-index: 45;
   width: 200vw;
-  height: 3px;
+  height: 6px;
   background: linear-gradient(90deg, var(--chart-1), var(--chart-2), var(--chart-3), var(--chart-2), var(--chart-1));
   transform-origin: left center;
   animation:
@@ -314,8 +314,8 @@ html {
    page with `data-app` on `<html>` when it is drawn there. Everything below
    applies only then: in a browser tab the page is laid out exactly as before.
 
-   The strip itself is `WindowTitleBar`, one fixed bar in the page's background
-   that drags the window. These rules move the shell out of its way: the
+   The strip itself is `WindowTitleBar`, one fixed, see-through bar that drags
+   the window, with the page scrolling on under it. These rules move the shell out of its way: the
    sidebar's header drops below the traffic lights, the page's table of
    contents moves up into the strip, and the phone header becomes the strip. */
 @custom-variant wco (&:where([data-app], [data-app] *));

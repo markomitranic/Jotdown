@@ -78,7 +78,7 @@ own.
 Pick `background`, `foreground`, `primary`, `destructive` and `chart-1` to
 `chart-5`; every other shadcn token is worked out from those unless you set it
 too, and a core colour you leave out keeps the default. `sections` gives a
-section its colour by naming a token, and the stripe across the top of the
+section its colour by naming a token, and the stripe along the bottom of the
 window runs through `chart-1` to `chart-3`. See
 [Branding](https://github.com/markomitranic/Jotdown/blob/main/docs/studio/branding.mdx). `fonts` names the
 `sans`, `serif` and `mono` faces, each a family and the font file among the
