@@ -44,14 +44,10 @@ export function DocsLayout({
   sidebarProps,
   children,
 }: DocsLayoutProps) {
-  const layout = useMemo(() => {
-    const NavLink: FC<ComponentProps<"a">> = (props) => (
-      <Link href={nav.url} {...props}>
-        {nav.title}
-      </Link>
-    );
-    return { navTitle: navTitle ?? NavLink, navChildren: nav.children };
-  }, [nav.url, nav.title, nav.children, navTitle]);
+  const layout = useMemo(
+    () => ({ navTitle: navTitle ?? NavLink, nav: { title: nav.title, url: nav.url }, navChildren: nav.children }),
+    [nav.url, nav.title, nav.children, navTitle],
+  );
 
   return (
     <TreeProvider tree={tree}>
@@ -65,6 +61,24 @@ export function DocsLayout({
         </SidebarProvider>
       </LayoutContext>
     </TreeProvider>
+  );
+}
+
+/**
+ * The logo as a link home, the default when the app names no logo of its own.
+ *
+ * One component for the life of the page, so the logo's images stay put while
+ * the layout around them redraws.
+ *
+ * @example <NavLink className="inline-flex" />
+ */
+function NavLink(props: ComponentProps<"a">) {
+  const { nav } = useDocsLayout();
+
+  return (
+    <Link href={nav.url} {...props}>
+      {nav.title}
+    </Link>
   );
 }
 

@@ -1,13 +1,24 @@
 "use client";
 
-import { useEffect, useEffectEvent, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
+import {
+  Suspense,
+  startTransition,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from "react";
 import { useTheme } from "next-themes";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { FrameworkProvider } from "fumadocs-core/framework";
 import { DocsShell, SidebarFooter } from "@jotdown/core/components/DocsShell";
 import { DocsBody, DocsPage, DocsTitle } from "@jotdown/core/components/docs/page";
 import { PageContent } from "@jotdown/core/components/PageContent";
 import { SiteLink } from "@jotdown/core/components/SiteLink";
+import { NavigationTracker, startTrip } from "@jotdown/core/components/OptimisticPathname";
 import { TitleBarControls, WindowTitleBar } from "@jotdown/core/components/WindowTitleBar";
 import { SHORTCUTS, pressed } from "@jotdown/core/components/shortcuts";
 import { DocCardList } from "@jotdown/core/components/blocks/DocCardList";
@@ -97,7 +108,10 @@ export function Canvas({ project, framework, ...drawing }: Props) {
         document.documentElement.toggleAttribute("data-framed", true);
         setStudio(origin);
       }
-      if (message.data.type === "load") setLoad(message.data);
+      if (message.data.type === "load") {
+        const next = message.data;
+        startTransition(() => setLoad(next));
+      }
       if (message.data.type === "theme") followStudio(message.data.mode);
       if (message.data.type === "window") document.documentElement.toggleAttribute("data-app", message.data.app);
     }
@@ -107,7 +121,7 @@ export function Canvas({ project, framework, ...drawing }: Props) {
     return () => window.removeEventListener("message", listen);
   }, [framework, project]);
 
-  useStudioHandoffs(studio);
+  useStudioHandoffs(studio, load?.url);
 
   useEffect(() => {
     const mode = colourMode.safeParse(theme);
@@ -121,7 +135,9 @@ export function Canvas({ project, framework, ...drawing }: Props) {
   return (
     <>
       <WindowTitleBar />
-      <CanvasPage load={load} {...drawing} />
+      <Suspense fallback={null}>
+        <CanvasPage load={load} {...drawing} />
+      </Suspense>
     </>
   );
 }
@@ -133,13 +149,15 @@ const PRESSABLE = "a, button, input, textarea, select, [role='dialog']";
 /**
  * Sends link clicks, the studio's own shortcuts and presses on the title bar up to the studio, once one has answered.
  *
- * The app only sees presses on its own page, so a press on the canvas's title
- * bar is handed up for the app to start moving the window, and the release
- * after it to stop.
+ * A link clicked away from the page `showing` starts a trip there, so the
+ * sidebar moves to it and the page fades while the studio fetches it. The app
+ * only sees presses on its own page, so a press on the canvas's title bar is
+ * handed up for the app to start moving the window, and the release after it
+ * to stop.
  *
- * @example useStudioHandoffs("http://127.0.0.1:53041");
+ * @example useStudioHandoffs("http://127.0.0.1:53041", "/manual/sections");
  */
-function useStudioHandoffs(studio: string | null) {
+function useStudioHandoffs(studio: string | null, showing: string | undefined) {
   useEffect(() => {
     if (!studio) return;
 
@@ -151,6 +169,7 @@ function useStudioHandoffs(studio: string | null) {
       const url = new URL(link.href, location.href);
       if (url.origin !== location.origin || (url.hash && url.pathname === location.pathname)) return;
       event.preventDefault();
+      if (showing) startTrip(url.pathname, showing);
       post(window.parent, studio as string, { type: "navigate", url: url.pathname + url.hash });
     }
 
@@ -193,30 +212,29 @@ function useStudioHandoffs(studio: string | null) {
       window.removeEventListener("mouseup", release, true);
       window.removeEventListener("keydown", key);
     };
-  }, [studio]);
+  }, [studio, showing]);
 }
 
 /**
  * One loaded page: compiled here from its text, in the layout it asks for, editable where the studio allows.
  *
- * The page that was showing stays up while the next one compiles, so moving
- * between pages never flashes an empty canvas. The project's own blocks are
- * drawn by their components and edited from inside, and a tag nobody draws
- * gets a labelled stand-in rather than stopping the page.
+ * It suspends while its text compiles. A new page arrives as a transition, so
+ * the one showing stays up whole, its tree and its body together, until the
+ * next is ready to draw. The project's own blocks are drawn by their
+ * components and edited from inside, and a tag nobody draws gets a labelled
+ * stand-in rather than stopping the page.
  */
 function CanvasPage({ load, title, site, layout, blocks, layouts }: { load: CanvasLoad } & Drawing) {
   const config = load.config as LiveEditGlobalData;
   const tree = useMemo(() => deserializeTree(load.tree), [load.tree]);
   const names = useMemo(() => Object.keys(blocks), [blocks]);
   const ownBlocks = useMemo(() => editableBlocks(blocks), [blocks]);
-  const compiled = useQuery({
+  const { data: page } = useSuspenseQuery({
     queryKey: ["canvas", "page", load.text, names],
     queryFn: () => compileInBrowser(load.text, names),
-    placeholderData: (previous) => previous,
     staleTime: Number.POSITIVE_INFINITY,
   });
-  const page = compiled.data;
-  const front = page && !("problem" in page) ? page.data : null;
+  const front = "problem" in page ? null : page.data;
 
   const components = useMemo(
     () =>
@@ -260,11 +278,7 @@ function CanvasPage({ load, title, site, layout, blocks, layouts }: { load: Canv
 
   const named = front?.layout ?? layout;
   const Layout = layouts[named];
-  const body = !page ? null : "problem" in page ? (
-    <Problem>{page.problem}</Problem>
-  ) : (
-    <page.body components={components} />
-  );
+  const body = "problem" in page ? <Problem>{page.problem}</Problem> : <page.body components={components} />;
   const article = (children: ReactNode) => (
     <Article source={load.target.generated ? null : load.text} target={load.target}>
       {children}
@@ -273,6 +287,7 @@ function CanvasPage({ load, title, site, layout, blocks, layouts }: { load: Canv
 
   return (
     <FrameworkProvider {...framework}>
+      <NavigationTracker />
       <KitProvider {...kit}>
         <ProjectInserts blocks={blocks}>
           <LiveEditRoot config={config}>
@@ -286,7 +301,7 @@ function CanvasPage({ load, title, site, layout, blocks, layouts }: { load: Canv
                 footer={<SidebarFooter />}
               >
                 <TitleBarControls />
-                {!page ? null : "problem" in page ? (
+                {"problem" in page ? (
                   <DocsPage breadcrumb={false} footer={false}>
                     <DocsTitle>{load.target.title}</DocsTitle>
                     <DocsBody>{body}</DocsBody>

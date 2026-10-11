@@ -34,14 +34,16 @@ export function useOptimisticPathname() {
  * Records a trip to a link's page, for a link to call as the router starts opening it.
  *
  * A link to the page already open, a hash on it for one, is no trip, and
- * cancels one still out, since the router drops that navigation for it.
+ * cancels one still out, since the router drops that navigation for it. A page
+ * drawn under an address of its own names the path it is showing as `from`.
  *
  * @example startTrip("/manual/sections");
+ * @example startTrip("/manual/sections", "/manual"); // from a canvas at /_edit
  */
-export function startTrip(href: string) {
-  const from = trimmed(location.pathname);
+export function startTrip(href: string, from = location.pathname) {
+  const left = trimmed(from);
   const to = trimmed(new URL(href, location.href).pathname);
-  set(to === from ? null : { from, to });
+  set(to === left ? null : { from: left, to });
 }
 
 /**

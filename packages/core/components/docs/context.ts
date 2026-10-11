@@ -2,9 +2,10 @@
 
 import { createContext, use, type ComponentProps, type FC, type ReactNode } from "react";
 
-/** What the layout hands its sidebar and phone header: the logo link and what sits beside it. */
+/** What the layout hands its sidebar and phone header: the logo link, where it leads, and what sits beside it. */
 export type DocsLayoutContext = {
   navTitle: FC<ComponentProps<"a">>;
+  nav: { title: ReactNode; url: string };
   navChildren?: ReactNode;
 };
 
