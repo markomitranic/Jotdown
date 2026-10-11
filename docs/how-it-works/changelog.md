@@ -53,6 +53,20 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.3.2](https://github.com/markomitranic/Jotdown/compare/v0.3.1...v0.3.2) (2026-10-11)
+
+### Features
+
+* **studio:** move the studio's chrome into a status strip along the foot of the window ([b1716d9](https://github.com/markomitranic/Jotdown/commit/b1716d9fbd6744575baea8d4fd5cf1f546b6388f))
+
+### Bug Fixes
+
+* **ci:** declare the publication's image imports without a build's next-env.d.ts ([eff7e03](https://github.com/markomitranic/Jotdown/commit/eff7e03a3c0f77465a02be089feb69277d67fe57))
+* let the page scroll under the app's title bar, and run the colour stripe along the bottom ([7a0f8d1](https://github.com/markomitranic/Jotdown/commit/7a0f8d1ea3240d37cb46bc85b4563edda48a3086))
+* paint editorial illustrations into a bitmap, so the page animates smoothly around them ([21c29af](https://github.com/markomitranic/Jotdown/commit/21c29af86f3d702306a5eee8a67adb263929e957))
+* **publication:** keep the page menu beside the title, and offer the app at the foot of the sidebar ([d269689](https://github.com/markomitranic/Jotdown/commit/d2696898bd5ce4b1f30768df6f37185510517ecf))
+* **studio:** fill the window with a site's canvas, instead of pushing it below the title bar ([67bfe61](https://github.com/markomitranic/Jotdown/commit/67bfe6166f9cbe39e758586174dd3476e7696bd1))
+
 ## 0.3.1 (2026-10-11)
 
 ### Features
