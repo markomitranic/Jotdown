@@ -31,6 +31,22 @@ describe("linksIn", () => {
     expect(linksIn(text)).toEqual([{ target: "./missing.mdx", line: 2 }]);
   });
 
+  test("reads a regex in an inline code span as code, not as a link", () => {
+    const text = "Matches `^filter\\[([^\\]]+)\\](?:\\[([^\\]]+)\\])?$` against each name.\n";
+
+    expect(linksIn(text)).toEqual([]);
+  });
+
+  test("reads a double-backtick span holding a backtick as one span", () => {
+    expect(linksIn("Write `` a ` [b](./b.mdx) `` like so.\n")).toEqual([]);
+  });
+
+  test("still finds a real link beside a code span", () => {
+    const text = "Use `[x](./x.mdx)` as in [the guide](./guide.mdx).\n";
+
+    expect(linksIn(text)).toEqual([{ target: "./guide.mdx", line: 1 }]);
+  });
+
   test("leaves a definition indented four spaces, which is an indented code block", () => {
     expect(linksIn("    [home]: ../index.mdx\n")).toEqual([]);
     expect(linksIn("   [home]: ../index.mdx\n")).toEqual([{ target: "../index.mdx", line: 1 }]);
@@ -48,6 +64,12 @@ describe("rewriteTargets", () => {
     const text = "```ts\n  [key: string]: unknown;\n```\n";
 
     expect(rewriteTargets(text, () => "./new.mdx")).toBe(text);
+  });
+
+  test("never rewrites a link shown in an inline code span", () => {
+    const text = "Write `[BFF](./old.mdx)` for [BFF](./old.mdx).\n";
+
+    expect(rewriteTargets(text, () => "./new.mdx")).toBe("Write `[BFF](./old.mdx)` for [BFF](./new.mdx).\n");
   });
 });
 

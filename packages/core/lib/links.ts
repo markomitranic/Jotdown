@@ -29,6 +29,15 @@ const LINK_TARGET = /(\]\(|^ {0,3}\[[^\]]+\]:[ \t]*)([^)\s]+)(\)|$)/gm;
 const isDefinition = (open: string) => open !== "](";
 
 /**
+ * Matches an inline code span, by CommonMark's rule for where one ends.
+ *
+ * A run of backticks opens a span and the next run of exactly the same length
+ * closes it, so ``` `` a ` b `` ``` is one span. A span never crosses a blank
+ * line, which keeps a stray backtick from swallowing the paragraphs after it.
+ */
+const CODE_SPAN = /(?<!`)(`+)(?!`)(?:(?!\n[ \t]*\n)[\s\S])*?[^`]\1(?!`)/g;
+
+/**
  * Matches a whole inline link, label included, so it can be taken apart.
  *
  * The leading `!` is captured rather than excluded, because an image shares
@@ -58,10 +67,10 @@ export const BARE_PAGE_LINK = /^(?!\/|#|\.{1,2}\/|[a-z][a-z0-9+.-]*:)[^#?]*\.mdx
 
 /** Rewrites every link target in a document, leaving the text around it alone. */
 export function rewriteTargets(text: string, rewrite: (target: string) => string) {
-  const fenced = fencedLines(text);
+  const isCode = codeIn(text);
 
   return text.replace(LINK_TARGET, (whole, open: string, target: string, close: string, at: number) => {
-    if (isDefinition(open) && fenced.has(lineAt(text, at + open.length))) return whole;
+    if (isCode(open, at)) return whole;
 
     const next = rewrite(target);
     return next === target ? whole : `${open}${next}${close}`;
@@ -94,21 +103,20 @@ export type FoundLink = { target: string; line: number };
  * The line is counted to where the target starts rather than to where the match
  * did, so the indent in front of a reference definition does not shift it.
  * An inline link inside a code fence is still reported, deliberately: a fence
- * showing `[text](./missing.mdx)` is a broken link a reader can click.
+ * showing `[text](./missing.mdx)` is a broken link a reader can click. One in
+ * an inline code span is not, since markdown never renders it as a link.
  *
  * @example linksIn("See [BFF](./bff.mdx)."); // [{ target: "./bff.mdx", line: 1 }]
  */
 export function linksIn(text: string): FoundLink[] {
-  const fenced = fencedLines(text);
+  const isCode = codeIn(text);
 
   return [...text.matchAll(LINK_TARGET)].flatMap((match) => {
     const [, lead, target] = match;
     if (lead === undefined || target === undefined) return [];
+    if (isCode(lead, match.index)) return [];
 
-    const line = lineAt(text, match.index + lead.length);
-    const hidden = isDefinition(lead) && fenced.has(line);
-
-    return hidden ? [] : [{ target, line }];
+    return [{ target, line: lineAt(text, match.index + lead.length) }];
   });
 }
 
@@ -142,6 +150,28 @@ function lineAt(text: string, index: number) {
   let line = 1;
   for (let at = 0; at < index; at++) if (text[at] === "\n") line++;
   return line;
+}
+
+/**
+ * Says whether a `LINK_TARGET` match is code that only looks like a link.
+ *
+ * Two kinds: anything inside an inline code span, and a reference definition
+ * inside a fence. Fences are blanked before spans are read, so a fence's own
+ * backticks never pair with one in the prose.
+ *
+ * @example codeIn("`](x)`")("](", 1); // true
+ */
+function codeIn(text: string) {
+  const fenced = fencedLines(text);
+  const prose = text
+    .split("\n")
+    .map((row, at) => (fenced.has(at + 1) ? " ".repeat(row.length) : row))
+    .join("\n");
+  const spans = [...prose.matchAll(CODE_SPAN)].map((span) => [span.index, span.index + span[0].length]);
+
+  return (open: string, at: number) =>
+    spans.some(([start = 0, end = 0]) => at >= start && at < end) ||
+    (isDefinition(open) && fenced.has(lineAt(text, at + open.length)));
 }
 
 /**
