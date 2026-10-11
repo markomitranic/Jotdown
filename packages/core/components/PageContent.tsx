@@ -1,6 +1,7 @@
 import type { ComponentType, ReactNode } from "react";
 import { DocsBody, DocsDescription, DocsTitle } from "@jotdown/core/components/docs/page";
 import FigureStage from "@jotdown/core/components/blocks/FigureStage";
+import PlatePainter from "@jotdown/core/components/blocks/PlatePainter";
 import { resolvePageIcon } from "@jotdown/core/lib/page-icon";
 
 type Props = {
@@ -73,6 +74,7 @@ export function PageContent({
       <DocsBody className="wrap-break-word">
         {children}
         <FigureStage />
+        <PlatePainter />
       </DocsBody>
     </>
   );

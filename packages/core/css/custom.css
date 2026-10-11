@@ -716,10 +716,23 @@ html {
 }
 
 /* An editorial illustration is a plate: a painting with its own ground and its
-   own palette, so it fills the frame edge to edge. */
+   own palette, so it fills the frame edge to edge. Once painted into a bitmap
+   (`components/blocks/PlatePainter.tsx`), the bitmap takes the drawing's place,
+   at the same proportions, and the drawing leaves the layout, so its noise
+   filters never run during an animation. */
 .jd-fig--plate .jd-fig-frame {
   padding: 0;
   overflow: hidden;
+}
+
+.jd-fig-raster {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.jd-fig-frame:has(> .jd-fig-raster) > svg {
+  display: none;
 }
 
 .jd-fig svg text {
