@@ -37,8 +37,8 @@ export const RendererWithoutASite = meta.story({
   ),
   play: async ({ canvasElement }) => {
     await userEvent.click(within(canvasElement).getByRole("button", { name: /Drawn by/ }));
-    const site = await within(document.body).findByRole("menuitem", { name: /Site/ });
-    await expect(site).toHaveAttribute("data-disabled");
+    const publication = await within(document.body).findByRole("menuitem", { name: /Publication/ });
+    await expect(publication).toHaveAttribute("data-disabled");
   },
 });
 

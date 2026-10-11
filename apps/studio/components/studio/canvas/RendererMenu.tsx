@@ -12,16 +12,16 @@ import type { Renderer } from "@/server/storage/favorites";
 import { useWorkspace } from "../Workspace";
 
 const LOOKS = {
-  site: { label: "Site", icon: Globe },
+  site: { label: "Publication", icon: Globe },
   custom: { label: "Custom address", icon: Laptop },
   dev: { label: "Dev server", icon: Terminal },
   skinny: { label: "Skinny", icon: PenLine },
 } as const;
 
 /**
- * The switch between the three ways a project is drawn: its site, a canvas at an address of your own, or the studio's own page.
+ * The switch between the three ways a project is drawn: its publication, a canvas at an address of your own, or the studio's own page.
  *
- * Site needs a `url` in the project's config. A folder can also be drawn by its
+ * Publication needs a `url` in the project's config. A folder can also be drawn by its
  * site's dev server, which the studio starts and stops itself, and a custom
  * address is any other canvas, usually a dev server you run. The choice is remembered for the project and
  * never written into it.
@@ -92,7 +92,7 @@ export function RendererChoice({
           <Choice
             mode="site"
             current={mode}
-            detail={siteUrl ? siteUrl.replace(/^https?:\/\//, "") : "Name the site's url in the config first"}
+            detail={siteUrl ? siteUrl.replace(/^https?:\/\//, "") : "Name the publication's url in the config first"}
             disabled={!siteUrl}
             onSelect={() => choose.mutate({ mode: "site" })}
           />
@@ -107,7 +107,7 @@ export function RendererChoice({
           <Choice
             mode="custom"
             current={mode}
-            detail={customUrl ?? "A dev server on this machine, say"}
+            detail="Enter a custom or local URL"
             onSelect={(event) => {
               event.preventDefault();
               setAsking(true);
@@ -122,7 +122,7 @@ export function RendererChoice({
           <Choice
             mode="skinny"
             current={mode}
-            detail="The studio draws the page in the default look"
+            detail="Use generic, unstyled renderer"
             onSelect={() => choose.mutate({ mode: "skinny" })}
           />
           {choose.error && <p className="px-2.5 py-1.5 text-destructive text-xs">{choose.error.message}</p>}
