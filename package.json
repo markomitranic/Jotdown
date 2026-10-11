@@ -1,6 +1,6 @@
 {
   "name": "jotdown",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "repository": "github:markomitranic/Jotdown",
   "private": true,
   "type": "module",

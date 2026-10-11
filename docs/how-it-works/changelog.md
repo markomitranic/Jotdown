@@ -53,6 +53,19 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.3.5](https://github.com/markomitranic/Jotdown/compare/v0.3.4...v0.3.5) (2026-10-11)
+
+
+### Features
+
+* **studio:** edit every project setting from a settings panel ([dcc21fa](https://github.com/markomitranic/Jotdown/commit/dcc21fa30ef8c8c1426d94c367a0d93ead41d11e))
+
+
+### Bug Fixes
+
+* **links:** read inline code spans as code, not as links ([11c6881](https://github.com/markomitranic/Jotdown/commit/11c688152fbea1ae4fa7cb77ecd61d92f4b68ffc))
+* **studio:** keep a settings draft pinned to the config it started from ([6da2e7b](https://github.com/markomitranic/Jotdown/commit/6da2e7b41935af516dfb216e4368d28268899ede))
+
 ## [0.3.4](https://github.com/markomitranic/Jotdown/compare/v0.3.3...v0.3.4) (2026-10-11)
 
 ### Features
