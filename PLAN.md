@@ -621,7 +621,7 @@ Record the decisions in this plan as Jotdown ADRs:
 - **5.2** `packages/core/lib/browser-page.ts` compiles a page's text in the browser with the shared `lib/remark-chain.ts` and the same defaults `fumadocs-mdx` adds, refusing code first. Front matter becomes blank lines, so `remarkRuntimePositions` is not needed there.
 - **5.3** `packages/core/lib/canvas.ts`. The plan's `changed` and `upload` became one generic `request`/`response` pair: the editor's API client sends every call through a transport, which in a canvas posts it to the studio, and the studio answers from its own endpoints. Storage code did not change.
 - **5.4** The editor moved into `packages/editor` (`@jotdown/editor`) so a site build can carry it. `/_edit` mounts `Canvas`, which draws the loaded page in the site's own shell with the arranging sidebar. Overlays are not in a shadow root yet; the site's CSS and the editor's are both the framework's today, and Phase 6 is where a project's own CSS arrives.
-- **5.5** The renderer menu sits in the sidebar footer in Skinny and in the canvas's top bar otherwise. `CanvasFrame` checks the hello, forwards only live-edit and link-preview requests, and draws dead pages for unreachable, not a canvas, too old, too new and wrong project.
+- **5.5** The renderer menu sits in the status strip along the foot of the window, the studio's own chrome in every renderer: the project, its branch, reload, VS Code for a folder, the renderer and settings. A framed canvas is told it is in the app, lays itself out under the traffic lights as Skinny does, and hands presses on its title bar up for the app to move the window. `CanvasFrame` checks the hello, forwards only live-edit and link-preview requests, and draws dead pages for unreachable, not a canvas, too old, too new and wrong project.
 - **5.6** For a folder, the renderer menu offers Dev server: the studio runs the site's `next dev` from its own checkout, or from a clone in `.jotdown/framework` at the pinned version inside the app, finds `bun` and `git` through the login shell, stops it after 15 idle minutes and on exit, and shows its log while it starts or when it fails.
 - **5.7** ADRs 0021 to 0025.
 - A new upload shows in a site canvas only after the next deploy.
@@ -687,7 +687,7 @@ Copies a framework default into the project, shadcn-style.
 
 - A key on any page of a live site opens that page in the app. The sidebar's Edit this page offer already does, with a `jotdown://open/<owner>/<repo>/<page>` link.
 - The last few canvases stay alive in hidden iframes, so switching projects is instant.
-- Deploy status per project in the sidebar, from GitHub deployment statuses.
+- Deploy status per project in the status strip, from GitHub deployment statuses.
 - A device-size switch on the canvas.
 - A menu bar item and a global hotkey for quick capture into an inbox page.
 

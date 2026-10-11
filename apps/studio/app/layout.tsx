@@ -7,7 +7,7 @@ import { LiveEditRoot } from "@jotdown/editor/components/LiveEditRoot";
 import { SiteRoot } from "@jotdown/core/components/SiteRoot";
 import { StudioShell } from "@/components/StudioShell";
 import { TitleBarColour } from "@/components/TitleBarColour";
-import { WindowTitleBar } from "@/components/WindowTitleBar";
+import { WindowTitleBar } from "@jotdown/core/components/WindowTitleBar";
 import { PublishSearchSections } from "@jotdown/core/components/search/ProjectSearch";
 import { StartingUp } from "@/components/studio/OpeningProject";
 import { SignInDialog } from "@/components/studio/account/SignInDialog";

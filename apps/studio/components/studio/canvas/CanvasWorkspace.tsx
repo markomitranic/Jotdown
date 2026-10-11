@@ -6,35 +6,29 @@ import { LoaderCircle, TerminalSquare } from "lucide-react";
 import { fetchJson, postJson } from "@jotdown/core/lib/fetch-json";
 import { Button } from "@jotdown/core/components/ui/button";
 import type { DevServerState } from "@/server/canvas/dev-server";
-import { WorkspaceMenu } from "../Workspace";
+import { StatusStrip } from "../status/StatusStrip";
 import { CanvasFrame } from "./CanvasFrame";
-import { RendererMenu } from "./RendererMenu";
 
 type Project = { key: string; base: string; title: string; repository?: string };
 
 /**
- * The studio around a project a canvas draws: a slim bar with the project switcher and the renderer, over the canvas.
+ * The studio around a project a canvas draws: the canvas from the window's top edge down to the status strip.
  *
  * Everything inside the frame, the sidebar, the page and its editing, is the
- * site's own. In the app the bar is the window's title bar, so it sits beside
- * the window's buttons and drags the window, and the page fills the window
- * from its top edge rather than below the title bar. With no address, the canvas is
+ * site's own, and in the app it makes room for the window's buttons itself.
+ * The studio's own chrome is the status strip. With no address, the canvas is
  * the folder's own dev server, which is started first.
  *
  * @example <CanvasWorkspace src="https://notes.example.com/_edit" project={project} />
  */
 export function CanvasWorkspace({ src, project }: { src: string | null; project: Project }) {
   return (
-    <div data-edge-to-edge="" className="flex h-dvh flex-col">
-      <header className="flex h-11 wco:h-(--titlebar-height) shrink-0 items-center gap-2 border-border border-b px-3 wco:ps-[calc(var(--titlebar-start)+0.5rem)] [-webkit-app-region:drag]">
-        <div className="flex min-w-0 max-w-64 [-webkit-app-region:no-drag]">
-          <WorkspaceMenu />
-        </div>
-        <div className="flex-1" />
-        <RendererMenu />
-      </header>
-      {src ? <CanvasFrame src={src} project={project} /> : <DevCanvas project={project} />}
-    </div>
+    <>
+      <div data-edge-to-edge="" className="fixed inset-x-0 top-0 bottom-(--jd-status-height) z-10 flex flex-col">
+        {src ? <CanvasFrame src={src} project={project} /> : <DevCanvas project={project} />}
+      </div>
+      <StatusStrip />
+    </>
   );
 }
 

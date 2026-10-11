@@ -21,6 +21,7 @@ export function WindowTitleBar() {
   return (
     <div
       aria-hidden
+      data-window-drag=""
       className="fixed inset-x-0 top-0 z-5 wco:block hidden h-(--titlebar-height) [-webkit-app-region:drag] [app-region:drag]"
     />
   );

@@ -1,37 +1,29 @@
 "use client";
 
 import type { ComponentProps } from "react";
-import { DocsShell, SidebarFooter } from "@jotdown/core/components/DocsShell";
+import { DocsShell } from "@jotdown/core/components/DocsShell";
 import { ArrangeableSidebar } from "@jotdown/editor/components/sidebar/ArrangeableSidebar";
-import { StudioTools } from "@/components/studio/StudioTools";
 import { WorkspaceMenu } from "@/components/studio/Workspace";
-import { TitleBarControls } from "@/components/WindowTitleBar";
+import { StatusStrip } from "@/components/studio/status/StatusStrip";
+import { TitleBarControls } from "@jotdown/core/components/WindowTitleBar";
 
 type Props = Omit<ComponentProps<typeof DocsShell>, "sidebar" | "navTitle" | "footer">;
 
 /**
- * The docs shell as the studio draws it: the arranging sidebar, the workspace menu behind the logo and the studio's own footer.
+ * The docs shell as the studio draws it: the arranging sidebar, the workspace menu behind the logo, and the status strip.
  *
  * The logo at the top of the sidebar is the workspace menu that switches
- * projects. The foot of the sidebar shows the studio's tools beside the theme
- * switch.
+ * projects. The studio's own tools sit in the status strip along the foot of
+ * the window, apart from the project's look.
  *
  * @example <StudioShell tree={tree} tabs={tabs} title={logo} base="/owner/repo">{page}</StudioShell>
  */
 export function StudioShell({ children, ...shell }: Props) {
   return (
-    <DocsShell
-      {...shell}
-      sidebar={ArrangeableSidebar}
-      navTitle={WorkspaceMenu}
-      footer={
-        <SidebarFooter>
-          <StudioTools />
-        </SidebarFooter>
-      }
-    >
+    <DocsShell {...shell} sidebar={ArrangeableSidebar} navTitle={WorkspaceMenu}>
       <TitleBarControls />
       {children}
+      <StatusStrip />
     </DocsShell>
   );
 }

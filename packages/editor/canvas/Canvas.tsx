@@ -8,6 +8,7 @@ import { DocsShell, SidebarFooter } from "@jotdown/core/components/DocsShell";
 import { DocsBody, DocsPage, DocsTitle } from "@jotdown/core/components/docs/page";
 import { PageContent } from "@jotdown/core/components/PageContent";
 import { SiteLink } from "@jotdown/core/components/SiteLink";
+import { TitleBarControls, WindowTitleBar } from "@jotdown/core/components/WindowTitleBar";
 import { SHORTCUTS, pressed } from "@jotdown/core/components/shortcuts";
 import { DocCardList } from "@jotdown/core/components/blocks/DocCardList";
 import { compileInBrowser } from "@jotdown/core/lib/browser-page";
@@ -54,7 +55,9 @@ type Drawing = Omit<Props, "project" | "framework">;
  * site's shell with the arranging sidebar, and carries every request its editor
  * makes back to that studio. A link inside it asks the studio for the page
  * rather than leaving, and the studio's own shortcuts are handed back to it.
- * Opened on its own, outside the studio, it says what it is.
+ * Framed by the desktop app, it lays itself out as the app's window does, and
+ * a press on its title bar moves the window. Opened on its own, outside the
+ * studio, it says what it is.
  *
  * @example <Canvas title={title} project={{ title: "Notes" }} site={site} layout="docs" blocks={{ Hero }} layouts={{}} framework="0.3.0" />
  */
@@ -77,10 +80,12 @@ export function Canvas({ project, framework, ...drawing }: Props) {
       if (!origin) {
         origin = event.origin;
         sendRequestsThrough(canvasTransport(window.parent, origin));
+        document.documentElement.toggleAttribute("data-framed", true);
         setStudio(origin);
       }
       if (message.data.type === "load") setLoad(message.data);
       if (message.data.type === "theme") setTheme(message.data.mode);
+      if (message.data.type === "window") document.documentElement.toggleAttribute("data-app", message.data.app);
     }
 
     window.addEventListener("message", listen);
@@ -92,11 +97,24 @@ export function Canvas({ project, framework, ...drawing }: Props) {
 
   if (alone) return <Alone title={project.title} />;
   if (!load) return null;
-  return <CanvasPage load={load} {...drawing} />;
+  return (
+    <>
+      <WindowTitleBar />
+      <CanvasPage load={load} {...drawing} />
+    </>
+  );
 }
 
+/** Where a press moves the app's window: the title bar, and the contents bar that stands in it. */
+const TITLE_BAR = "[data-window-drag], [data-toc-popover] > header";
+const PRESSABLE = "a, button, input, textarea, select, [role='dialog']";
+
 /**
- * Sends link clicks and the studio's own shortcuts up to the studio, once one has answered.
+ * Sends link clicks, the studio's own shortcuts and presses on the title bar up to the studio, once one has answered.
+ *
+ * The app only sees presses on its own page, so a press on the canvas's title
+ * bar is handed up for the app to start moving the window, and the release
+ * after it to stop.
  *
  * @example useStudioHandoffs("http://127.0.0.1:53041");
  */
@@ -128,10 +146,30 @@ function useStudioHandoffs(studio: string | null) {
       });
     }
 
+    let dragging = false;
+
+    function press(event: MouseEvent) {
+      const target = event.target as Element | null;
+      if (event.button !== 0 || !document.documentElement.hasAttribute("data-app")) return;
+      if (!target?.closest(TITLE_BAR) || target.closest(PRESSABLE)) return;
+      dragging = true;
+      post(window.parent, studio as string, { type: "drag", phase: "start" });
+    }
+
+    function release() {
+      if (!dragging) return;
+      dragging = false;
+      post(window.parent, studio as string, { type: "drag", phase: "end" });
+    }
+
     document.addEventListener("click", click, true);
+    document.addEventListener("mousedown", press, true);
+    window.addEventListener("mouseup", release, true);
     window.addEventListener("keydown", key);
     return () => {
       document.removeEventListener("click", click, true);
+      document.removeEventListener("mousedown", press, true);
+      window.removeEventListener("mouseup", release, true);
       window.removeEventListener("keydown", key);
     };
   }, [studio]);
@@ -226,6 +264,7 @@ function CanvasPage({ load, title, site, layout, blocks, layouts }: { load: Canv
                 sidebar={ArrangeableSidebar}
                 footer={<SidebarFooter />}
               >
+                <TitleBarControls />
                 {!page ? null : "problem" in page ? (
                   <DocsPage breadcrumb={false} footer={false}>
                     <DocsTitle>{load.target.title}</DocsTitle>

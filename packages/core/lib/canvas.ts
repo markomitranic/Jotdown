@@ -7,8 +7,11 @@ import { z } from "zod";
  * the page to draw and everything around it, and the canvas sends every
  * request its editor makes as a `request`, which the studio answers from its
  * own editing endpoints as a `response`. Either side can `navigate`, the
- * studio sets the colour mode with `theme`, and the canvas hands back the
- * studio's own shortcuts as `shortcut`.
+ * studio sets the colour mode with `theme` and says with `window` whether it
+ * is the desktop app, and the canvas hands back the studio's own shortcuts as
+ * `shortcut` and a press on its title bar as `drag`, for the app to move the
+ * window. A message one side does not know is ignored, so adding one is not a
+ * new protocol.
  *
  * Every site ever built speaks this, so a change to a message's shape is a new
  * `CANVAS_PROTOCOL`, and the studio names the version it can talk to.
@@ -51,6 +54,9 @@ const shortcut = z.object({
   alt: z.boolean(),
 });
 
+/** A press on the canvas's title bar starting, or a release ending, so the app moves the window between the two. */
+const drag = z.object({ type: z.literal("drag"), phase: z.enum(["start", "end"]) });
+
 /** One page of the project as the canvas draws it: its text, its place in the tree, and the editor's settings. */
 const load = z.object({
   type: z.literal("load"),
@@ -76,11 +82,14 @@ const response = z.object({ type: z.literal("response"), id: z.string(), status:
 /** The colour mode the studio is in. */
 const theme = z.object({ type: z.literal("theme"), mode: z.enum(["light", "dark"]) });
 
+/** Whether the studio is the desktop app, whose window has no title bar but the one the page draws. */
+const appWindow = z.object({ type: z.literal("window"), app: z.boolean() });
+
 /** Anything a canvas may send. */
-export const fromCanvas = z.discriminatedUnion("type", [hello, request, navigate, shortcut]);
+export const fromCanvas = z.discriminatedUnion("type", [hello, request, navigate, shortcut, drag]);
 
 /** Anything the studio may send. */
-export const fromStudio = z.discriminatedUnion("type", [load, response, navigate, theme]);
+export const fromStudio = z.discriminatedUnion("type", [load, response, navigate, theme, appWindow]);
 
 export type FromCanvas = z.infer<typeof fromCanvas>;
 export type FromStudio = z.infer<typeof fromStudio>;

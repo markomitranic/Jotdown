@@ -234,6 +234,26 @@ and commit it with the rest of your change. When an agent rewrites a page you
 have open, the page refreshes on its own, and a save over its words is
 refused and offers a reload instead.
 
+## The strip along the bottom
+
+Everything above the strip at the foot of the window is your project, in its
+own look. The strip is Jotdown's, and it answers "where am I, and what can the
+app do from here?":
+
+- **The project.** Its name, and whether it lives on GitHub or on this Mac.
+  A click opens the switcher, like **⌘ 2**.
+- **The branch.** The branch you read and edit. For a GitHub project, picking
+  another one moves where the app reads and commits, and nothing in the
+  repository changes. For a folder, it checks the branch out with git, which
+  refuses while uncommitted changes are in the way and says why.
+- **Reload.** Reads the project again from GitHub or the folder, and checks
+  for a newer Jotdown on the way.
+- **VS Code.** For a folder, opens it in VS Code at the page you are on.
+- **The renderer.** Whether the page is drawn by the project's site, a dev
+  server or the app itself; see [your own blocks](../publication/own-blocks.mdx).
+
+The empty stretch of the strip drags the window, like a title bar.
+
 ## Ask your agent for a first page
 
 Paste this into Claude Code, Codex or Cursor at the root of a repository the
@@ -296,9 +316,10 @@ CLI holds. `bun run build` in `apps/desktop` builds the app and its DMG into
 
   <Accordion title="Keeping it current">
     The app checks for a newer release every ten minutes and downloads it in
-    the background. Once it is ready, **Restart to update** shows in the
-    welcome page's top right and at the bottom of the project switcher, and a
-    click installs it and opens the app again. That is apart
+    the background, and **Reload** on the strip checks at once. Once it is
+    ready, **Restart to update** shows on the strip, in the welcome page's top
+    right and at the bottom of the project switcher, and a click installs it
+    and opens the app again. That is apart
     from the `jotdown` ref a project pins in its config for its
     [site](../publication/publishing.mdx).
   </Accordion>

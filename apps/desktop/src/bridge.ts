@@ -2,7 +2,7 @@ import { Utils } from "electrobun/bun";
 import type { Updates } from "./updates";
 
 /**
- * A loopback address the studio's server calls for what only the app can do: the native folder picker and updates.
+ * A loopback address the studio's server calls for what only the app can do: the native folder picker and updates, checked on demand.
  *
  * The path carries a random secret, so nothing but the server the app started
  * can call it.
@@ -22,6 +22,12 @@ export function startBridge(updates: Updates) {
         POST: () => {
           setTimeout(updates.restart, 100);
           return Response.json({ ok: true });
+        },
+      },
+      [`/${secret}/update/check`]: {
+        POST: async () => {
+          await updates.check();
+          return Response.json({ version: updates.ready() });
         },
       },
     },

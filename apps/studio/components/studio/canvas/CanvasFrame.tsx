@@ -84,6 +84,7 @@ export function CanvasFrame({ src, project }: Props) {
       return;
     }
     if (data.type === "navigate") return router.push(data.url);
+    if (data.type === "drag") return moveWindow(data.phase);
     if (data.type === "shortcut")
       return window.dispatchEvent(
         new KeyboardEvent("keydown", {
@@ -130,6 +131,11 @@ export function CanvasFrame({ src, project }: Props) {
     if (hello && (resolvedTheme === "light" || resolvedTheme === "dark")) post({ type: "theme", mode: resolvedTheme });
   }, [hello, resolvedTheme]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a canvas learns once, as it says hello, whether the app frames it
+  useEffect(() => {
+    if (hello) post({ type: "window", app: document.documentElement.hasAttribute("data-app") });
+  }, [hello]);
+
   return (
     <div className="relative min-h-0 flex-1">
       <iframe
@@ -174,6 +180,24 @@ function judge(hello: CanvasHello, project: Props["project"]): Dead | null {
   const ours = project.repository?.toLowerCase().replace(/\.git$/, "");
   const same = theirs && ours ? theirs === ours : hello.project.title === project.title;
   return same ? null : { kind: "wrong-project", serving: hello.project.title };
+}
+
+/**
+ * Starts or stops moving the app's window, for a press on the canvas's title bar.
+ *
+ * The app moves its window for a press on its own page's title bar, and never
+ * sees one inside a frame, so the press is played again on the page, on a
+ * stand-in the app takes for its title bar. In a browser nothing listens.
+ *
+ * @example moveWindow("start");
+ */
+function moveWindow(phase: "start" | "end") {
+  const titleBar = document.createElement("div");
+  titleBar.className = "electrobun-webkit-app-region-drag";
+  titleBar.hidden = true;
+  document.body.append(titleBar);
+  titleBar.dispatchEvent(new MouseEvent(phase === "start" ? "mousedown" : "mouseup", { bubbles: true }));
+  titleBar.remove();
 }
 
 /** The editing endpoints a canvas may reach, and nothing else in the studio. */

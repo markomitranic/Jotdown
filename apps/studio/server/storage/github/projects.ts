@@ -13,6 +13,7 @@ import type { Session } from "../../auth/session";
 import { ProjectUnavailable, type Bookmark, type ProjectListing, type ProjectLook, type StudioProject } from "../types";
 import { editingContext } from "./context";
 import { fetchRemembered } from "./remembered";
+import { chosenBranch } from "../favorites";
 
 /**
  * Reading projects out of GitHub with the signed-in editor's own token.
@@ -100,10 +101,12 @@ export function unseenRepository(key: ProjectKey) {
 /**
  * Resolves a project to the branch its edits land on, the folder holding its `docs/`, and where its uploads are.
  *
- * All three come from `.jotdown/config.json` at the root of the default branch:
- * its `branch`, or else the default branch itself, its `content`, or else the
- * repository root, and its `uploads`, inside the content folder. A repository with no config yet is not remembered, so the
- * folder its setup names is read as soon as setup commits it.
+ * The branch is the one picked for the project in the studio, while it still
+ * exists, or else its config's `branch`, or else the default branch. The config
+ * is read on that branch, from `.jotdown/config.json`: its `content`, or else
+ * the repository root, and its `uploads`, inside the content folder. A
+ * repository with no config yet is not remembered, so the folder its setup
+ * names is read as soon as setup commits it.
  *
  * @example await resolveTarget(parseProjectKey("you/site")!, token); // { owner: "you", repo: "site", subfolder: "apps/docs", uploads: "docs/_uploads", branch: "main" }
  */
@@ -112,11 +115,73 @@ export async function resolveTarget(key: ProjectKey, token: string): Promise<Tar
   const known = targets.get(name);
   if (known && Date.now() - known.at < TARGET_TTL_MS) return known.target;
 
+  const picked = await chosenBranch(name);
+  const data = await graphql<{
+    repository: {
+      defaultBranchRef: { name: string } | null;
+      picked: { name: string } | null;
+      config: { text?: string } | null;
+      pickedConfig: { text?: string } | null;
+    } | null;
+  }>(
+    token,
+    `query Branch($owner: String!, $repo: String!, $picked: String!, $config: String!, $pickedConfig: String!) {
+      repository(owner: $owner, name: $repo) {
+        defaultBranchRef { name }
+        picked: ref(qualifiedName: $picked) { name }
+        config: object(expression: $config) { ... on Blob { text } }
+        pickedConfig: object(expression: $pickedConfig) { ... on Blob { text } }
+      }
+    }`,
+    {
+      owner: key.owner,
+      repo: key.repo,
+      picked: `refs/heads/${picked ?? ""}`,
+      config: `HEAD:${CONFIG_FILE}`,
+      pickedConfig: `${picked ?? "HEAD"}:${CONFIG_FILE}`,
+    },
+  );
+  if (!data.repository) throw new ProjectUnavailable(unseenRepository(key), 404);
+
+  const onPicked = picked !== null && data.repository.picked !== null;
+  const text = (onPicked ? data.repository.pickedConfig : data.repository.config)?.text ?? null;
+  const config = parseProjectConfig(text, key.repo);
+  const branch = onPicked ? picked : (config.branch ?? data.repository.defaultBranchRef?.name);
+  if (!branch) throw new ProjectUnavailable(`${name} has no branches yet.`, 404);
+
+  const target = { owner: key.owner, repo: key.repo, subfolder: config.content ?? "", uploads: config.uploads, branch };
+  if (text !== null) targets.set(name, { target, at: Date.now() });
+  return target;
+}
+
+/**
+ * The branches of a GitHub project, the one it is read on, and the one its config would pick.
+ *
+ * The first hundred branches by name, which is every branch of a docs
+ * repository in practice.
+ *
+ * @example await listBranches(parseProjectKey("you/site")!, token); // { current: "redesign", home: "main", branches: ["main", "redesign"] }
+ */
+export async function listBranches(key: ProjectKey, token: string) {
+  const [target, listed, home] = await Promise.all([
+    resolveTarget(key, token),
+    rest<{ name: string }[]>(token, `/repos/${key.owner}/${key.repo}/branches?per_page=100`),
+    homeBranch(key, token),
+  ]);
+  return { current: target.branch, home, branches: listed.map((branch) => branch.name) };
+}
+
+/**
+ * The branch a project is read on when nobody picked one: its config's `branch`, or else the default branch.
+ *
+ * @example await homeBranch(parseProjectKey("you/site")!, token); // "main"
+ */
+async function homeBranch(key: ProjectKey, token: string) {
   const data = await graphql<{
     repository: { defaultBranchRef: { name: string } | null; config: { text?: string } | null } | null;
   }>(
     token,
-    `query Branch($owner: String!, $repo: String!, $config: String!) {
+    `query Home($owner: String!, $repo: String!, $config: String!) {
       repository(owner: $owner, name: $repo) {
         defaultBranchRef { name }
         config: object(expression: $config) { ... on Blob { text } }
@@ -124,15 +189,8 @@ export async function resolveTarget(key: ProjectKey, token: string): Promise<Tar
     }`,
     { owner: key.owner, repo: key.repo, config: `HEAD:${CONFIG_FILE}` },
   );
-  if (!data.repository) throw new ProjectUnavailable(unseenRepository(key), 404);
-  const text = data.repository.config?.text ?? null;
-  const config = parseProjectConfig(text, key.repo);
-  const branch = config.branch ?? data.repository.defaultBranchRef?.name;
-  if (!branch) throw new ProjectUnavailable(`${name} has no branches yet.`, 404);
-
-  const target = { owner: key.owner, repo: key.repo, subfolder: config.content ?? "", uploads: config.uploads, branch };
-  if (text !== null) targets.set(name, { target, at: Date.now() });
-  return target;
+  const config = parseProjectConfig(data.repository?.config?.text ?? null, key.repo);
+  return config.branch ?? data.repository?.defaultBranchRef?.name ?? null;
 }
 
 /**

@@ -8,8 +8,8 @@ import { dirname, join } from "node:path";
  * They live in one file, in the app's data folder when the desktop app runs
  * the studio, or the machine's config folder otherwise, never in the browser.
  * A favorite is only where a project is: removing one never touches the project.
- * The same file remembers how each project is drawn, which never goes in the
- * project's own config.
+ * The same file remembers how each project is drawn and the branch picked for
+ * it, neither of which ever goes in the project's own config.
  */
 
 /** A folder on this machine kept as a project: its `local/<name>` key and where it is. */
@@ -24,7 +24,12 @@ export type Renderer = { mode: "site" } | { mode: "custom"; url: string } | { mo
 /** Jotdown's own manual, listed first among the GitHub favorites for everybody and never taken off. */
 export const JOTDOWN_DOCS: GitHubFavorite = { key: "markomitranic/Jotdown", title: "Jotdown" };
 
-export type Favorites = { github: GitHubFavorite[]; folders: Folder[]; renderers: Record<string, Renderer> };
+export type Favorites = {
+  github: GitHubFavorite[];
+  folders: Folder[];
+  renderers: Record<string, Renderer>;
+  branches: Record<string, string>;
+};
 
 /**
  * Where the favorites file is.
@@ -40,26 +45,27 @@ function favoritesFile() {
 /**
  * Every favorite, each kind in the order it was added. A missing or unreadable file is no favorites.
  *
- * @example await readFavorites(); // { github: [{ key: "you/notes", title: "Notes" }], folders: [], renderers: {} }
+ * @example await readFavorites(); // { github: [{ key: "you/notes", title: "Notes" }], folders: [], renderers: {}, branches: {} }
  */
 export async function readFavorites(): Promise<Favorites> {
   const text = await readFile(favoritesFile(), "utf8").catch(() => "{}");
   try {
-    const raw: { github?: unknown; folders?: unknown; renderers?: unknown } = JSON.parse(text);
+    const raw: { github?: unknown; folders?: unknown; renderers?: unknown; branches?: unknown } = JSON.parse(text);
     return {
       github: listOf(raw.github, (item): item is GitHubFavorite => typeof item?.title === "string"),
       folders: listOf(raw.folders, (item): item is Folder => typeof item?.path === "string"),
       renderers: renderersOf(raw.renderers),
+      branches: branchesOf(raw.branches),
     };
   } catch {
-    return { github: [], folders: [], renderers: {} };
+    return { github: [], folders: [], renderers: {}, branches: {} };
   }
 }
 
 /**
  * Replaces the favorites, written whole so a crash never leaves half a file.
  *
- * @example await writeFavorites({ github: [], folders: [], renderers: {} });
+ * @example await writeFavorites({ github: [], folders: [], renderers: {}, branches: {} });
  */
 export async function writeFavorites(favorites: Favorites) {
   const file = favoritesFile();
@@ -114,6 +120,33 @@ export async function chosenRenderer(key: string) {
 export async function keepRenderer(key: string, renderer: Renderer) {
   const favorites = await readFavorites();
   await writeFavorites({ ...favorites, renderers: { ...favorites.renderers, [key.toLowerCase()]: renderer } });
+}
+
+/**
+ * The branch picked for a GitHub project in the studio, or null when it follows its config.
+ *
+ * @example await chosenBranch("you/notes"); // "redesign"
+ */
+export async function chosenBranch(key: string) {
+  return (await readFavorites()).branches[key.toLowerCase()] ?? null;
+}
+
+/**
+ * Remembers the branch a GitHub project is read and edited on, or forgets it with null.
+ *
+ * @example await keepBranch("you/notes", "redesign");
+ * @example await keepBranch("you/notes", null); // back to the branch its config names
+ */
+export async function keepBranch(key: string, branch: string | null) {
+  const favorites = await readFavorites();
+  const { [key.toLowerCase()]: _forgotten, ...others } = favorites.branches;
+  await writeFavorites({ ...favorites, branches: branch ? { ...others, [key.toLowerCase()]: branch } : others });
+}
+
+/** The branches a file names, each one a string, the rest dropped. */
+function branchesOf(raw: unknown): Record<string, string> {
+  if (typeof raw !== "object" || raw === null) return {};
+  return Object.fromEntries(Object.entries(raw).filter(([, branch]) => typeof branch === "string" && branch));
 }
 
 /** The renderers a file names, each one checked, the rest dropped. */

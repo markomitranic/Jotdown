@@ -76,15 +76,19 @@ export function RendererChoice({
             {LOOKS[mode].label}
           </DropdownMenu.Trigger>
         </TooltipTrigger>
-        <TooltipContent side="bottom">How this project is drawn</TooltipContent>
+        <TooltipContent side="top">How this project is drawn</TooltipContent>
       </Tooltip>
 
       <DropdownMenu.Portal>
         <DropdownMenu.Content
+          side="top"
           align="end"
           sideOffset={6}
           className="z-50 w-72 rounded-lg bg-popover p-1 text-popover-foreground text-sm shadow-xl ring-1 ring-foreground/10 data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in"
         >
+          <DropdownMenu.Label className="px-2.5 pt-1.5 pb-1 font-medium text-muted-foreground text-xs">
+            Draw this project with
+          </DropdownMenu.Label>
           <Choice
             mode="site"
             current={mode}

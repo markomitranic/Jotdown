@@ -64,7 +64,7 @@ export function DocsShell({
 /**
  * The foot of the sidebar: the app's own tools on the left, if it has any, and the theme switch on the right.
  *
- * @example <SidebarFooter><StudioTools /></SidebarFooter>
+ * @example <SidebarFooter><ProjectTools /></SidebarFooter>
  */
 export function SidebarFooter({ children }: { children?: ReactNode }) {
   return (

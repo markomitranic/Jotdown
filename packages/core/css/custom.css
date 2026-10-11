@@ -404,6 +404,37 @@ html {
   }
 }
 
+/* --------------------------------------------------------- status strip -- */
+
+/* The studio's own chrome is a strip along the foot of the window, below the
+   project. The docs layout ends where it starts, the page scrolls clear of it,
+   and the colour stripe narrows to a line along its top edge. A site's canvas
+   framed by the studio leaves its stripe to the studio's. */
+:root:has([data-status-strip]) {
+  --jd-status-height: 1.75rem;
+}
+
+:root:has([data-status-strip]) body {
+  padding-bottom: var(--jd-status-height);
+}
+
+:root:has([data-status-strip]) #jd-docs-layout {
+  --jd-docs-height: calc(100dvh - var(--jd-status-height));
+}
+
+:root:has([data-status-strip]) #jd-docs-layout > [data-sidebar-placeholder] {
+  bottom: var(--jd-status-height);
+}
+
+:root:has([data-status-strip]) body::before {
+  bottom: var(--jd-status-height);
+  height: 2px;
+}
+
+:root[data-framed] body::before {
+  display: none;
+}
+
 /* --------------------------------------------------------------- widths -- */
 
 /* A table or an image written inside `:::wide` or `:::full` stands wider than
