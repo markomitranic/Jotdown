@@ -186,7 +186,6 @@ function documentFor(figure: string, mode: Mode) {
   .jd-fig-frame { background: var(--card); border: 1px solid var(--border); border-radius: 0.375rem; padding: 1.35rem 1.25rem; }
   .jd-fig svg { display: block; width: 100%; height: auto; }
   .jd-fig svg text { font-family: var(--font-mono); }
-  .jd-fig--plate .jd-fig-frame { padding: 0; overflow: hidden; }
   .jd-fig figcaption { margin-top: 0.75rem; font-size: 0.8125rem; line-height: 1.55; color: var(--muted-foreground); }
 </style>
 </head>

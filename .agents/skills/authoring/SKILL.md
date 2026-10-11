@@ -147,11 +147,11 @@ as `.md` are a page a generator wrote and a changelog; see below.
    folder's `meta.json`, at the place it should sit. Leave it out and the page
    still appears, alphabetically, after the named ones, because every `pages`
    array ends with `"..."`.
-4. Open with an editorial illustration, drawn with the editorial-illustration
-   skill, then write the content. Standard Markdown, plus callouts (`:::note`,
-   `:::warning`, `:::tip`) and the blocks in the blocks skill. A generated page
-   and a changelog are `.md`, where a figure renders as nothing, so they go
-   without one.
+4. Open with an editorial illustration, painted with the editorial-illustration
+   skill into an SVG file of its own and shown as a markdown image, then write
+   the content. Standard Markdown, plus callouts (`:::note`, `:::warning`,
+   `:::tip`) and the blocks in the blocks skill. A generated page and a
+   changelog go without one.
 5. Link to other docs by relative file path (`./commit-signing.mdx`,
    `../architecture/index.mdx`); site-absolute paths like
    `/security-and-compliance/commit-signing` work too. Link every noun phrase
@@ -350,7 +350,7 @@ manual page.
 - Answer the questions a junior would actually ask out loud ("wait, why is this in the worker?").
 - Start with an abstract. That is when the human's attention is at its sharpest, but their knowledge of the intent at the lowest. It should contain the moral of the story, what was fixed, why, and how, from a non-technical perspective, with a believable example.
 - After the abstract you can go a bit deeper, in 2 paragraphs, explain the zoomed out approach and list relevant links.
-- Open every page with an editorial illustration, right under the front matter and before the abstract: a painted scene that makes the page's one idea land at a glance, the way a magazine opens an article. Draw it with the editorial-illustration skill. It sets the mood and the metaphor; it explains nothing, so the diagrams and charts that do the explaining still belong in the chapters.
+- Open every page with an editorial illustration, right under the front matter and before the abstract: a painted scene that makes the page's one idea land at a glance, the way a magazine opens an article. Draw it with the editorial-illustration skill, as an SVG file in the uploads, never inline in the page. It sets the mood and the metaphor; it explains nothing, so the diagrams and charts that do the explaining still belong in the chapters.
 - Chapter titles should be simple, short and directly describe the problem. (fx. "Search request was triggered on every keystroke")
 - Each chapter should start with a problem statement, and approach to solve it, before diving into the details.  Rationale second, details third. A reader should get the answer in the first paragraph.
 - Chapter paragraphs, code and the figures should be interwoven.

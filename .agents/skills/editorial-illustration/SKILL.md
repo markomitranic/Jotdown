@@ -167,62 +167,71 @@ Grain densities belong to the palette too. Shadow grain is usually denser at nig
 
 ### Put it on the page
 
-```mdx
-<figure className="jd-fig jd-fig--plate">
-  <div className="jd-fig-frame">
-    <svg
-      className="pr"
-      viewBox="0 0 960 540"
-      role="img"
-      aria-label="What happens in the scene, in one sentence"
-    >
-      <style>{`
-        .pr { --pr-sky: #d9dcf7; --pr-face-lit: #c9b2e6; --pr-face-core: #9a82c9; --pr-face-bounce: #e6b8c9; --pr-texture: 0.2; }
-        .dark .pr { --pr-sky: #0a0920; --pr-face-lit: #3a327f; --pr-face-core: #221c55; --pr-face-bounce: #5b3f7a; --pr-texture: 0.3; }
-      `}</style>
-      <rect width="960" height="540" fill="var(--pr-sky)" />
-      ...
-    </svg>
-  </div>
-  <figcaption>The message of the illustration. Max one sentence.</figcaption>
-</figure>
+The illustration is a file of its own, an upload like any other image, and the
+page shows it as a plain markdown image on the first line under the front
+matter:
+
+```md
+![What happens in the scene, in one sentence](/img/docs/illustration-<page>.svg "The message of the illustration. Max one sentence.")
 ```
 
-- **Every colour is a variable named for its role**, set twice in a `<style>`
-  inside the `<svg>`: the light palette on the plate's class, the dark one under
-  `.dark`. Paint with `var(--pr-…)` in fills, strokes and gradient stops. The
-  `<style>` sits inside the `<svg>` so it travels with the drawing to the
-  fullscreen view.
-- `jd-fig--plate` lets the painting fill its frame edge to edge and scale down
-  with the column. 960x540.
-- **The caption is not shown on the page.** Screen readers and search still
-  read it, and it appears under the plate when the reader expands it. Write it
-  for that moment: the message, not a description of the scene.
-- **This is JSX.** Presentation attributes are camelCase: `stopColor`,
-  `strokeWidth`, `strokeLinecap`, `fillOpacity`. Attributes SVG itself spells in
-  camelCase stay that way: `baseFrequency`, `numOctaves`, `xChannelSelector`,
-  `gradientUnits`, `viewBox`.
-- **Names are page-global.** Prefix every id, the plate's class and its
-  variables per plate (`pr-sky`, `.pr`, `--pr-sky`).
-- **Props are literal.** A page cannot run code, so there are no loops or
-  computed coordinates. Generate shapes with a scratch script and paste the
-  output in. The script never ships.
-- **Hex colours are allowed here and nowhere else in a page,** in the plate's
-  `<style>`, because a plate is artwork with its own ground.
+- **Never paste the SVG into the page.** A painted plate runs to hundreds of
+  kilobytes of path data. Inline, it is the first thing every agent reads in
+  the page, it is compiled again with every edit, and the browser cannot cache
+  it. As a file it costs the page one line.
+- The file lives in `docs/_uploads/img/docs/`, where the in-page editor puts an
+  upload, named `illustration-<page>.svg` after the page it opens, with the
+  folders in the name: `docs/studio/branding.mdx` gets
+  `illustration-studio-branding.svg`.
+- **The alt** says what happens in the scene, for somebody who cannot see it.
+- **The title** is the message, not a description of the scene. It is the
+  caption printed under the picture, and the one shown when the reader expands
+  it.
+
+### The file
+
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" id="dark" class="pr" width="960" height="540" viewBox="0 0 960 540">
+  <style>
+    .pr { --pr-sky: #d9dcf7; --pr-face-lit: #c9b2e6; --pr-face-core: #9a82c9; --pr-face-bounce: #e6b8c9; --pr-texture: 0.2; }
+    .pr:target { --pr-sky: #0a0920; --pr-face-lit: #3a327f; --pr-face-core: #221c55; --pr-face-bounce: #5b3f7a; --pr-texture: 0.3; }
+  </style>
+  <rect width="960" height="540" fill="var(--pr-sky)" />
+  ...
+</svg>
+```
+
+- **Both palettes live in the one file.** Every colour is a variable named for
+  its role, set twice in the `<style>`: the light palette on the drawing's
+  class, the dark one under `:target`. In dark mode the page draws the same
+  file at `#dark`, which is what makes `:target` match, so the root keeps
+  `id="dark"`. Paint with `var(--pr-…)` in fills, strokes and gradient stops.
+- **This is plain SVG, not JSX.** Attributes are spelled as SVG spells them:
+  `class`, `stop-color`, `stroke-width`, `stroke-linecap`, `fill-opacity`,
+  `color-interpolation-filters`, and the camelCase ones SVG itself has,
+  `viewBox`, `baseFrequency`, `numOctaves`, `gradientUnits`.
+- `width="960" height="540"` gives the picture its size; the page scales it
+  down to the column.
+- **The file stands alone.** An image cannot see the page, so nothing in it
+  reaches outside: no `--jd-*` tokens, no fonts, no links to other files, no
+  script. Hex colours are fine here, because a plate is artwork with its own
+  ground.
+- **Generate it.** Write the shapes with a scratch script that prints the SVG,
+  and keep the script out of the project. Only the `.svg` ships.
 - **Static only.** No animation, no CSS transitions. Filters are fine.
 
 ### Shade with grain
 
 Several per plate (haze, blur, grain). Shading keeps each pixel of the shape fully or not at all, with the chance set by the pixel's opacity:
 
-```mdx
+```svg
 <filter
   id="pr-dz"
   x="-5%"
   y="-5%"
   width="110%"
   height="110%"
-  colorInterpolationFilters="sRGB"
+  color-interpolation-filters="sRGB"
 >
   <feTurbulence
     type="fractalNoise"
@@ -261,18 +270,18 @@ Several per plate (haze, blur, grain). Shading keeps each pixel of the shape ful
 
 Paint a face flat in its lit colour, then lay the same shape over it once per step of its ramp, each overlay one colour whose opacity changes, and run every overlay through the filter:
 
-```mdx
+```svg
 <linearGradient id="pr-face-core" x1="0" y1="0" x2="1" y2="0">
-  <stop offset="0.2" stopColor="var(--pr-face-core)" stopOpacity="0" />
-  <stop offset="0.7" stopColor="var(--pr-face-core)" stopOpacity="1" />
+  <stop offset="0.2" stop-color="var(--pr-face-core)" stop-opacity="0" />
+  <stop offset="0.7" stop-color="var(--pr-face-core)" stop-opacity="1" />
 </linearGradient>
 <linearGradient id="pr-face-bounce" x1="1" y1="0" x2="0" y2="0">
-  <stop offset="0" stopColor="var(--pr-face-bounce)" stopOpacity="1" />
-  <stop offset="0.3" stopColor="var(--pr-face-bounce)" stopOpacity="0" />
+  <stop offset="0" stop-color="var(--pr-face-bounce)" stop-opacity="1" />
+  <stop offset="0.3" stop-color="var(--pr-face-bounce)" stop-opacity="0" />
 </linearGradient>
 
 <polygon points="…" fill="var(--pr-face-lit)" />
-<polygon points="…" fill="var(--pr-face-core)" fillOpacity="var(--pr-texture)" filter="url(#pr-dz)" />
+<polygon points="…" fill="var(--pr-face-core)" fill-opacity="var(--pr-texture)" filter="url(#pr-dz)" />
 <polygon points="…" fill="url(#pr-face-core)" filter="url(#pr-dz)" />
 <polygon points="…" fill="url(#pr-face-bounce)" filter="url(#pr-dz)" />
 ```
@@ -287,10 +296,13 @@ Paint a face flat in its lit colour, then lay the same shape over it once per st
 
 ```sh
 export AGENT_BROWSER_SESSION="$(agent-browser session id --scope worktree --prefix task)"
-bun .agents/skills/figure/scripts/render.ts <page.mdx>
+bun .agents/skills/editorial-illustration/scripts/render.ts docs/_uploads/img/docs/illustration-<page>.svg
 ```
 
-For each dark and light screenshot path printed by the script, call `view_image` agent tool with that path. Evaluate the returned images against the criteria below. Revise the SVG where needed, then render and inspect again.
+The script draws the file as the page will, once by day and once at `#dark`,
+and prints the path of each screenshot. For each path, call `view_image` agent
+tool with that path. Evaluate the returned images against the criteria below.
+Revise the SVG where needed, then render and inspect again.
 
 Apply a revision when it addresses an observable problem or an article mismatch. Render and inspect the revised composition all over again. Allow at most two critique-and-revision rounds, then continue with the strongest version and report any unresolved concern. Look for traces of sloppy work, and redo if needed:
 

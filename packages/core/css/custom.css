@@ -520,6 +520,30 @@ html {
   cursor: zoom-in;
 }
 
+/* An SVG's night copy, the same file at `#dark`, drawn in dark mode in the
+   same grid cell as the day one, which stays there unseen. Both carry
+   `jd-shot-img`, so they take the same size and margins and line up exactly,
+   and anything measuring the first picture still finds the day copy. */
+.jd-shot__open > .jd-shot-night {
+  display: none;
+}
+
+.dark .jd-shot__open:has(> .jd-shot-night) {
+  display: grid;
+}
+
+.dark .jd-shot__open:has(> .jd-shot-night) > img {
+  grid-area: 1 / 1;
+}
+
+.dark .jd-shot__open:has(> .jd-shot-night) > img:not(.jd-shot-night) {
+  visibility: hidden;
+}
+
+.dark .jd-shot__open > .jd-shot-night {
+  display: block;
+}
+
 /* A widened image fills its block rather than stopping at its own pixel width
    and the height cap, since being bigger is the whole point of widening it,
    and it bleeds no further than the width it was given. */
@@ -744,26 +768,6 @@ html {
   display: block;
   width: 100%;
   height: auto;
-}
-
-/* An editorial illustration is a plate: a painting with its own ground and its
-   own palette, so it fills the frame edge to edge. Once painted into a bitmap
-   (`components/blocks/PlatePainter.tsx`), the bitmap takes the drawing's place,
-   at the same proportions, and the drawing leaves the layout, so its noise
-   filters never run during an animation. */
-.jd-fig--plate .jd-fig-frame {
-  padding: 0;
-  overflow: hidden;
-}
-
-.jd-fig-raster {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.jd-fig-frame:has(> .jd-fig-raster) > svg {
-  display: none;
 }
 
 .jd-fig svg text {

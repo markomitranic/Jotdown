@@ -37,9 +37,9 @@ standardised, in the site's figure palette. Two other skills sit beside it:
 - A bar, line, area, pie or radar chart of real numbers is a `<Chart />` block.
   Use the `chart` skill.
 - The picture that opens every page, the way a magazine opens an article, is an
-  editorial illustration. Use the `editorial-illustration` skill, which draws
-  in its own style and does not follow the rules below. A figure belongs in the
-  chapters, where it explains.
+  editorial illustration. Use the `editorial-illustration` skill, which paints
+  in its own style into an SVG file of its own, not into the page, and does not
+  follow the rules below. A figure belongs in the chapters, where it explains.
 
 ## Which built-in skill to load
 

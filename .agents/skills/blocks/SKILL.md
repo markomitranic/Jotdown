@@ -82,6 +82,7 @@ A screenshot or a diagram that ships as a file is plain markdown. The frame, the
 - The quoted string after the path is optional and becomes the caption.
 - The image is drawn at its own size up to the width of the text, a little wider on a wide screen, and never taller than `--jd-shot-height`, so a large export cannot take the whole window. Clicking it opens the original file on a dimmed backdrop, and pointing at it shows a toolbar to expand, copy or download the original. Export a screenshot at the size it should be read; a small one is not stretched to fill the column.
 - Files live in the project's `docs/_uploads/img/docs/`, which is where the in-page editor puts an upload.
+- An SVG follows the colour mode from one file: in dark mode the page draws it again at `#dark`, so a palette set under `svg:target` is its night one. An SVG with one palette looks the same in both.
 - An image with no path, `![The team's logo]()`, draws a placeholder saying it could not be downloaded. A page pasted from another site gets one for each picture the browser was not allowed to fetch. Replace it with the real file, never with a link to the other site. An image whose path answers with no picture draws the same placeholder, saying it could not be loaded.
 
 ## Widths
@@ -123,7 +124,7 @@ Shiki highlights every fence, and the meta string after the language is part of 
 
 ## `jd-fig` figures
 
-Inline SVG or HTML figures, drawn by the figure skill, and editorial illustrations, drawn by the editorial-illustration skill as a `jd-fig jd-fig--plate` with a palette of its own. Clicking the drawing opens it on the same fullscreen stage a Mermaid diagram gets, with pan, zoom and a minimap; there is nothing to add to the figure for that. An HTML figure, the skill's escape hatch, has no drawing to stage and stays where it is. The figure skill carries a routing table from what a paragraph is about to the form of figure that shows it, a layout reference per form under `references/forms/`, the connector rules every arrow follows, and an index of the Claude Code built-in skills to load for each kind of figure (`artifact-diagramming` for mechanisms, `dataviz` for charts). Any other visual skill you have access to is fair to use too.
+Inline SVG or HTML figures, drawn by the figure skill. Clicking the drawing opens it on the same fullscreen stage a Mermaid diagram gets, with pan, zoom and a minimap; there is nothing to add to the figure for that. An HTML figure, the skill's escape hatch, has no drawing to stage and stays where it is. The figure skill carries a routing table from what a paragraph is about to the form of figure that shows it, a layout reference per form under `references/forms/`, the connector rules every arrow follows, and an index of the Claude Code built-in skills to load for each kind of figure (`artifact-diagramming` for mechanisms, `dataviz` for charts). Any other visual skill you have access to is fair to use too.
 
 ## `<Chart />`
 
@@ -176,8 +177,7 @@ If a passage needs emphasis, markdown already has it: a blockquote (`>`), bold,
 a callout (`:::note`, `:::warning`, `:::source` for citations).
 
 One className is allowed in `docs/`, and no others: `jd-fig`, on an inline SVG
-or HTML figure drawn by the figure skill, and `jd-fig jd-fig--plate` on an
-editorial illustration. Those are pictures, not prose.
+or HTML figure drawn by the figure skill. That is a picture, not prose.
 
 Anything else is unwritable by humans, invisible to the in-page editor, and
 becomes a permanent stain in the repo. Do not invent a `className` for prose,
@@ -189,7 +189,7 @@ unstyled element.
 
 - Don't hard-code colours or fonts in a page. A figure paints with the
   `--jd-fig-*` tokens, a chart with the brand's chart colours, and the one
-  exception is an editorial illustration, which carries its own palette.
+  exception is an editorial illustration, an SVG file with its own palette.
 - Don't restyle the article. If a heading, a paragraph or a table looks wrong,
   leave it, and say so to whoever maintains the framework.
 - Unless the user asks for Mermaid, diagrams are inline SVG/HTML figures drawn
@@ -207,5 +207,5 @@ The same rules as a table, for the cases people actually hit:
 | A typeface for the project | a `<style>` in a page | a face in the theme's `fonts` |
 | A process or state diagram in official reference docs | a hand-drawn figure | a ```mermaid fence |
 | An illustration next to prose | a ```mermaid fence | a `jd-fig` figure drawn by the figure skill |
-| A picture that opens a story, magazine-style | a diagram with its boxes renamed | a `jd-fig jd-fig--plate` from the editorial-illustration skill |
+| A picture that opens a story, magazine-style | a diagram with its boxes renamed, or an SVG pasted into the page | an SVG file from the editorial-illustration skill, shown as a markdown image |
 | A number, trend or comparison | boxes and arrows, or a paragraph of figures | a `<Chart />` block, per the chart skill |

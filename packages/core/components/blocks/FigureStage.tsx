@@ -67,6 +67,8 @@ function stagedFigure(target: Element): Staged | null {
 /**
  * A clicked markdown image as its original file, with the caption written under it.
  *
+ * In dark mode an SVG's night copy is the one showing, so that is the one staged.
+ *
  * The original is loaded before the stage opens, with the picture marked
  * `data-busy` meanwhile so it can show it is on its way, and a second click
  * in that time does nothing. The picture the page already shows stands in for
@@ -74,7 +76,8 @@ function stagedFigure(target: Element): Staged | null {
  */
 async function stagedImage(target: Element): Promise<Staged | null> {
   const shot = target.closest(".jd-shot__open, .jd-shot__expand")?.closest<HTMLElement>(".jd-shot");
-  const image = shot?.querySelector("img");
+  const night = shot?.querySelector<HTMLImageElement>(".jd-shot-night");
+  const image = night?.checkVisibility() ? night : shot?.querySelector("img");
   if (!shot || !image?.naturalWidth || "busy" in shot.dataset) return null;
 
   const original = image.dataset.src ?? image.currentSrc;

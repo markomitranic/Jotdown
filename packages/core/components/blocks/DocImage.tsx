@@ -53,6 +53,12 @@ type Props = ComponentProps<"img"> & { tools?: ReactNode };
  * address the page asked for, which an editor drawing the same image reads back
  * too. Nothing past the optimizer's scaled copy is fetched until somebody asks.
  *
+ * An SVG is drawn again at `#dark` in dark mode, in the day copy's place, so a
+ * drawing that keeps its night palette under `svg:target` follows the colour
+ * mode from one file. The day copy stays first and unseen, so it is still what
+ * an editor measures. A drawing with one palette looks the same at either
+ * address.
+ *
  * An image with no address at all, `![alt]()`, draws the placeholder for one
  * a paste could not download, and an address that answers with no picture
  * draws the same placeholder saying it could not be loaded. A new address is
@@ -62,6 +68,7 @@ type Props = ComponentProps<"img"> & { tools?: ReactNode };
 export default function DocImage({ title, className, alt, src, width, height, tools, ...props }: Props) {
   const url = typeof src === "string" ? src : undefined;
   const [failed, setFailed] = useState<string | null>(null);
+  const night = url && isSvg(url) && !url.includes("#") ? `${url}#dark` : null;
 
   if (url === undefined || url === "") return <MissingImage alt={alt ?? ""} reason="downloaded" />;
   if (failed === url) return <MissingImage alt={alt ?? ""} reason="loaded" />;
@@ -81,6 +88,18 @@ export default function DocImage({ title, className, alt, src, width, height, to
           onError={() => setFailed(url)}
           className={clsx("jd-shot-img", className)}
         />
+        {night && (
+          <Image
+            alt=""
+            aria-hidden
+            src={night}
+            width={Number(width) || IMAGE.column}
+            height={Number(height) || 0}
+            unoptimized
+            data-src={night}
+            className={clsx("jd-shot-img jd-shot-night", className)}
+          />
+        )}
       </button>
       <ImageTools url={url}>{tools}</ImageTools>
     </span>
@@ -120,6 +139,16 @@ function ImageTools({ url, children }: { url: string; children?: ReactNode }) {
       </a>
     </span>
   );
+}
+
+/**
+ * Whether an address names an SVG file, whatever query or fragment follows it.
+ *
+ * @example isSvg("/img/docs/branding.svg?v=2"); // true
+ */
+function isSvg(url: string) {
+  const [path = ""] = url.split(/[?#]/);
+  return path.toLowerCase().endsWith(".svg");
 }
 
 /**

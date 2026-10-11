@@ -1,0 +1,1 @@
+../../../../.agents/skills/editorial-illustration/scripts/render.ts
