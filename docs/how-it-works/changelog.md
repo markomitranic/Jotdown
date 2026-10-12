@@ -53,6 +53,13 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.3.8](https://github.com/markomitranic/Jotdown/compare/v0.3.7...v0.3.8) (2026-10-12)
+
+
+### Bug Fixes
+
+* **images:** keep a column image inside its column, and show illustrations wide ([19f8728](https://github.com/markomitranic/Jotdown/commit/19f8728c3486fd102ca858657be264479e14a5a5))
+
 ## [0.3.7](https://github.com/markomitranic/Jotdown/compare/v0.3.6...v0.3.7) (2026-10-12)
 
 
