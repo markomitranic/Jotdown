@@ -53,6 +53,13 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.3.6](https://github.com/markomitranic/Jotdown/compare/v0.3.5...v0.3.6) (2026-10-12)
+
+
+### Bug Fixes
+
+* **illustrations:** keep the grain in WebKit on macOS ([c0b889d](https://github.com/markomitranic/Jotdown/commit/c0b889db81ac88b3d0e227d57955fa2a66ee2e35))
+
 ## [0.3.5](https://github.com/markomitranic/Jotdown/compare/v0.3.4...v0.3.5) (2026-10-11)
 
 
