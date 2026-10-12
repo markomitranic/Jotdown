@@ -1,5 +1,5 @@
 import { HttpResponse, http } from "msw";
-import { expect, userEvent, within } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import preview from "@/.storybook/preview";
 import framework from "../../../../../.jotdown/config.json";
 import type { HealthCheck } from "@/server/settings/health";
@@ -168,7 +168,7 @@ export const BrokenFile = meta.story({
   },
   play: async ({ canvasElement }) => {
     const panel = within(canvasElement);
-    await expect(await panel.findByText("The config file does not read as JSON.")).toBeVisible();
+    await waitFor(() => expect(panel.getByText("The config file does not read as JSON.")).toBeVisible());
   },
 });
 
