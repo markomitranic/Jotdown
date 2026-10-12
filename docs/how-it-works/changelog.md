@@ -53,6 +53,13 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.3.9](https://github.com/markomitranic/Jotdown/compare/v0.3.8...v0.3.9) (2026-10-12)
+
+
+### Bug Fixes
+
+* **desktop:** keep the studio's own pages in the window when ⌘ is held ([6746ccf](https://github.com/markomitranic/Jotdown/commit/6746ccfdca8b70f0f8dba8c72511ba8ea6dc6fa4))
+
 ## [0.3.8](https://github.com/markomitranic/Jotdown/compare/v0.3.7...v0.3.8) (2026-10-12)
 
 
