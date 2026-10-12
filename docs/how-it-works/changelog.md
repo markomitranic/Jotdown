@@ -53,6 +53,13 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.3.7](https://github.com/markomitranic/Jotdown/compare/v0.3.6...v0.3.7) (2026-10-12)
+
+
+### Bug Fixes
+
+* **illustrations:** blend the grain over the smooth shading ([0189302](https://github.com/markomitranic/Jotdown/commit/0189302a6954ad7343cfe7185d2330f4677c9536))
+
 ## [0.3.6](https://github.com/markomitranic/Jotdown/compare/v0.3.5...v0.3.6) (2026-10-12)
 
 
