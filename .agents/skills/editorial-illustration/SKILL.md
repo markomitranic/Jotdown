@@ -222,7 +222,7 @@ matter:
 
 ### Shade with grain
 
-Several per plate (haze, blur, grain). Shading keeps each pixel of the shape fully or not at all, with the chance set by the pixel's opacity:
+Several per plate (haze, blur, grain). Shading keeps each pixel of the shape fully or not at all, with the chance set by the pixel's opacity, then lays that grain over the smooth shape at 35%, so the texture stays soft:
 
 ```svg
 <filter
@@ -261,11 +261,18 @@ Several per plate (haze, blur, grain). Shading keeps each pixel of the shape ful
   <feComponentTransfer in="SourceGraphic" result="solid">
     <feFuncA type="linear" slope="255" />
   </feComponentTransfer>
-  <feComposite in="solid" in2="mask" operator="in" />
+  <feComposite in="solid" in2="mask" operator="in" result="grain" />
+  <feComposite
+    in="grain"
+    in2="SourceGraphic"
+    operator="arithmetic"
+    k2="0.35"
+    k3="0.65"
+  />
 </filter>
 ```
 
-Make the colour opaque with `feFuncA`, never with a `255` in an `feColorMatrix`: WebKit on macOS, the desktop app and Safari, drops a matrix value that large and paints nothing.
+Make the colour opaque with `feFuncA`, never with a `255` in an `feColorMatrix`: WebKit on macOS, the desktop app and Safari, drops a matrix value that large and paints nothing. Keep `k2` and `k3` summing to 1; raise `k2` for a stronger grain.
 
 Paint a face flat in its lit colour, then lay the same shape over it once per step of its ramp, each overlay one colour whose opacity changes, and run every overlay through the filter:
 
