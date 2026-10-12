@@ -60,7 +60,8 @@ ApplicationMenu.on("application-menu-clicked", (event) => {
  * Opens the studio's window on a page, the one window the app keeps open at a time, its links to the web going to the browser.
  *
  * Closing it leaves the app and its server running, so the Dock icon brings it
- * straight back, signed in.
+ * straight back, signed in. A studio page asked for with ⌘ held, as ⌘R's
+ * reload is, loads in the window, since a browser is never signed in to it.
  *
  * @example openWindow("/you/notes/guides/setup");
  */
@@ -81,7 +82,9 @@ function openWindow(page: string) {
 
   Electrobun.events.on(`new-window-open-${window.webview.id}`, (event: unknown) => {
     const { detail } = (event as { data: { detail: string | { url: string } } }).data;
-    openOutside(typeof detail === "string" ? detail : detail.url);
+    const url = typeof detail === "string" ? detail : detail.url;
+    if (URL.parse(url)?.origin === studio.origin) window.webview.loadURL(url);
+    else openOutside(url);
   });
 }
 
