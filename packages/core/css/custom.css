@@ -477,22 +477,15 @@ html {
    wrapper comes from `components/blocks/DocImage.tsx`, which is also where the
    markdown title becomes the caption.
 
-   An image is drawn at its own size up to the width of the text, and on a
-   screen wide enough to have margin to spare, 3rem past it on either side, the
-   way a picture in a magazine runs wider than its column. Only an image in a
-   paragraph of the article itself bleeds; one in a callout, a list or a tab
-   stays inside its box. The height cap keeps a tall export from filling the
+   An image is drawn at its own size up to the width of the box it sits in,
+   the text column or a callout, a list or a tab, and never past it, so it
+   stays inside its block. A picture meant to stand wider is written inside
+   `:::wide` or `:::full`. The height cap keeps a tall export from filling the
    window on its own. Scaled rather than cropped, so nothing in the picture is
    decided for the reader, and one click still opens the original. */
 .jd-shot {
   display: block;
   margin-inline: auto;
-}
-
-@media (min-width: 96rem) {
-  .prose > p .jd-shot {
-    margin-inline: -3rem;
-  }
 }
 
 .jd-shot-img {
@@ -545,12 +538,7 @@ html {
 }
 
 /* A widened image fills its block rather than stopping at its own pixel width
-   and the height cap, since being bigger is the whole point of widening it,
-   and it bleeds no further than the width it was given. */
-.prose > p[data-block-width] .jd-shot {
-  margin-inline: 0;
-}
-
+   and the height cap, since being bigger is the whole point of widening it. */
 [data-block-width] :is(.jd-shot__frame, .jd-shot__open) {
   width: 100%;
 }

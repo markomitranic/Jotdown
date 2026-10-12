@@ -14,8 +14,8 @@ type Props = ComponentProps<"img"> & { tools?: ReactNode };
 /**
  * An image in a document, as wide as the text it sits in and never taller than the window.
  *
- * A picture is drawn at its own size up to the text column, and on a wide
- * screen a little past it, into the margin. `--jd-shot-height` caps it down,
+ * A picture is drawn at its own size up to the box it sits in, and never past
+ * it; `:::wide` is what widens one. `--jd-shot-height` caps it down,
  * so a tall export cannot take the whole viewport. It scales rather than
  * crops, so nothing in the picture is decided on the reader's behalf, and
  * clicking it opens the original file on the fullscreen stage a diagram gets,

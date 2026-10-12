@@ -168,12 +168,20 @@ Grain densities belong to the palette too. Shadow grain is usually denser at nig
 ### Put it on the page
 
 The illustration is a file of its own, an upload like any other image, and the
-page shows it as a plain markdown image on the first line under the front
+page shows it as a markdown image inside `:::wide`, first under the front
 matter:
 
 ```md
+:::wide
+
 ![What happens in the scene, in one sentence](/img/docs/illustration-<page>.svg "The message of the illustration. Max one sentence.")
+
+:::
 ```
+
+- **Always wide.** A plate opens the story the way a magazine spread does, so
+  it stands wider than the column. `:::wide` is the same width the studio's
+  width control gives an image, so the page and the editor agree on it.
 
 - **Never paste the SVG into the page.** A painted plate runs to hundreds of
   kilobytes of path data. Inline, it is the first thing every agent reads in
@@ -210,8 +218,8 @@ matter:
   `class`, `stop-color`, `stroke-width`, `stroke-linecap`, `fill-opacity`,
   `color-interpolation-filters`, and the camelCase ones SVG itself has,
   `viewBox`, `baseFrequency`, `numOctaves`, `gradientUnits`.
-- `width="960" height="540"` gives the picture its size; the page scales it
-  down to the column.
+- `width="960" height="540"` gives the picture its shape; the page scales it
+  to the width of its `:::wide` block.
 - **The file stands alone.** An image cannot see the page, so nothing in it
   reaches outside: no `--jd-*` tokens, no fonts, no links to other files, no
   script. Hex colours are fine here, because a plate is artwork with its own

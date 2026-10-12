@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 /**
- * How wide a picture on a page is drawn at most: the text column and the margin it bleeds into.
+ * How wide a picture is asked of the optimizer: a little past the text column, for a sharp edge.
  *
  * The width describes the layout, never the file. Next scales each picture to
  * the width asked for, twice that on a sharp screen, keeps its aspect ratio,

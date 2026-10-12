@@ -207,5 +207,5 @@ The same rules as a table, for the cases people actually hit:
 | A typeface for the project | a `<style>` in a page | a face in the theme's `fonts` |
 | A process or state diagram in official reference docs | a hand-drawn figure | a ```mermaid fence |
 | An illustration next to prose | a ```mermaid fence | a `jd-fig` figure drawn by the figure skill |
-| A picture that opens a story, magazine-style | a diagram with its boxes renamed, or an SVG pasted into the page | an SVG file from the editorial-illustration skill, shown as a markdown image |
+| A picture that opens a story, magazine-style | a diagram with its boxes renamed, or an SVG pasted into the page | an SVG file from the editorial-illustration skill, shown as a markdown image inside `:::wide` |
 | A number, trend or comparison | boxes and arrows, or a paragraph of figures | a `<Chart />` block, per the chart skill |
