@@ -258,15 +258,14 @@ Several per plate (haze, blur, grain). Shading keeps each pixel of the shape ful
   <feComponentTransfer in="diff" result="mask">
     <feFuncA type="discrete" tableValues="0 1" />
   </feComponentTransfer>
-  <feColorMatrix
-    in="SourceGraphic"
-    type="matrix"
-    values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 255 0"
-    result="solid"
-  />
+  <feComponentTransfer in="SourceGraphic" result="solid">
+    <feFuncA type="linear" slope="255" />
+  </feComponentTransfer>
   <feComposite in="solid" in2="mask" operator="in" />
 </filter>
 ```
+
+Make the colour opaque with `feFuncA`, never with a `255` in an `feColorMatrix`: WebKit on macOS, the desktop app and Safari, drops a matrix value that large and paints nothing.
 
 Paint a face flat in its lit colour, then lay the same shape over it once per step of its ramp, each overlay one colour whose opacity changes, and run every overlay through the filter:
 
