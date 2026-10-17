@@ -33,14 +33,14 @@ For an article about AI assistants, your interpretations might be:
 
 **Goal:** Clearly define the visual style you will use for the illustration.
 
-Visual style: lines, shadows, gradients, composition rules, how light, grain, surfaces and edges are painted. We aim for a consistent whimsical realism in a stylized 2D storybook style, the look of illustrated lore and screenprint illustration, with the light and surfaces of Monument Valley, Global Village Coffeehouse and Gris by Nomada Studio.
+Visual style: lines, shadows, gradients, composition rules, how light, grain, surfaces and edges are painted. We aim for a consistent whimsical realism in a stylized 2D storybook style, the look of illustrated lore, screenprint and risograph print, with the light and surfaces of Monument Valley, Global Village Coffeehouse and Gris by Nomada Studio.
 
 Poster Aesthetic, graphic silhouettes and mathematical composition. Emphasize clarity, bold shapes, layering, and a strong visual hierarchy to guide the viewer's eye. A believable world, painted rather than drawn, in which the impossible happens quietly. The world is rendered with a painter's depth and a storyteller's restraint, so the eye has somewhere to travel and one place to rest. Great art direction is achieved through consistency. Every element, from color palette to composition, should reinforce the visual style.
 
 ### World & Depth
 
 - Lighting is key, the top lightest, the face toward the light a middle tone, the face away from it the darkest.
-- The scene is built in 3-5 layered planes, from what is nearest the camera to what stands behind the subject, each a simple silhouette with an organic, slightly irregular edge.
+- The scene is built in 3-5 layered planes, from what is nearest the camera to what stands behind the subject, each a simple silhouette with an organic, slightly irregular edge, stacked like layers of paper cutout.
 - Distance is atmosphere: far planes are lighter, hazier, cooler and lower in contrast, near planes are darker and sharper. That alone gives the plate its depth.
 - There is always air between the planes: haze, mist or glow, never a hard cut.
 
