@@ -67,3 +67,64 @@ deployments like any Vercel project.
     `onboarding/first-week.html`.
   </Accordion>
 </Accordions>
+
+## Keep the site private, and still edit in its look
+
+A second brain is often for nobody's eyes but yours, so you lock the site
+behind Vercel's <abbr title="Vercel's web application firewall: rules that let requests through or turn them away by path, header, country and so on">firewall</abbr>.
+The catch is that the studio's **Site** renderer frames `<url>/_edit`, and any
+rule that asks for a login or a challenge breaks it: the desktop app is WebKit,
+which drops the cookie that login sets inside a frame, so the canvas never
+loads.
+
+The way out is a rule that denies every path except the few the canvas needs.
+`/_edit` is built with no content in it, since the studio hands it each page
+itself, so opening those paths shows nobody your notes.
+
+| Path | Why the canvas needs it |
+|---|---|
+| `/_edit` | The canvas page itself, an empty shell |
+| `/_next/static` | Its scripts, styles and the site's built-in fonts |
+| `/uploads/fonts` | Only when the theme loads a font from the uploads |
+
+<Steps>
+<Step>
+
+### Add a custom rule
+
+In the project's **Firewall**, add a custom rule with one condition per path,
+all joined with **AND**: **Request Path**, **Does not start with**, and the
+path. Prefix each path with the site's base path when it is not hosted at the
+domain's root.
+
+</Step>
+<Step>
+
+### Deny the rest
+
+Set the action to **Deny**, never **Challenge**: a challenge page in the frame
+runs into the same cookie problem as a login. Save, and open the project in
+the studio with the Site renderer.
+
+</Step>
+</Steps>
+
+<Accordions>
+  <Accordion title="What the rule still lets a stranger see">
+    The site's code and look: its scripts under `/_next/static` and the empty
+    canvas. Every page, its `.txt` data next to it, the markdown twins,
+    `llms.txt` and the search index stay behind the rule. A component of your
+    own that bakes text into its client-side code would leak that text, since
+    its script is served from `/_next/static`.
+  </Accordion>
+  <Accordion title="The canvas loads, but something on it is blank">
+    Some request it needs is being denied. Open the developer tools in the
+    studio, find the request that came back `403`, and add its path to the
+    rule. A logo kept among the uploads is the usual one.
+  </Accordion>
+  <Accordion title="Why not Vercel Authentication or a password">
+    Both set a cookie on the site's domain, and a frame inside the studio is a
+    third party to that domain. WebKit blocks third-party cookies outright, so
+    you would be logged in on the site and still locked out of the canvas.
+  </Accordion>
+</Accordions>
