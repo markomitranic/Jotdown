@@ -1,5 +1,5 @@
 import { frontmatter } from "fumadocs-core/content/md/frontmatter";
-import { pageSchema } from "fumadocs-core/source/schema";
+import { metaSchema, pageSchema } from "fumadocs-core/source/schema";
 import { z } from "zod";
 import { describeIssues } from "@jotdown/core/lib/broken-file";
 
@@ -18,6 +18,12 @@ export const pageFrontmatterSchema = pageSchema.extend({
 });
 
 export type PageFrontmatter = z.infer<typeof pageFrontmatterSchema>;
+
+/** Every field a folder's `meta.json` may carry: Fumadocs' own plus the layout its pages are drawn in. */
+export const folderMetaSchema = metaSchema.extend({
+  /** The layout of every page below this folder whose front matter names none, the nearest folder's winning. */
+  layout: z.string().min(1).optional(),
+});
 
 /**
  * A page's front matter, checked, or what is wrong with it in words an author can act on.

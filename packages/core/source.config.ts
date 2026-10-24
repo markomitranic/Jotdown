@@ -1,7 +1,7 @@
 import { remarkRuntimePositions } from "./lib/remark-runtime-positions";
 import { remarkImageSizes } from "./lib/remark-image-sizes";
 import { defineConfig, defineDocs } from "fumadocs-mdx/config";
-import { pageFrontmatterSchema } from "@jotdown/core/lib/front-matter";
+import { folderMetaSchema, pageFrontmatterSchema } from "@jotdown/core/lib/front-matter";
 import { DOCS_ROOT } from "@jotdown/core/lib/paths";
 import { remarkSourceRange, sourceRangeCodeOptions } from "@jotdown/core/lib/remark-source-range";
 import { remarkChain } from "@jotdown/core/lib/remark-chain";
@@ -13,12 +13,12 @@ import { remarkChain } from "@jotdown/core/lib/remark-chain";
  * `meta.files` is pinned to `meta.json` because the folder also holds
  * `moved.json`, which is an array and would fail the meta schema.
  *
- * The schema is the page front matter schema, validated before the page compiles.
+ * The schemas are the page front matter and the folder `meta.json`, each validated before use.
  */
 export const docs = defineDocs({
   dir: DOCS_ROOT,
   docs: { schema: pageFrontmatterSchema },
-  meta: { files: ["**/meta.json"] },
+  meta: { files: ["**/meta.json"], schema: folderMetaSchema },
 });
 
 export default defineConfig({

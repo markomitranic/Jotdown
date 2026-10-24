@@ -29,6 +29,7 @@ export async function canvasLoad(key: ProjectKey, slug: string[]): Promise<Canva
     url: page.url,
     path: target.path,
     text: await page.data.getText("raw"),
+    folderLayout: page.data.folderLayout,
     tree: serializeTree(source.getPageTree()),
     config: liveEditConfig(project, session, source),
     target,

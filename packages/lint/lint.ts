@@ -8,7 +8,6 @@
  */
 import { basename } from "node:path";
 import { frontmatter } from "fumadocs-core/content/md/frontmatter";
-import { metaSchema } from "fumadocs-core/source/schema";
 import type { Root } from "mdast";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkMdx from "remark-mdx";
@@ -19,7 +18,7 @@ import { VFileMessage } from "vfile-message";
 import { YAMLParseError } from "yaml";
 import { readJsonFile } from "@jotdown/core/lib/broken-file";
 import { executableContent } from "@jotdown/core/lib/content-only";
-import { pageFrontmatterSchema } from "@jotdown/core/lib/front-matter";
+import { folderMetaSchema, pageFrontmatterSchema } from "@jotdown/core/lib/front-matter";
 import { DOCS_ROOT, META_FILE, isMdx, metaPath } from "@jotdown/core/lib/paths";
 
 /** Every rule, and whether what it finds breaks a page or only strays from the house style. */
@@ -183,7 +182,7 @@ function parse(path: string, text: string): { tree?: Root; problems: LintProblem
  * child. Only the docs root and `"root": true` sections list it.
  */
 function metaProblems(path: string, text: string) {
-  const read = readJsonFile(metaSchema, text);
+  const read = readJsonFile(folderMetaSchema, text);
   if (!read.ok) return [problem(undefined, read.problem, "meta")];
 
   const { root, pages = [] } = read.data;
