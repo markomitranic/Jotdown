@@ -53,6 +53,14 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.4.1](https://github.com/markomitranic/Jotdown/compare/v0.4.0...v0.4.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* **publication:** deploy on Vercel without immutable static assets ([9cc576d](https://github.com/markomitranic/Jotdown/commit/9cc576d578d0c616e4664b69883b2f4c07b82b78))
+* **publication:** serve uploads as static files, so Vercel scales every picture ([67de11a](https://github.com/markomitranic/Jotdown/commit/67de11a34ac994855a3730937b5ee0a10d2770f9))
+
 ## [0.4.0](https://github.com/markomitranic/Jotdown/compare/v0.3.9...v0.4.0) (2026-10-24)
 
 
