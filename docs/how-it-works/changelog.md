@@ -53,6 +53,18 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.4.0](https://github.com/markomitranic/Jotdown/compare/v0.3.9...v0.4.0) (2026-10-24)
+
+
+### Features
+
+* publish on Vercel as a Next.js app, and scale every picture to the reader's screen ([f29b3d3](https://github.com/markomitranic/Jotdown/commit/f29b3d37f756e8347ad1b50339e072c30037bc7d))
+
+
+### Bug Fixes
+
+* **stories:** wait for the settings panel to fade in ([7d56d1e](https://github.com/markomitranic/Jotdown/commit/7d56d1e9fee0b8afceab454c910b7cb4789f5902))
+
 ## [0.3.9](https://github.com/markomitranic/Jotdown/compare/v0.3.8...v0.3.9) (2026-10-12)
 
 
