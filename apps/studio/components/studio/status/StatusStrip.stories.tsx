@@ -1,6 +1,7 @@
 import { HttpResponse, http } from "msw";
-import { expect, userEvent, within } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import preview from "@/.storybook/preview";
+import type { PageOutline } from "@/lib/page-outline";
 import type { Branches } from "@/server/projects/branches";
 import { WorkspaceProvider } from "../Workspace";
 import { StatusStrip } from "./StatusStrip";
@@ -9,7 +10,7 @@ import { StatusStrip } from "./StatusStrip";
  * The studio's own chrome along the foot of the window: the project and its branch, what a tool just did, and the studio's tools.
  *
  * Each story answers the strip's questions from memory: the branches, the
- * update waiting, and a reload.
+ * pages, the update waiting, and a reload.
  */
 const meta = preview.meta({
   title: "Studio/Status strip",
@@ -35,10 +36,34 @@ function Strip({ projectKey, title }: { projectKey: string; title: string }) {
   );
 }
 
-/** The project's answers: its branches, the update waiting, and what a reload finds. */
+/** The pages of a handbook, three levels deep, with one folder that is only a label. */
+const PAGES: PageOutline[] = [
+  { title: "Welcome", url: "/you/handbook", children: [] },
+  {
+    title: "Guides",
+    url: "/you/handbook/guides",
+    children: [
+      { title: "Setup", url: "/you/handbook/guides/setup", children: [] },
+      { title: "Releasing", url: "/you/handbook/guides/releasing", children: [] },
+      {
+        title: "Deploying",
+        url: null,
+        children: [{ title: "On Vercel", url: "/you/handbook/guides/deploying/vercel", children: [] }],
+      },
+    ],
+  },
+  {
+    title: "Decision records",
+    url: null,
+    children: [{ title: "ADR 0001", url: "/you/handbook/adr/0001", children: [] }],
+  },
+];
+
+/** The project's answers: its branches, its pages, the update waiting, and what a reload finds. */
 function answers(branches: Branches, update: string | null = null) {
   return [
     http.get("/api/projects/p1/branches", () => HttpResponse.json(branches)),
+    http.get("/api/projects/p1/pages", () => HttpResponse.json({ pages: PAGES })),
     http.get("/api/projects/p1/version", () => HttpResponse.json({ version: "a1" })),
     http.get("/api/projects/bookmarks", () => HttpResponse.json({ bookmarks: [] })),
     http.get("/api/update", () => HttpResponse.json({ update: update && { version: update } })),
@@ -91,5 +116,27 @@ export const AnUpdateWaiting = meta.story({
     await expect(
       await within(canvasElement).findByRole("button", { name: "Restart to update to 0.4.0" }),
     ).toBeVisible();
+  },
+});
+
+/** The page on screen in the strip, and the picker it opens: the whole tree, then only what matches. */
+export const PickingAPage = meta.story({
+  render: () => <Strip projectKey="you/handbook" title="Engineering handbook" />,
+  parameters: { nextjs: { navigation: { pathname: "/you/handbook/guides/setup" } } },
+  beforeEach: ({ msw }) => {
+    msw.use(...answers({ current: "main", home: "main", branches: ["main"] }));
+  },
+  play: async ({ canvasElement }) => {
+    const strip = within(canvasElement);
+    await userEvent.click(await strip.findByRole("button", { name: "Setup" }));
+
+    const picker = within(canvasElement.ownerDocument.body);
+    const list = await picker.findByRole("listbox", { name: "Pages" });
+    await expect(within(list).getByRole("option", { name: /Setup/ })).toHaveAttribute("aria-current", "page");
+    await waitFor(() => expect(within(list).getByText("Deploying")).toBeVisible());
+
+    await userEvent.type(picker.getByRole("textbox", { name: "Search pages" }), "guides vercel");
+    await expect(within(list).getAllByRole("option")).toHaveLength(1);
+    await waitFor(() => expect(within(list).getByText("Guides / Deploying")).toBeVisible());
   },
 });

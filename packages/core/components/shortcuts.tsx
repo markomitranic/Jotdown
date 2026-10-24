@@ -16,6 +16,7 @@ export type Chord = { code: string; shift?: boolean; alt?: boolean };
 export const SHORTCUTS = {
   sidebar: [{ code: "Digit1" }],
   switcher: [{ code: "Digit2" }, { code: "KeyP", shift: true }],
+  pages: [{ code: "KeyP" }],
   drawer: [{ code: "Digit3" }],
   search: [{ code: "KeyK" }, { code: "KeyF", shift: true }],
   settings: [{ code: "Comma" }],

@@ -16,10 +16,11 @@ import { useWorkspace } from "../Workspace";
 import { useDraft } from "../settings/draft";
 import { toggleSettings, useSettings } from "../settings/store";
 import { BranchMenu } from "./BranchMenu";
+import { PagePicker } from "./PagePicker";
 import { ITEM, note, useNote } from "./note";
 
 /**
- * The studio's own chrome, a strip along the foot of the window: the project and its branch on the left, the studio's tools on the right.
+ * The studio's own chrome, a strip along the foot of the window: the project, its branch and the page on the left, the studio's tools on the right.
  *
  * Everything above it is the project, drawn by the studio or by its site, so
  * nothing about the studio sits in the site's look. The colour stripe runs
@@ -40,6 +41,7 @@ export function StatusStrip() {
     >
       <ProjectItem folder={folder} />
       <BranchMenu projectId={workspace.project.id} folder={folder} />
+      <PagePicker projectId={workspace.project.id} />
       <Said />
       <UpdateNotice className={cn(ITEM, "h-5.5 px-1.5 font-medium text-primary")} />
       <RefreshButton />

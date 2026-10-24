@@ -19,6 +19,15 @@ export function hasUnsavedChanges() {
 const LEAVE_PROMPT = "You have edits that were never saved. Leave this page and lose them?";
 
 /**
+ * Whether the page may be left from code, asking first when an editor holds unsaved writing, as a link would.
+ *
+ * @example if (mayLeave()) router.push(url);
+ */
+export function mayLeave() {
+  return !hasUnsavedChanges() || window.confirm(LEAVE_PROMPT);
+}
+
+/**
  * Warns before a tab close or a click through the site while work is unsaved.
  *
  * `beforeunload` covers leaving the site altogether. The router never unloads

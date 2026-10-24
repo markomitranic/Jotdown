@@ -178,7 +178,7 @@ function useStudioHandoffs(studio: string | null, showing: string | undefined) {
     }
 
     function key(event: KeyboardEvent) {
-      if (!pressed(event, SHORTCUTS.switcher)) return;
+      if (!pressed(event, [...SHORTCUTS.switcher, ...SHORTCUTS.pages])) return;
       event.preventDefault();
       post(window.parent, studio as string, {
         type: "shortcut",
