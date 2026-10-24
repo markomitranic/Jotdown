@@ -8,6 +8,7 @@ export {
   KitEditorScope,
   KitProvider,
   useEditing,
+  useInStudio,
   useIsEditable,
   usePage,
   usePages,

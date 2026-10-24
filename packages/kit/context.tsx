@@ -7,8 +7,9 @@ import { createContext, useContext, useMemo, type ReactNode } from "react";
  *
  * A published page provides the page, the site and its pages, and nothing to
  * edit with, so every primitive draws plain markup. The editing canvas
- * provides the same three and an editor, and a block drawn there is told
- * where it was written, so its primitives can write back into the file.
+ * provides the same three, says it is the studio, and hands over an editor,
+ * and a block drawn there is told where it was written, so its primitives can
+ * write back into the file.
  */
 
 /** The page being drawn: its front matter, and the address a reader opens it at. */
@@ -43,7 +44,7 @@ export type KitEditor = {
   upload(file: File): Promise<{ ok: true; url: string } | { ok: false; error: string }>;
 };
 
-type Kit = { page: KitPage; site: KitSite; pages: KitPageSummary[] };
+type Kit = { page: KitPage; site: KitSite; pages: KitPageSummary[]; inStudio: boolean };
 
 const KitContext = createContext<Kit | null>(null);
 
@@ -54,12 +55,18 @@ const EditorContext = createContext<KitEditor | null>(null);
 const BlockContext = createContext<string | null>(null);
 
 /**
- * Hands the page, the site and its pages to every project block below it.
+ * Hands the page, the site and its pages to every project block and layout below it, and whether this is the studio.
  *
- * @example <KitProvider page={page} site={site} pages={pages}><MDX /></KitProvider>
+ * @example <KitProvider page={page} site={site} pages={pages} inStudio><MDX /></KitProvider>
  */
-export function KitProvider({ page, site, pages, children }: Kit & { children: ReactNode }) {
-  const value = useMemo(() => ({ page, site, pages }), [page, site, pages]);
+export function KitProvider({
+  page,
+  site,
+  pages,
+  inStudio = false,
+  children,
+}: Omit<Kit, "inStudio"> & { inStudio?: boolean; children: ReactNode }) {
+  const value = useMemo(() => ({ page, site, pages, inStudio }), [page, site, pages, inStudio]);
 
   return <KitContext value={value}>{children}</KitContext>;
 }
@@ -106,6 +113,20 @@ export function useEditing() {
  */
 export function useIsEditable() {
   return useEditing() !== null;
+}
+
+/**
+ * Whether the page is drawn inside the Jotdown studio, rather than for a reader of the published site.
+ *
+ * Any block or layout can ask, so it can leave out what only a reader wants,
+ * such as analytics, a cookie banner or an autoplaying video, while you edit.
+ * It is true on every page the studio draws, including one that cannot be
+ * edited, where `useIsEditable()` is false.
+ *
+ * @example const inStudio = useInStudio(); // false on the published site
+ */
+export function useInStudio() {
+  return useKit().inStudio;
 }
 
 /**

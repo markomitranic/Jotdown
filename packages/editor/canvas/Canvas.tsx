@@ -292,7 +292,7 @@ function CanvasPage({ load, title, site, layout, blocks, layouts }: { load: Canv
   return (
     <FrameworkProvider {...framework}>
       <NavigationTracker />
-      <KitProvider {...kit}>
+      <KitProvider {...kit} inStudio>
         <ProjectInserts blocks={blocks}>
           <LiveEditRoot config={config}>
             {named === "docs" || !front ? (

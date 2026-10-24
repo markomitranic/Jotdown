@@ -639,7 +639,7 @@ Record the decisions in this plan as Jotdown ADRs:
 
 ### 6.2 The kit, `@jotdown/kit`
 
-- **Hooks:** `useIsEditable`, `usePage`, `useSite`, `usePages({ folder, sort, limit })`.
+- **Hooks:** `useIsEditable`, `useInStudio`, `usePage`, `useSite`, `usePages({ folder, sort, limit })`.
 - **Primitives:** `Editable.Text`, `Editable.Image`, `Slot`. They render static output in a published page and become editable in the canvas.
 - **`defineBlock` metadata** as optional registration beside a component.
 

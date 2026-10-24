@@ -74,6 +74,17 @@ export const Hero = defineBlock(HeroBlock, {
 
 A block can ask where it stands. `usePage()` is the page's title, description, address and front matter, `useSite()` the site's title and address, and `usePages({ folder: "guides", limit: 6 })` the pages of a folder in the sidebar's order, which is all a "Read next" grid needs. Link between pages with the kit's `Link`, which in the canvas opens the page in the app.
 
+`useInStudio()` says whether the page is drawn inside the studio rather than for a reader, so a block or a layout can leave out what only readers want while you edit: analytics, a cookie banner, a video that plays on its own. It is true on every page the studio draws, while `useIsEditable()` is true only where a block can be edited in place:
+
+```tsx title=".jotdown/components/Analytics.tsx"
+import { useInStudio } from "@jotdown/kit";
+
+export function Analytics() {
+  if (useInStudio()) return null;
+  return <script defer src="https://plausible.io/js/script.js" data-domain="notes.example.com" />;
+}
+```
+
 ## Giving a page a layout of its own
 
 A page is drawn in the docs shell, with the sidebar and the table of contents, unless its front matter names another layout:

@@ -61,6 +61,7 @@ export function PageStory({ page, editing = false, blocks = {} }: Props) {
       page={{ title, description: frontmatter.description, url: `/${slug}`, data: {} }}
       site={SITE}
       pages={PAGES}
+      inStudio={editing}
     >
       <LiveEditConfigProvider config={editing ? STUDIO : PREVIEW}>
         <DocsPage breadcrumb={false} footer={false} tableOfContent={false}>
