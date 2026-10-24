@@ -53,6 +53,14 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.4.2](https://github.com/markomitranic/Jotdown/compare/v0.4.1...v0.4.2) (2026-10-24)
+
+
+### Features
+
+* **kit:** let a block or layout ask whether it is drawn in the studio ([7b3306f](https://github.com/markomitranic/Jotdown/commit/7b3306fa5e99a3d45962f6335c0ef81ddb1ab6fd))
+* **studio:** go to any page from the status strip, or with ⌘ P ([47ad2e0](https://github.com/markomitranic/Jotdown/commit/47ad2e0b177bba6cff4ab07943e134b6f5f67d6c))
+
 ## [0.4.1](https://github.com/markomitranic/Jotdown/compare/v0.4.0...v0.4.1) (2026-10-24)
 
 
