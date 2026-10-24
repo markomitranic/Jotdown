@@ -1,1 +1,3 @@
 .project/
+# The project's uploads, copied in by next.config.ts on every build and dev start.
+public/

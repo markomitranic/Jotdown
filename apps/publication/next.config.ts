@@ -4,15 +4,29 @@ import { imageConfig } from "../../packages/core/lib/images";
 import { movedRedirects } from "./redirects";
 import { contentRepository } from "./repository";
 import { syncProjectCode, watchProjectCode } from "./project-code";
+import { syncProjectUploads, uploadAliases, uploadHeaders, watchProjectUploads } from "./project-uploads";
 
 /** The Jotdown checkout this app is part of, where the lockfile and the shared packages live. */
 const workspace = resolve(import.meta.dirname, "../..");
 
-/** The project this site is built from, and the folder its own components and layouts are copied into. */
+/**
+ * The project this site is built from, the folder its own components and layouts are copied into, and the one its uploads are.
+ *
+ * The uploads are copied once, before the build's workers start, since each of
+ * them loads this file too and would empty `public/` while the build reads it.
+ */
 const repository = contentRepository(workspace);
 const projectCode = resolve(import.meta.dirname, ".project");
+const projectUploads = resolve(import.meta.dirname, "public");
 syncProjectCode(repository, projectCode);
-if (process.env.NODE_ENV === "development") watchProjectCode(repository, projectCode);
+if (!process.env.JOTDOWN_UPLOADS_COPIED) {
+  syncProjectUploads(repository, projectUploads);
+  process.env.JOTDOWN_UPLOADS_COPIED = "1";
+}
+if (process.env.NODE_ENV === "development") {
+  watchProjectCode(repository, projectCode);
+  watchProjectUploads(repository, projectUploads);
+}
 
 /**
  * Packages compiled with the app instead of loaded from `node_modules`.
@@ -24,11 +38,11 @@ if (process.env.NODE_ENV === "development") watchProjectCode(repository, project
 const bundled = ["shiki", "@jotdown/core", "@jotdown/editor"];
 
 /**
- * A Next.js app deployed on Vercel, its pages, uploads, markdown twins and search index written at build time.
+ * A Next.js app deployed on Vercel, its pages, markdown twins and search index written at build time.
  *
- * Vercel serves what the build wrote from its CDN, scales every picture through
- * Next's image optimizer, and answers each address `docs/moved.json` records
- * with a permanent redirect to where its page lives now.
+ * Vercel serves what the build wrote and the uploads in `public/` from its CDN,
+ * scales every picture through Next's image optimizer, and answers each address
+ * `docs/moved.json` records with a permanent redirect to where its page lives now.
  *
  * Its scripts are scoped to each deployment, never shared across them as
  * immutable assets. The site is deployed with no framework preset, so Vercel
@@ -43,6 +57,8 @@ const config: NextConfig = {
   outputFileTracingRoot: workspace,
   images: imageConfig,
   redirects: async () => movedRedirects(repository),
+  rewrites: async () => uploadAliases(),
+  headers: async () => uploadHeaders(),
 };
 
 export default config;
