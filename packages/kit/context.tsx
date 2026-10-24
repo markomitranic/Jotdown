@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useMemo, type ComponentType, type ReactNode } from "react";
 
 /**
  * What a project's own blocks know about where they are drawn, and how they ask to change.
@@ -44,7 +44,13 @@ export type KitEditor = {
   upload(file: File): Promise<{ ok: true; url: string } | { ok: false; error: string }>;
 };
 
-type Kit = { page: KitPage; site: KitSite; pages: KitPageSummary[]; inStudio: boolean };
+/** How the editing canvas draws the page's own title and description, so a layout can offer them in place. */
+export type KitFields = {
+  Title: ComponentType<{ children: string }>;
+  Description: ComponentType<{ children?: string }>;
+};
+
+type Kit = { page: KitPage; site: KitSite; pages: KitPageSummary[]; inStudio: boolean; fields: KitFields | null };
 
 const KitContext = createContext<Kit | null>(null);
 
@@ -57,16 +63,20 @@ const BlockContext = createContext<string | null>(null);
 /**
  * Hands the page, the site and its pages to every project block and layout below it, and whether this is the studio.
  *
- * @example <KitProvider page={page} site={site} pages={pages} inStudio><MDX /></KitProvider>
+ * The editing canvas also hands over the editors of the page's own fields,
+ * which a published page has none of.
+ *
+ * @example <KitProvider page={page} site={site} pages={pages} inStudio fields={fields}><MDX /></KitProvider>
  */
 export function KitProvider({
   page,
   site,
   pages,
   inStudio = false,
+  fields = null,
   children,
-}: Omit<Kit, "inStudio"> & { inStudio?: boolean; children: ReactNode }) {
-  const value = useMemo(() => ({ page, site, pages, inStudio }), [page, site, pages, inStudio]);
+}: Omit<Kit, "inStudio" | "fields"> & { inStudio?: boolean; fields?: KitFields | null; children: ReactNode }) {
+  const value = useMemo(() => ({ page, site, pages, inStudio, fields }), [page, site, pages, inStudio, fields]);
 
   return <KitContext value={value}>{children}</KitContext>;
 }
@@ -127,6 +137,15 @@ export function useIsEditable() {
  */
 export function useInStudio() {
   return useKit().inStudio;
+}
+
+/**
+ * The editors of the page's own title and description, where the page can be edited in place.
+ *
+ * @example const Title = usePageFields()?.Title; // undefined on the published site
+ */
+export function usePageFields() {
+  return useKit().fields;
 }
 
 /**
