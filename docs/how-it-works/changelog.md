@@ -53,6 +53,21 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.5.0](https://github.com/markomitranic/Jotdown/compare/v0.4.2...v0.5.0) (2026-10-24)
+
+
+### Features
+
+* **core:** let a folder's meta.json name the layout its pages are drawn in ([a6461d1](https://github.com/markomitranic/Jotdown/commit/a6461d1600a56e629a47df6d000f01ecd632e0b8))
+* **core:** let a layout say how wide its main area is, for wide and full blocks ([93350eb](https://github.com/markomitranic/Jotdown/commit/93350eb3870acfe15329ed81d45e8806bea71401))
+* **editor:** place project blocks in the canvas as on the site, settings in the grip menu ([0071182](https://github.com/markomitranic/Jotdown/commit/0071182d4a46ab3d087dc56fb98196fbc51fa34a))
+* **kit:** let a layout draw the page's title and description, editable in the studio ([edc6d6c](https://github.com/markomitranic/Jotdown/commit/edc6d6ced00eb096b0af5c334a9abd66f3eaad97))
+
+
+### Bug Fixes
+
+* **editor:** ask yes or no in the page, since the macOS webview answers confirm() with no ([db46650](https://github.com/markomitranic/Jotdown/commit/db4665019b64558888666d4f91490ef9fb23e73d))
+
 ## [0.4.2](https://github.com/markomitranic/Jotdown/compare/v0.4.1...v0.4.2) (2026-10-24)
 
 
