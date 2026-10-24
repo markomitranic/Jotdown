@@ -18,6 +18,7 @@ import {
   Link2,
   MoveHorizontal,
   Repeat2,
+  Settings2,
   StretchHorizontal,
   Trash2,
   UnfoldHorizontal,
@@ -41,6 +42,7 @@ import type { TurnKind } from "./turn";
 import { TurnIntoItems } from "./TurnInto";
 import { WIDTH_HANDLE, WIDTH_NAMES, WIDTH_REACH, WidthHandles } from "./WidthHandles";
 import type { BlockWidth } from "@jotdown/core/lib/block-width";
+import { settingsOf } from "../project/settings";
 
 const quiet = () => () => {};
 const NOTHING: readonly BlockOps[] = [];
@@ -196,6 +198,7 @@ export function InplaceBlockHandle({ container }: { container: RefObject<HTMLEle
 
   const targets = hovered === null ? [] : group.includes(hovered) ? group : [hovered];
   const kind = targets.length === 1 ? (targets[0]?.kind?.() ?? null) : null;
+  const settings = targets.length === 1 && targets[0] ? settingsOf(targets[0].dom) : undefined;
 
   const copyMarkdown = () => {
     void navigator.clipboard.writeText(markdownOf(targets)).catch(() => undefined);
@@ -307,6 +310,15 @@ export function InplaceBlockHandle({ container }: { container: RefObject<HTMLEle
               }}
               className="w-52"
             >
+              {settings && (
+                <>
+                  <DropdownMenuItem onSelect={settings}>
+                    <Settings2 />
+                    Settings…
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               {kind !== null && (
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>

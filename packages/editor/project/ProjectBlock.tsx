@@ -1,22 +1,24 @@
 "use client";
 
-import { useId, useRef, useState, type FormEvent, type RefObject } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent, type RefObject } from "react";
 import { Popover } from "radix-ui";
-import { Settings2 } from "lucide-react";
 import { BlockScope, blockMeta, useEditing, type BlockMeta, type ProjectBlock } from "@jotdown/kit";
 import { SOURCE_RANGE } from "@jotdown/core/lib/source-range";
 import { Button } from "@jotdown/core/components/ui/button";
 import { Input } from "@jotdown/core/components/ui/input";
 import { Textarea } from "@jotdown/core/components/ui/textarea";
 import { useInplace } from "../inplace/context";
+import { blockBounds } from "../inplace/handleGeometry";
+import { blockSettings } from "./settings";
 
 /**
  * A project's own blocks on an editable page: drawn by their component, moved like any block, edited from inside.
  *
  * Each block stands in an element carrying its stamp, which is what gives it a
- * grip, and tells the primitives inside it where it was written. A settings
- * button on its corner edits its props, as fields when the block was
- * registered with `defineBlock` and as its source when it was not.
+ * grip, and tells the primitives inside it where it was written. That element
+ * draws no box, so the block's own root is what the layout around it places,
+ * as on the site. Settings in the grip's menu edit its props, as fields when it
+ * was registered with `defineBlock` and as its source when it was not.
  *
  * @example getMDXComponents(editableBlocks({ Hero })); // Hero, editable
  */
@@ -35,11 +37,12 @@ function EditableBlock({ name, Block, props }: Props) {
   const { [SOURCE_RANGE]: written, ...own } = props;
   const stamp = typeof written === "string" ? written : null;
   const root = useRef<HTMLDivElement>(null);
+  const edge = useRef({ getBoundingClientRect: () => topEdge(root.current) });
   const [changed, setChanged] = useState<Record<string, string>>({});
   const [asSource, setAsSource] = useState(false);
 
   return (
-    <div ref={root} data-src-range={stamp ?? undefined} className="group/project relative" inert={asSource}>
+    <div ref={root} data-src-range={stamp ?? undefined} style={{ display: "contents" }} inert={asSource}>
       <BlockScope stamp={asSource ? null : stamp}>
         <Block {...own} {...changed} />
         {stamp && !asSource && (
@@ -48,18 +51,40 @@ function EditableBlock({ name, Block, props }: Props) {
             meta={blockMeta(Block)}
             values={{ ...own, ...changed }}
             root={root}
+            edge={edge}
             onProp={(prop, value) => setChanged((was) => ({ ...was, [prop]: value }))}
             onSource={() => setAsSource(true)}
           />
         )}
       </BlockScope>
-      {asSource && (
-        <p className="absolute inset-x-0 bottom-2 mx-auto w-fit rounded-md bg-popover px-2.5 py-1 text-muted-foreground text-xs shadow-sm ring-1 ring-foreground/10">
-          Edited as source. Save to draw it again.
-        </p>
-      )}
+      <Popover.Root open={asSource}>
+        <Popover.Anchor virtualRef={edge} />
+        <Popover.Portal>
+          <Popover.Content
+            side="bottom"
+            align="end"
+            sideOffset={8}
+            alignOffset={8}
+            onOpenAutoFocus={(event) => event.preventDefault()}
+            className="pointer-events-none z-40 rounded-md bg-popover px-2.5 py-1 text-muted-foreground text-xs shadow-sm ring-1 ring-foreground/10"
+          >
+            Edited as source. Save to draw it again.
+          </Popover.Content>
+        </Popover.Portal>
+      </Popover.Root>
     </div>
   );
+}
+
+/**
+ * The top edge of the block a wrapper holds, which its settings hang from.
+ *
+ * @example topEdge(wrapper); // DOMRect { top: 120, height: 0, … }
+ */
+function topEdge(wrapper: HTMLElement | null) {
+  if (!wrapper) return new DOMRect();
+  const { left, top, width } = blockBounds(wrapper);
+  return new DOMRect(left, top, width, 0);
 }
 
 type SettingsProps = {
@@ -67,6 +92,8 @@ type SettingsProps = {
   meta: BlockMeta | null;
   values: Record<string, unknown>;
   root: RefObject<HTMLDivElement | null>;
+  /** What the settings hang from, since the block's own element draws no box to anchor them to. */
+  edge: RefObject<{ getBoundingClientRect(): DOMRect }>;
   onProp(prop: string, value: string): void;
   onSource(): void;
 };
@@ -74,14 +101,26 @@ type SettingsProps = {
 /**
  * The block's settings: a field per prop its registration names, and its source for everything else.
  *
- * @example <BlockSettings name="Hero" meta={meta} values={props} root={root} onProp={set} onSource={raw} />
+ * Opened from the block's grip menu, and hung from the block's top edge.
+ *
+ * @example <BlockSettings name="Hero" meta={meta} values={props} root={root} edge={edge} onProp={set} onSource={raw} />
  */
-function BlockSettings({ name, meta, values, root, onProp, onSource }: SettingsProps) {
+function BlockSettings({ name, meta, values, root, edge, onProp, onSource }: SettingsProps) {
   const editing = useEditing();
   const inplace = useInplace();
   const id = useId();
   const [open, setOpen] = useState(false);
   const [source, setSource] = useState<string | null>(meta?.props ? null : "");
+
+  useEffect(() => {
+    const element = root.current;
+    if (!element || !editing) return;
+    blockSettings.set(element, () => opened(true));
+    return () => {
+      blockSettings.delete(element);
+    };
+  });
+
   if (!editing) return null;
 
   const ops = () => (root.current ? inplace?.handles.at(root.current) : null);
@@ -109,18 +148,16 @@ function BlockSettings({ name, meta, values, root, onProp, onSource }: SettingsP
 
   return (
     <Popover.Root open={open} onOpenChange={opened}>
-      <Popover.Trigger
-        aria-label={`${meta?.title ?? name} settings`}
-        className="absolute top-2 right-2 z-10 grid size-7 place-items-center rounded-md bg-background/90 text-muted-foreground opacity-0 shadow-sm ring-1 ring-foreground/10 backdrop-blur transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover/project:opacity-100 data-[state=open]:opacity-100"
-      >
-        <Settings2 className="size-4" aria-hidden="true" />
-      </Popover.Trigger>
+      <Popover.Anchor virtualRef={edge} />
       <Popover.Portal>
         <Popover.Content
-          align="end"
-          sideOffset={6}
+          side="bottom"
+          align="start"
+          sideOffset={8}
+          collisionPadding={12}
+          aria-label={`${meta?.title ?? name} settings`}
           onKeyDown={(event) => event.stopPropagation()}
-          className="z-50 w-80 rounded-lg bg-popover p-3 text-popover-foreground text-sm shadow-xl ring-1 ring-foreground/10 data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in"
+          className="jd-scroll-container z-50 max-h-(--radix-popover-content-available-height) w-80 overflow-y-auto rounded-lg bg-popover p-3 text-popover-foreground text-sm shadow-xl ring-1 ring-foreground/10 data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in"
         >
           <p className="font-medium">{meta?.title ?? name}</p>
           {meta?.description && <p className="mt-0.5 text-muted-foreground text-xs">{meta.description}</p>}

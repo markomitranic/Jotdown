@@ -15,7 +15,25 @@ const PICTURE = ":is(.jd-shot-img, .jd-missing-art)";
 
 /** Measures the block itself, unwrapping editor hosts without descending into its content. */
 export function blockBounds(box: HTMLElement): DOMRect {
-  return blockElement(box).getBoundingClientRect();
+  return boxOf(blockElement(box));
+}
+
+/**
+ * The box an element draws, or for a boxless `display: contents` one, the area its children cover.
+ *
+ * @example boxOf(wrapper); // DOMRect { left: 240, top: 120, width: 640, height: 96 }
+ */
+export function boxOf(element: Element): DOMRect {
+  if (getComputedStyle(element).display !== "contents") return element.getBoundingClientRect();
+
+  const rects = [...element.children].map((child) => child.getBoundingClientRect());
+  if (rects.length === 0) return element.getBoundingClientRect();
+
+  const left = Math.min(...rects.map((rect) => rect.left));
+  const top = Math.min(...rects.map((rect) => rect.top));
+  const right = Math.max(...rects.map((rect) => rect.right));
+  const bottom = Math.max(...rects.map((rect) => rect.bottom));
+  return new DOMRect(left, top, right - left, bottom - top);
 }
 
 /**
@@ -147,7 +165,8 @@ function blockElement(box: HTMLElement): HTMLElement {
  * Returns viewport coordinates for a grip just left of a block, centred on its first line.
  *
  * Without a line the grip centres on a short block and sits at the top of a tall one. Grip and
- * gap together fit the narrowest margin between the sidebar and the article, 24px.
+ * gap together fit the narrowest margin between the sidebar and the article, 24px. A block
+ * reaching the window's left edge keeps its grip on screen, over its own edge.
  *
  * @example handleBounds({ left: 100, right: 300, top: 50, bottom: 51, height: 1 }).left; // 76
  */
@@ -156,7 +175,7 @@ export function handleBounds(
   line: Band = { top: block.top, height: Math.min(block.height, HANDLE_HEIGHT) },
 ) {
   const top = line.top + (line.height - HANDLE_HEIGHT) / 2;
-  const left = block.left - HANDLE_GAP - HANDLE_WIDTH;
+  const left = Math.max(HANDLE_GAP, block.left - HANDLE_GAP - HANDLE_WIDTH);
   return { left, right: left + HANDLE_WIDTH, top, bottom: top + HANDLE_HEIGHT };
 }
 
