@@ -54,7 +54,7 @@ export function PagePicker({ projectId }: { projectId: string }) {
 
   function go(url: string) {
     setOpen(false);
-    if (here?.url !== url && mayLeave()) router.push(url);
+    if (here?.url !== url) void mayLeave().then((yes) => yes && router.push(url));
   }
 
   useShortcut(SHORTCUTS.pages, () => show(!open));
