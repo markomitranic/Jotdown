@@ -1,0 +1,49 @@
+---
+title: "ADR 0027: A site is a Next.js app on Vercel"
+icon: Triangle
+description: Why a project's site is deployed on Vercel as a Next.js app again, instead of static files any host serves.
+---
+
+**Accepted** · 2026-10-24 · Supersedes [ADR 0025](./0025-a-site-is-static.mdx)
+
+## Context
+
+[ADR 0025](./0025-a-site-is-static.mdx) built every site into static files so
+any host could serve it: GitHub Pages, a bucket, or Vercel with no functions.
+That flexibility came from Noation, a framework a whole company deployed on
+its own hosts. Jotdown has one user, and that user publishes on Vercel.
+
+What "any host" cost showed up as workarounds. Pictures were served as the
+original files, because a static site has no server to scale them, so a
+reader on a phone downloaded a 6 MB screenshot to look at it. A moved page
+was a small HTML page that forwarded the reader, instead of a redirect. A
+site below a domain's root needed a base path carried into every file
+address by hand, and an upload folder with no files needed a dummy file,
+since an export refuses a route with nothing in it.
+
+## Decision
+
+**A site is a Next.js app, deployed on Vercel.** The build runs Next's Vercel
+adapter and hands Vercel its own build output, the way
+[ADR 0018](./0018-publication-is-its-own-app.mdx) first had it. Pages, markdown
+twins, uploads, `llms.txt` and the search sections are still written at build
+time, so Vercel serves them from its CDN.
+
+**Next's defaults do the rest.** Pictures go through Next's image optimizer,
+which Vercel runs, and an address in `docs/moved.json` is a permanent
+redirect. A site lives at a domain's root, so there is no base path.
+
+**Vercel is the only host.** The GitHub Pages workflow, `jotdown build` and
+`.jotdown/out` are gone. Publishing somewhere else is a reason to reopen this
+decision.
+
+## Consequences
+
+- Every picture reaches a reader as a WebP copy sized to their screen, and
+  nobody downloads an original except with the download button.
+- A feature that needs a server is a route handler again.
+- Vercel bills image optimization by use, and the adapter is a beta that
+  ships with Next.
+- The studio is unaffected. It runs on your machine and scales its own
+  pictures, since Next's optimizer would write its cache into the desktop
+  app's signed bundle.

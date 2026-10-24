@@ -59,13 +59,13 @@ const output = env.STUDIO_STANDALONE ? "standalone" : undefined;
 const setupFiles = { "/api/setup": ["../../.agents/skills/**/*", "../../deployment/**/*", "../../deployment/**/.*"] };
 
 /**
- * Pictures are served as they are, never resized.
+ * Pictures scaled by the studio's own upload routes, not by Next's optimizer.
  *
- * The studio runs on one machine for one reader, so there is nothing to save
- * by scaling, and the optimizer's cache would be written inside the desktop
- * app's own bundle, which breaks its signature.
+ * The optimizer keeps its cache inside the build, which in the desktop app is
+ * its signed bundle, so the loader asks for a WebP copy beside the original
+ * instead, `a.png.w960.webp`, which the routes scale on request.
  */
-const images = { ...imageConfig, unoptimized: true };
+const images = { ...imageConfig, loader: "custom", loaderFile: "../../packages/core/lib/image-loader.ts" } as const;
 
 const config: NextConfig = {
   output,

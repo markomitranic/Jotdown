@@ -19,6 +19,7 @@ export function WhiteboardPreview({ data, edit }: { data: WhiteboardData; edit?:
           alt="Whiteboard drawing"
           width={IMAGE.column}
           height={0}
+          sizes={IMAGE.sizes}
           unoptimized={!optimizable(data.preview)}
           className="m-0 max-h-[600px] w-full object-contain"
         />

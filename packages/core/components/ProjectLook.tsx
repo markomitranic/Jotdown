@@ -11,7 +11,7 @@ import type { Project } from "@jotdown/core/server/project";
  * @example <ProjectStyles project={project} />
  */
 export function ProjectStyles({ project }: { project: Project }) {
-  const theme = themeStylesheet(project.config.theme, project.assetBase ?? project.base);
+  const theme = themeStylesheet(project.config.theme, project.base);
   if (!theme) return null;
 
   return (
@@ -35,8 +35,8 @@ export function projectLogo(project: Project) {
   return (
     logo && {
       ...logo,
-      src: atBase(project, logo.src, "file"),
-      srcDark: logo.srcDark && atBase(project, logo.srcDark, "file"),
+      src: atBase(project, logo.src),
+      srcDark: logo.srcDark && atBase(project, logo.srcDark),
     }
   );
 }
@@ -49,7 +49,7 @@ export function projectLogo(project: Project) {
 export function projectIcon(project: Project) {
   const { favicon, title } = project.config;
   if (!favicon) return projectLogo(project);
-  return { alt: title, src: atBase(project, favicon, "file"), srcDark: undefined };
+  return { alt: title, src: atBase(project, favicon), srcDark: undefined };
 }
 
 /**

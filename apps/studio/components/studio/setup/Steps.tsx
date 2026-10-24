@@ -17,7 +17,6 @@ import {
   Triangle,
 } from "lucide-react";
 import { Checkbox } from "@jotdown/core/components/ui/checkbox";
-import { GitHubMark } from "@jotdown/core/components/brand-icons";
 import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@jotdown/core/components/ui/item";
 import { Label } from "@jotdown/core/components/ui/label";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@jotdown/core/components/ui/field";
@@ -44,7 +43,6 @@ const ROOT = "root";
 /** The manual's guide to each publishing host, which walks its follow-up steps. */
 export const PUBLISHING_GUIDES = {
   vercel: "/markomitranic/Jotdown/publication/vercel",
-  "github-pages": "/markomitranic/Jotdown/publication/github-pages",
 };
 
 type FolderProps = {
@@ -398,16 +396,6 @@ export function PublishingStep({
             Sets up <Path>.jotdown/vercel.json</Path> for easy deployment.
           </QuestionnaireChoiceDescription>
         </QuestionnaireChoice>
-        <QuestionnaireChoice
-          value="github-pages"
-          checked={publishing === "github-pages"}
-          onChange={() => onPublishing("github-pages")}
-        >
-          <ChoiceName icon={<GitHubMark />}>GitHub Pages</ChoiceName>
-          <QuestionnaireChoiceDescription>
-            Adds <Path>.github/workflows/jotdown.yml</Path>, which publishes the site on every push.
-          </QuestionnaireChoiceDescription>
-        </QuestionnaireChoice>
       </QuestionnaireChoices>
       {publishing !== "none" && (
         <p className="flex items-start gap-2 text-muted-foreground text-sm">
@@ -418,9 +406,7 @@ export function PublishingStep({
             rel="noreferrer"
             className="underline underline-offset-3 hover:text-foreground"
           >
-            {publishing === "vercel"
-              ? "You'll need to run follow-up steps in Vercel."
-              : "Turn on Pages in the repository's settings once it is pushed."}
+            You'll need to run follow-up steps in Vercel.
           </a>
         </p>
       )}

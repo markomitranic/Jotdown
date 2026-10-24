@@ -2,7 +2,7 @@
  * Turning a doc's path into an address, and back.
  *
  * Pure string arithmetic, shared by the server and the browser: a
- * publication writes forwarding pages out of `docUrl`, the structure endpoint
+ * publication writes its redirects out of `docUrl`, the structure endpoint
  * repairs links with `resolve` and `relativeTo`, and the browser turns a
  * typed title into a filename with `slugify`. Keeping one copy is the point,
  * since a disagreement about where `docs/a/index.mdx` is served would show up
@@ -80,7 +80,7 @@ export const INDEX_FILE = "index.mdx";
  *
  * It sits with the content, because it describes the content and the editor
  * rewrites it on every move. The structure endpoint appends to it, and a
- * publication turns it into forwarding pages.
+ * publication turns it into redirects.
  */
 export const MOVED_FILE = `${DOCS_ROOT}/moved.json`;
 

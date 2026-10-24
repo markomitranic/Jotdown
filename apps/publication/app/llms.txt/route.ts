@@ -5,7 +5,7 @@ import { publication, publicationSource } from "@/server/project";
 /** The publication's `/llms.txt`, written at build time. */
 export async function GET() {
   const project = publication();
-  const text = llmsIndex(project, await publicationSource(), (slugs) => `${project.assetBase}${markdownUrl(slugs)}`);
+  const text = llmsIndex(project, await publicationSource(), markdownUrl);
   return new Response(text, { headers: { "content-type": "text/plain; charset=utf-8" } });
 }
 

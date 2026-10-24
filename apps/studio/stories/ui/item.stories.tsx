@@ -44,7 +44,7 @@ const meta = preview.meta({
           </ItemMedia>
           <ItemContent>
             <ItemTitle>Publish it as a site</ItemTitle>
-            <ItemDescription>A static site on GitHub Pages, Vercel or any host</ItemDescription>
+            <ItemDescription>A site for readers, deployed on Vercel</ItemDescription>
           </ItemContent>
           <ArrowUpRight className="size-4 text-muted-foreground" />
         </a>

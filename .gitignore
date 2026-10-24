@@ -19,5 +19,3 @@ storybook-static
 debug-storybook.log
 build-storybook.log
 
-# A static site the publication wrote.
-out/

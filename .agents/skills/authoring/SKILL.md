@@ -93,8 +93,8 @@ them by their public address, which never names the folder:
 `/uploads/<file>` for anything you put there by hand.
 
 `moved.json` writes itself. The sidebar arranger appends an entry on every move
-and delete. The studio redirects an old address to the page's new one, and a
-publication writes a forwarding page there. A rename in git is the one case it does not cover:
+and delete. The studio and a publication both redirect an old address to the page's
+new one. A rename in git is the one case it does not cover:
 
 - Add no entry. The old URL dies, and that is fine.
 - Fix the links under `docs/` that pointed at it. A grep for the old path finds them.

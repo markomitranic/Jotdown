@@ -4,13 +4,11 @@
  *
  * `jotdown check` lints docs pages without starting anything: front matter,
  * MDX, code a page may not run, and the house style. It exits 1 when a page is
- * broken. `jotdown build` writes the project's site into its `.jotdown/out`,
- * `jotdown dev` serves the site while its files change, and `jotdown add`
+ * broken. `jotdown dev` serves the site while its files change, and `jotdown add`
  * copies one of the framework's blocks or layouts into the project to change.
  *
  * @example jotdown check docs/guides docs/index.mdx
  * @example jotdown add block Hero
- * @example jotdown build ~/Sites/notes
  * @example jotdown dev ~/Sites/notes --port 4000
  */
 
@@ -23,7 +21,6 @@ const USAGE = `Usage: jotdown <command> [...]
 
   check [<path>...]          lint the pages in the files or folders given, docs by
                              default, and exit 1 when one is broken
-  build [<project>]          write the project's site into <project>/.jotdown/out
   dev [<project>] [--port n] serve the project's site, rebuilt as its files change
   add block|layout [<name>]  copy one of the framework's blocks or layouts into this
                              project's .jotdown to change, or list them
@@ -37,7 +34,6 @@ if (!command || command === "-h" || command === "--help" || rest.includes("-h") 
   exit(USAGE, command ? 0 : 1);
 
 if (command === "check") await run("bun", [join(framework, "packages/lint/cli.ts"), ...rest]);
-if (command === "build") await run("bash", [join(framework, "apps/publication/build.sh")], project(rest[0]));
 if (command === "dev") {
   const at = rest.indexOf("--port");
   const port = at === -1 ? "6193" : rest[at + 1];

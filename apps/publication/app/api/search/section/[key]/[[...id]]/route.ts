@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { searchDocuments, searchSections } from "@jotdown/core/server/search";
 import { markdownUrl } from "@/lib/markdown-url";
-import { publication, publicationSource } from "@/server/project";
+import { publicationSource } from "@/server/project";
 
 type Params = { params: Promise<{ key: string; id?: string[] }> };
 
@@ -17,8 +17,7 @@ export async function GET(_request: Request, { params }: Params) {
   const section = searchSections(source).find((each) => each.key === key && each.id === id.join("/"));
   if (!section) notFound();
 
-  const { assetBase } = publication();
-  return Response.json(await searchDocuments(source, (slugs) => `${assetBase}${markdownUrl(slugs)}`, section.id), {
+  return Response.json(await searchDocuments(source, markdownUrl, section.id), {
     headers: { "cache-control": "private, max-age=31536000, immutable" },
   });
 }

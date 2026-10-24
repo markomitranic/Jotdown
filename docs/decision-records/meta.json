@@ -17,6 +17,7 @@
     "0024-content-at-runtime-code-at-build-time",
     "0025-a-site-is-static",
     "0026-blocks-edited-from-inside",
+    "0027-a-site-is-a-nextjs-app-on-vercel",
     "..."
   ]
 }

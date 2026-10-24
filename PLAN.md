@@ -26,7 +26,7 @@ Three facts from the survey that shape the plan:
 ### Principles
 
 - One user. No locks, comments, presence, org installs, sign-in pages, sessions or password-protected publications.
-- The studio runs only on your machine, as a desktop app. Publications deploy anywhere.
+- The studio runs only on your machine, as a desktop app. Publications deploy on Vercel, as Next.js apps (ADR 0027).
 - A content repo holds content only: `docs/`, uploads, `.jotdown/config.json`, and optionally its own React components and layouts. The framework is never copied into it; it is cloned at build time and the project folder is injected.
 - Content is data and code is code. Content arrives at runtime (from disk, GitHub or the studio). Components and layouts are bundled at build or dev time.
 - Markdown stays hidden from the person editing. `.md` everywhere, `.mdx` only where a page uses a component.
@@ -38,7 +38,7 @@ Three facts from the survey that shape the plan:
 2. **Kit:** the contract between components and the studio: hooks, editable primitives, optional block metadata.
 3. **Studio:** the Next.js app that lists projects and edits them, running inside the desktop app.
 4. **App:** an Electrobun shell, downloaded once, kept in the Dock.
-5. **Site build:** a project built into a static site, which also contains the hidden `/_edit` canvas.
+5. **Site build:** a project built into a Next.js app on Vercel, which also contains the hidden `/_edit` canvas.
 
 ### The app
 
@@ -107,7 +107,7 @@ Defaults: Site when the config has a `url`, otherwise Skinny. The last choice an
 ### The canvas
 
 - Every site build includes a hidden, client-only `/_edit` page: the site's layout, theme and components plus the editor runtime, with no content baked in. Readers never download the editor.
-- The studio frames it and talks over `postMessage`. Content and the page tree go in; edits, uploads and navigation come out; the studio writes through the storage adapter. The site needs no server, secrets or sign-in, so GitHub Pages works.
+- The studio frames it and talks over `postMessage`. Content and the page tree go in; edits, uploads and navigation come out; the studio writes through the storage adapter. The canvas needs no secrets or sign-in.
 - **Handshake:** the canvas announces its protocol version, framework version and project identity. Failures get a dead page with fix steps and an "Open in Skinny" button:
   - nothing answered (with the dev server's last log lines when the app started it)
   - not a Jotdown canvas
@@ -150,10 +150,9 @@ Tailwind is the styling tool. The build adds an `@source` for the project's comp
 
 ### The command line
 
-The app doesn't need a terminal. `jotdown` (`scripts/jotdown.ts`) stays as developer tooling with four commands, and the app calls the same modules:
+The app doesn't need a terminal. `jotdown` (`scripts/jotdown.ts`) stays as developer tooling with three commands, and the app calls the same modules:
 
 - `jotdown dev`: the site's dev server with `/_edit`
-- `jotdown build`
 - `jotdown check`: the docs linter
 - `jotdown add`
 
@@ -217,7 +216,7 @@ What the spike taught for Phase 3:
 
 - **Electrobun 2 is not an npm dependency.** It comes through the Hutch toolchain: `hutch electrobun build`, with the SDK projected into `.hutch/devkit`. The installer puts Hutch in `~/.hutch/bin` and adds it to `PATH` in `~/.zshrc`. `npx electrobun` bootstraps it.
 - **Build hooks are modules,** imported without arguments, and read `ELECTROBUN_BUILD_DIR`, `ELECTROBUN_APP_NAME` and `ELECTROBUN_WRAPPER_BUNDLE_PATH` from the environment.
-- **Nothing may write into the bundle.** Next writes its image cache to `.next/cache` inside the app, which breaks the signature and fails in a read-only `/Applications`. Use `images.unoptimized` in the app build, or move the cache to the data folder. Electrobun's updater also rewrites `Resources/version.json` after an update. Gatekeeper doesn't recheck an updated app, so it still launches, but recheck this once builds are signed.
+- **Nothing may write into the bundle.** Next writes its image cache to `.next/cache` inside the app, which breaks the signature and fails in a read-only `/Applications`. Next's optimizer is not used: a custom loader asks for WebP copies (`a.png.w960.webp`) that the studio scales with `Bun.Image` on request, caching nothing on disk. Electrobun's updater also rewrites `Resources/version.json` after an update. Gatekeeper doesn't recheck an updated app, so it still launches, but recheck this once builds are signed.
 - **The server's output goes to `/dev/null`** in a launched app. Write it to a log file in the data folder, which the dead pages and bug reports need anyway.
 - **A window opened behind the active app stays unpainted** (`document.hidden`) until it is shown. Launching from the Dock activates it.
 - **`hiddenInset` puts the traffic lights over the sidebar's project header.** The title bar in 3.1 has to make room.
@@ -436,7 +435,7 @@ The trimmed studio becomes the Skinny renderer over both adapters, inside the ap
 ### 3.1 The app, `apps/desktop`
 
 - Build on the Phase 0 spike: Electrobun 2.x with `mainProcess: "bun"`. A `preBuild` script runs the studio's standalone `next build` and stages `.next/standalone`, `.next/static` and `public` with symlinks dereferenced, and `build.copy` brings the staged folder into the app. `postBuild` and `postWrap` ad-hoc sign the bundles.
-- Keep every write out of the bundle: `images.unoptimized` (or a cache outside it), and the server's log in the data folder.
+- Keep every write out of the bundle: no image optimizer cache (the studio scales copies on request without one), and the server's log in the data folder.
 - **Launch:**
   1. Start the server on a random `127.0.0.1` port, with `DOCS_DATA_DIR` set to the app's data folder.
   2. Wait for `/api/health`.
@@ -539,9 +538,11 @@ No more `fumadocs-ui`, so every default is ours to eject in Phase 6. The survey 
 - Every one of the 242 story screenshots was compared before and after in both modes. The differences left are the changelog's spacing, now written into the component instead of borrowed from a cascade accident, and runs where an image, video or highlighter had not finished.
 - 4.2: the theme is tokens only. `brand` is gone from the config and the readers, and `theme.fonts` names the `sans`, `serif` and `mono` faces, each a family and an optional uploaded file, which the stylesheet loads under the project's base.
 
-## Phase 5: Static site build and the canvas
+## Phase 5: Site build and the canvas
 
 ### 5.1 Static publication
+
+Reversed on 2026-10-24 by ADR 0027: a site is a Next.js app on Vercel. The list below is the original plan.
 
 - Change the publication to `output: "export"`. Drop the standalone server, the Vercel adapter (`@next-community/adapter-vercel`, `@vercel/build-utils`) and the Docker templates.
 - **Make every route static:**
@@ -617,6 +618,7 @@ Record the decisions in this plan as Jotdown ADRs:
 
 #### Done (2026-10-11)
 
+- **5.1, reversed (2026-10-24, ADR 0027).** A site is a Next.js app on Vercel again, built through `@next-community/adapter-vercel` into `.jotdown/.vercel/output`. Pictures go through Next's image optimizer, moved pages are `redirects` in `next.config.ts`, and the base path, `assetBase`, the empty `_none` upload, `jotdown build`, `.jotdown/out` and the GitHub Pages template are gone. Pages, markdown twins, uploads, `llms.txt` and the search sections are still written at build time through `generateStaticParams`. What follows is the original 5.1, kept for history.
 - **5.1** The publication is `output: "export"` into `.jotdown/out`. Uploads, markdown twins, `llms.txt` and the search sections are written by their routes' `generateStaticParams` (an upload folder with no files writes one empty `_none`, since an export refuses a route with no paths). Moved pages are forwarding pages with a meta refresh. A site below a domain's root takes the path from the config's `url` as Next's `basePath`, and `Project.assetBase` carries it into every file address the browser fetches itself. `jotdown build <folder>` and `jotdown dev <folder>` point a checkout at any project through `JOTDOWN_PROJECT`. The templates are `deployment/github-pages` and `deployment/vercel`, and the setup wizard offers GitHub Pages in place of Docker.
 - **5.2** `packages/core/lib/browser-page.ts` compiles a page's text in the browser with the shared `lib/remark-chain.ts` and the same defaults `fumadocs-mdx` adds, refusing code first. Front matter becomes blank lines, so `remarkRuntimePositions` is not needed there.
 - **5.3** `packages/core/lib/canvas.ts`. The plan's `changed` and `upload` became one generic `request`/`response` pair: the editor's API client sends every call through a transport, which in a canvas posts it to the studio, and the studio answers from its own endpoints. Storage code did not change.
@@ -633,7 +635,7 @@ Record the decisions in this plan as Jotdown ADRs:
 - `.jotdown/components/*.tsx` holds blocks, registered by export name. `.jotdown/layouts/*.tsx` holds layouts.
 - Both are injected at build and dev time through an alias. Turbopack's root is the project, because the framework lives inside it at `.jotdown/framework`.
 - Tailwind `@source` lines are generated for both folders.
-- Dependencies: React, the kit and what the framework ships (lucide, the shadcn primitives). A project only adds a `package.json` when it needs more, and `jotdown dev` and `jotdown build` install it.
+- Dependencies: React, the kit and what the framework ships (lucide, the shadcn primitives). A project only adds a `package.json` when it needs more, and `jotdown dev` and the site's build install it.
 
 ### 6.2 The kit, `@jotdown/kit`
 

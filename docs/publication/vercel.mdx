@@ -1,7 +1,7 @@
 ---
 title: On Vercel
 icon: Triangle
-description: Two files in .jotdown, a Vercel project rooted there, and one token. Every push to the branch deploys the static site.
+description: Two files in .jotdown and a Vercel project rooted there. Every push to the branch deploys the site.
 ---
 
 :::wide
@@ -10,7 +10,7 @@ description: Two files in .jotdown, a Vercel project rooted there, and one token
 
 :::
 
-Vercel is the happy path. Copy two files into `.jotdown/`, give the docs a
+A site lives on Vercel. Copy two files into `.jotdown/`, give the docs a
 Vercel project whose root directory is `.jotdown`, and push. From then on every push to the branch deploys, and so does every studio
 save to a GitHub project. This page assumes the steps in
 [Publishing it as a site](./publishing.mdx) up to the host.
@@ -26,15 +26,14 @@ From Jotdown's [`deployment/vercel`](https://github.com/markomitranic/Jotdown/tr
   "framework": null,
   "bunVersion": "1.4.x",
   "installCommand": "rm -rf framework && git clone --quiet --depth 1 --branch \"$(bun --print \"require('./config.json').jotdown || 'main'\")\" https://github.com/markomitranic/Jotdown.git framework",
-  "buildCommand": "bash framework/apps/publication/build.sh",
-  "outputDirectory": "out",
-  "cleanUrls": true
+  "buildCommand": "bash framework/apps/publication/build.sh"
 }
 ```
 
 The install step clones Jotdown into `.jotdown/framework`, which the
-`.gitignore` keeps out of git, the build step runs its build script, and Vercel
-serves the static files it writes to `.jotdown/out`. A fix
+`.gitignore` keeps out of git. The build step runs its build script, which
+builds the site as a Next.js app into `.jotdown/.vercel/output`, and Vercel
+deploys that. A fix
 to the build reaches you with the next Jotdown version you pin, never through
 this file. The setup wizard writes both files when you pick Vercel as the host.
 
@@ -46,8 +45,9 @@ this file. The setup wizard writes both files when you pick Vercel as the host.
 ### Import the repository
 
 New project on Vercel, the content repository, and set **Root Directory** to
-`.jotdown`. The framework preset can stay as it is, since `vercel.json` wins
-over the dashboard.
+`.jotdown`. Leave **Include files outside the root directory** on, since the
+pages are outside it. The framework preset can stay as it is, since
+`vercel.json` wins over the dashboard.
 
 </Step>
 <Step>
@@ -61,10 +61,12 @@ deployments like any Vercel project.
 </Steps>
 
 <Accordions>
-  <Accordion title="Why the site has no server on Vercel">
-    The build writes plain files, so Vercel serves them from its CDN with no
-    functions at all. `cleanUrls` answers `/onboarding/first-week` from
-    `onboarding/first-week.html`.
+  <Accordion title="Why the build goes through an adapter">
+    Vercel's Next.js preset expects the app at the root directory, and here it
+    only arrives during the install, at `framework/apps/publication`. The build
+    script builds it with Next's Vercel adapter, which writes the deployment in
+    Vercel's own format, so Vercel serves the pages from its CDN and scales the
+    pictures exactly as it would for any Next.js app.
   </Accordion>
 </Accordions>
 
@@ -94,8 +96,7 @@ itself, so opening those paths shows nobody your notes.
 
 In the project's **Firewall**, add a custom rule with one condition per path,
 all joined with **AND**: **Request Path**, **Does not start with**, and the
-path. Prefix each path with the site's base path when it is not hosted at the
-domain's root.
+path.
 
 </Step>
 <Step>
@@ -112,7 +113,7 @@ the studio with the Site renderer.
 <Accordions>
   <Accordion title="What the rule still lets a stranger see">
     The site's code and look: its scripts under `/_next/static` and the empty
-    canvas. Every page, its `.txt` data next to it, the markdown twins,
+    canvas. Every page, the data the browser prefetches for it, the markdown twins,
     `llms.txt` and the search index stay behind the rule. A component of your
     own that bakes text into its client-side code would leak that text, since
     its script is served from `/_next/static`.

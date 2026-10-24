@@ -29,9 +29,6 @@ type Props = {
 
 const MANUAL = "/markomitranic/Jotdown";
 
-/** What each host is called where the next steps name it. */
-const HOSTS = { vercel: "Vercel", "github-pages": "GitHub Pages" };
-
 /**
  * The end of the wizard: what was written, and the next steps as links.
  *
@@ -85,8 +82,8 @@ export function DoneStep({ done, target, inspection, publishing, moved, onOpenPr
             <Next
               href={PUBLISHING_GUIDES[publishing]}
               icon={<Globe />}
-              title={`Finish setting up a publication in ${HOSTS[publishing]}`}
-              detail="The token, the project and who can read it"
+              title="Finish setting up a publication in Vercel"
+              detail="The project and who can read it"
             />
           )}
         </ul>

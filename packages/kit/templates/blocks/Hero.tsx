@@ -6,7 +6,7 @@ type Props = { title?: string; tagline?: string; image?: string; children?: Reac
 /**
  * A page's opening: a big title, one line under it, a few words and a picture.
  *
- * @example <Hero title="Notes that publish themselves" tagline="Write in place, ship a static site." />
+ * @example <Hero title="Notes that publish themselves" tagline="Write in place, publish on every push." />
  */
 function HeroBlock({ title, tagline, image, children }: Props) {
   return (

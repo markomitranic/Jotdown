@@ -1,4 +1,3 @@
-# What a site's build leaves in .jotdown: the Jotdown it cloned, and the site it wrote.
+# What a site's build leaves in .jotdown: the Jotdown it cloned, and Vercel's output.
 framework/
-out/
 .vercel/

@@ -1,8 +1,9 @@
 import { resolve } from "node:path";
 import type { NextConfig } from "next";
+import { imageConfig } from "../../packages/core/lib/images";
+import { movedRedirects } from "./redirects";
 import { contentRepository } from "./repository";
 import { syncProjectCode, watchProjectCode } from "./project-code";
-import { siteBase } from "./server/base";
 
 /** The Jotdown checkout this app is part of, where the lockfile and the shared packages live. */
 const workspace = resolve(import.meta.dirname, "../..");
@@ -23,21 +24,20 @@ if (process.env.NODE_ENV === "development") watchProjectCode(repository, project
 const bundled = ["shiki", "@jotdown/core", "@jotdown/editor"];
 
 /**
- * A static site in `out/`: every page, upload, markdown twin and search index written as a file.
+ * A Next.js app deployed on Vercel, its pages, uploads, markdown twins and search index written at build time.
  *
- * It needs no server, so any static host serves it. Images are served as they
- * are, since nothing is left to resize them. A site hosted below a domain's root
- * is built under that base path.
+ * Vercel serves what the build wrote from its CDN, scales every picture through
+ * Next's image optimizer, and answers each address `docs/moved.json` records
+ * with a permanent redirect to where its page lives now.
  */
 const config: NextConfig = {
-  output: "export",
   transpilePackages: bundled,
   reactStrictMode: true,
   agentRules: false,
   turbopack: { root: workspace, resolveAlias: { "@project": "./.project/index.ts" } },
   outputFileTracingRoot: workspace,
-  images: { unoptimized: true },
-  basePath: siteBase(repository),
+  images: imageConfig,
+  redirects: async () => movedRedirects(repository),
 };
 
 export default config;

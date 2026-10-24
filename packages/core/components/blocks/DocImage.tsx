@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type ComponentProps, type ReactNode } from "react";
-import Image from "next/image";
+import { useState, type ComponentProps, type CSSProperties, type ReactNode } from "react";
+import Image, { getImageProps } from "next/image";
 import clsx from "clsx";
 import { Check, Copy, Download, Maximize2 } from "lucide-react";
 import { IMAGE, optimizable } from "@jotdown/core/lib/images";
@@ -18,8 +18,8 @@ type Props = ComponentProps<"img"> & { tools?: ReactNode };
  * it; `:::wide` is what widens one. `--jd-shot-height` caps it down,
  * so a tall export cannot take the whole viewport. It scales rather than
  * crops, so nothing in the picture is decided on the reader's behalf, and
- * clicking it opens the original file on the fullscreen stage a diagram gets,
- * at its own pixel size, with pan, zoom and Fit.
+ * clicking it opens it on the fullscreen stage a diagram gets, at its own
+ * pixel size up to the stage's bound, with pan, zoom and Fit.
  *
  * Pointing at it shows a toolbar: expand, copy the original to the clipboard
  * and download it. An editor puts its own controls at the front with `tools`.
@@ -48,10 +48,11 @@ type Props = ComponentProps<"img"> & { tools?: ReactNode };
  * React types an `<img src>` as a URL or a Blob; markdown only ever writes the
  * first, and a Blob would be a broken image anyway.
  *
- * The picture is drawn through Next's optimizer at the column's width. The
- * stage, the copy and the download all take the original from `data-src`, the
- * address the page asked for, which an editor drawing the same image reads back
- * too. Nothing past the optimizer's scaled copy is fetched until somebody asks.
+ * A picture this site hosts is drawn from scaled WebP copies, the browser
+ * picking the one that fits the screen. The stage opens the largest copy,
+ * `data-stage`. The copy and the download take the original from `data-src`,
+ * the address the page asked for, which an editor drawing the same image reads
+ * back too.
  *
  * An SVG is drawn again at `#dark` in dark mode, in the day copy's place, so a
  * drawing that keeps its night palette under `svg:target` follows the colour
@@ -73,17 +74,17 @@ export default function DocImage({ title, className, alt, src, width, height, to
   if (url === undefined || url === "") return <MissingImage alt={alt ?? ""} reason="downloaded" />;
   if (failed === url) return <MissingImage alt={alt ?? ""} reason="loaded" />;
 
+  const stage = optimizable(url) ? sharpCopy(url, IMAGE.stage) : url;
+
   const image = (
     <span className="jd-shot__frame">
       <button type="button" className="jd-shot__open" aria-label={alt ? `Expand: ${alt}` : "Expand image"}>
         <Image
           alt={alt ?? ""}
-          src={url}
-          width={Number(width) || IMAGE.column}
-          height={Number(height) || 0}
-          unoptimized={!optimizable(url)}
           {...props}
+          {...drawn(url, Number(width) || 0, Number(height) || 0)}
           data-src={url}
+          data-stage={stage}
           ref={(element) => brokenAlready(element, () => setFailed(url))}
           onError={() => setFailed(url)}
           className={clsx("jd-shot-img", className)}
@@ -139,6 +140,41 @@ function ImageTools({ url, children }: { url: string; children?: ReactNode }) {
       </a>
     </span>
   );
+}
+
+/**
+ * How a picture is drawn: from every scaled copy when its size is known, from one sharp copy when not, or as it is.
+ *
+ * A measured picture gets its width from CSS, so whichever copy the browser
+ * picks it looks the same size on every screen. One of unknown size is drawn
+ * from the single copy a sharp screen would take, whose own pixels size it.
+ *
+ * @example drawn("/img/docs/a.png", 1200, 640); // { src, width: 1200, height: 640, sizes: "(max-width: 932px) 100vw, 932px", … }
+ */
+function drawn(url: string, width: number, height: number) {
+  if (!optimizable(url)) return { src: url, width: width || IMAGE.column, height, unoptimized: true };
+  if (!width || !height)
+    return { src: sharpCopy(url, IMAGE.column), width: IMAGE.column, height: 0, unoptimized: true };
+
+  const shown = Math.min(width, IMAGE.column);
+  const natural = { "--jd-shot-natural-width": width, "--jd-shot-natural-height": height } as CSSProperties;
+  return {
+    src: url,
+    width,
+    height,
+    sizes: `(max-width: ${shown}px) 100vw, ${shown}px`,
+    style: natural,
+    "data-sized": "",
+  };
+}
+
+/**
+ * The address of the copy Next hands a sharp screen for a picture drawn this wide.
+ *
+ * @example sharpCopy("/img/docs/a.png", 932); // "/img/docs/a.png.w1920.webp"
+ */
+function sharpCopy(src: string, width: number) {
+  return getImageProps({ alt: "", src, width, height: 0 }).props.src;
 }
 
 /**

@@ -13,8 +13,8 @@ type Staged = { markup: string; caption?: string; variant: "figure" | "image"; o
  * in-page editor copies a block's markup when it is duplicated or moved, and a
  * copy has no React behind it. A figure is handed over as its own SVG, so it
  * paints with the same `--jd-fig-*` tokens and follows the colour mode; an
- * image as a fresh copy of its original file, sized to that file's pixels and
- * opened once it has loaded. The caption is shown under either.
+ * image as a fresh copy of its stage-sized file, sized to that file's pixels
+ * and opened once it has loaded. The caption is shown under either.
  *
  * @example <FigureStage />
  */
@@ -65,14 +65,16 @@ function stagedFigure(target: Element): Staged | null {
 }
 
 /**
- * A clicked markdown image as its original file, with the caption written under it.
+ * A clicked markdown image at its stage size, with the caption written under it.
  *
- * In dark mode an SVG's night copy is the one showing, so that is the one staged.
+ * The stage size is the largest scaled copy, `data-stage`, or the file itself
+ * when it has none. In dark mode an SVG's night copy is the one showing, so
+ * that is the one staged. The stage's copy and download still take the original.
  *
- * The original is loaded before the stage opens, with the picture marked
- * `data-busy` meanwhile so it can show it is on its way, and a second click
- * in that time does nothing. The picture the page already shows stands in for
- * the original when it cannot be loaded.
+ * The picture is loaded before the stage opens, with it marked `data-busy`
+ * meanwhile so it can show it is on its way, and a second click in that time
+ * does nothing. The picture the page already shows stands in when it cannot be
+ * loaded.
  */
 async function stagedImage(target: Element): Promise<Staged | null> {
   const shot = target.closest(".jd-shot__open, .jd-shot__expand")?.closest<HTMLElement>(".jd-shot");
@@ -82,7 +84,7 @@ async function stagedImage(target: Element): Promise<Staged | null> {
 
   const original = image.dataset.src ?? image.currentSrc;
   const full = new Image();
-  full.src = original;
+  full.src = image.dataset.stage ?? original;
 
   shot.dataset.busy = "";
   const loaded = await full

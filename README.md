@@ -3,7 +3,7 @@
 A single-user tool for personal sites, docs and a second brain. Markdown in git is the only source of data, and a studio edits it in place, in each site's own look.
 
 - **The app** lists your projects and edits them, from the Dock. Download the DMG from the [latest release](https://github.com/markomitranic/Jotdown/releases/latest).
-- **A site** is one project built for readers, deployed anywhere.
+- **A site** is one project built for readers, deployed on Vercel.
 - **Context for agents** is the project itself: a folder of markdown in git that an agent reads directly.
 
 The framework is never copied into a project. [PLAN.md](./PLAN.md) is where Jotdown is going and what is done.
@@ -50,16 +50,11 @@ The code is three workspaces: `packages/core` renders a project, `apps/studio` i
 
 ## Publish a site
 
-A site is the project built into static files. Name the Jotdown version in `.jotdown/config.json`, `"jotdown": "v0.3.1"` or `main` when unset, and the host clones Jotdown at that ref and builds the site into `.jotdown/out`:
+A site is the project built as a Next.js app and deployed on Vercel. Name the Jotdown version in `.jotdown/config.json`, `"jotdown": "v0.3.1"` or `main` when unset, and Vercel clones Jotdown at that ref into `.jotdown/framework` and runs `apps/publication/build.sh`.
 
-```sh
-git clone --depth 1 --branch main https://github.com/markomitranic/Jotdown.git .jotdown/framework
-bash .jotdown/framework/apps/publication/build.sh
-```
+From a checkout of Jotdown, `bun scripts/jotdown.ts dev <project>` serves any project folder as its site.
 
-From a checkout of Jotdown, `bun scripts/jotdown.ts build <project>` and `bun scripts/jotdown.ts dev <project>` do the same for any project folder.
-
-[deployment/README.md](./deployment/README.md) has the GitHub Pages and Vercel files a project copies.
+[deployment/README.md](./deployment/README.md) has the Vercel files a project copies.
 
 ## Check your work
 

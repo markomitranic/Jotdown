@@ -8,8 +8,8 @@ import { basename, dirname, resolve } from "node:path";
  * it is. A checkout anywhere else is Jotdown's own repository, whose docs are a
  * project like any other.
  *
- * `JOTDOWN_PROJECT` names it outright, which is how `jotdown build` and
- * `jotdown dev` point one checkout at any project folder.
+ * `JOTDOWN_PROJECT` names it outright, which is how `jotdown dev` points one
+ * checkout at any project folder.
  *
  * @example contentRepository("/work/handbook/.jotdown/framework"); // "/work/handbook"
  * @example contentRepository("/work/jotdown"); // "/work/jotdown"

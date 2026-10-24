@@ -7,12 +7,6 @@ import { publication } from "./project";
 type UploadRoot = "uploads" | "img" | "files" | "whiteboards";
 
 /**
- * The one file written for an upload folder that has none, since a static
- * export refuses a route that writes no file at all.
- */
-const NOTHING = "_none";
-
-/**
  * The route for one upload folder: every file under it, written at build time and answered from the project.
  *
  * Every address is a file of the project's uploads folder, which is where pages
@@ -22,9 +16,7 @@ const NOTHING = "_none";
  */
 export function uploadRoute(root: UploadRoot) {
   async function GET(_request: Request, context: { params: Promise<{ path: string[] }> }) {
-    const path = (await context.params).path;
-    if (path.join("/") === NOTHING) return new Response("");
-    const address = [root, ...path].join("/");
+    const address = [root, ...(await context.params).path].join("/");
     const project = publication();
     const directory = await realpath(project.directory);
 
@@ -45,10 +37,9 @@ export function uploadRoute(root: UploadRoot) {
     const folder = join(directory, uploadFolder(root, config.uploads));
     const entries = await readdir(folder, { recursive: true, withFileTypes: true }).catch(() => []);
 
-    const files = entries
+    return entries
       .filter((entry) => entry.isFile())
       .map((entry) => ({ path: relative(folder, join(entry.parentPath, entry.name)).split(sep) }));
-    return files.length ? files : [{ path: [NOTHING] }];
   }
 
   return { GET, generateStaticParams };

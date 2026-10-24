@@ -1,4 +1,5 @@
 import { remarkRuntimePositions } from "./lib/remark-runtime-positions";
+import { remarkImageSizes } from "./lib/remark-image-sizes";
 import { defineConfig, defineDocs } from "fumadocs-mdx/config";
 import { pageFrontmatterSchema } from "@jotdown/core/lib/front-matter";
 import { DOCS_ROOT } from "@jotdown/core/lib/paths";
@@ -30,12 +31,19 @@ export default defineConfig({
      * URL and makes the build fail on a file that has not landed yet. Uploads
      * arrive from the in-page editor, so that is a page breaking the site
      * rather than showing one broken picture. `external: false` keeps the build
-     * off the network: nothing here points at an image we do not host.
+     * off the network: nothing here points at an image we do not host. Our own
+     * uploads are measured by `remarkImageSizes`, which knows where they live.
      */
     remarkImageOptions: { useImport: false, external: false, onError: "ignore" },
 
     /** Keeps a code fence's source range, which the Shiki pass would otherwise rebuild away. */
     rehypeCodeOptions: sourceRangeCodeOptions,
-    remarkPlugins: (defaults) => [...remarkChain, remarkRuntimePositions, remarkSourceRange, ...defaults],
+    remarkPlugins: (defaults) => [
+      ...remarkChain,
+      remarkRuntimePositions,
+      remarkSourceRange,
+      remarkImageSizes,
+      ...defaults,
+    ],
   },
 });

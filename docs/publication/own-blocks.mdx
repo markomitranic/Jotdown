@@ -38,7 +38,7 @@ export function Hero({ title, tagline, children }: Props) {
 ```
 
 ```mdx title="docs/index.mdx"
-<Hero title="Notes that publish themselves" tagline="Write in place, ship a static site.">
+<Hero title="Notes that publish themselves" tagline="Write in place, publish on every push.">
 
 Everything here is a file in git.
 
@@ -72,7 +72,7 @@ export const Hero = defineBlock(HeroBlock, {
 
 ## Reading the site from a block
 
-A block can ask where it stands. `usePage()` is the page's title, description, address and front matter, `useSite()` the site's title and address, and `usePages({ folder: "guides", limit: 6 })` the pages of a folder in the sidebar's order, which is all a "Read next" grid needs. Link between pages with the kit's `Link`, which keeps the site's base path and, in the canvas, opens the page in the app.
+A block can ask where it stands. `usePage()` is the page's title, description, address and front matter, `useSite()` the site's title and address, and `usePages({ folder: "guides", limit: 6 })` the pages of a folder in the sidebar's order, which is all a "Read next" grid needs. Link between pages with the kit's `Link`, which in the canvas opens the page in the app.
 
 ## Giving a page a layout of its own
 
@@ -121,7 +121,7 @@ React, the kit, `lucide-react` and `cn` are always there. For anything else, put
 </Accordion>
 <Accordion title="Why does every block run in the browser?">
 
-Every file in the two folders is a client component unless it starts with `"use server"`, because a block reads the page through hooks and is edited in the browser. A site is static files either way, so the cost is the block's own JavaScript.
+Every file in the two folders is a client component unless it starts with `"use server"`, because a block reads the page through hooks and is edited in the browser. A site's pages are written at build time either way, so the cost is the block's own JavaScript.
 
 </Accordion>
 <Accordion title="A page uses a block the site does not have">

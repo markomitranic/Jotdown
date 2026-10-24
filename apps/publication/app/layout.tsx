@@ -7,13 +7,12 @@ import { publication } from "@/server/project";
 
 /** The project's title in the tab, its description, and its `favicon` when it names one. */
 export function generateMetadata(): Metadata {
-  const { assetBase, config } = publication();
-  const { title, description, favicon } = config;
+  const { title, description, favicon } = publication().config;
   return {
     title: { default: title, template: `%s | ${title}` },
     description,
     robots: { index: false, follow: false },
-    icons: favicon ? { icon: `${assetBase}${favicon}` } : undefined,
+    icons: favicon ? { icon: favicon } : undefined,
   };
 }
 

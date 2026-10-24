@@ -1,6 +1,8 @@
 import { parseProjectKey } from "@/lib/project-key";
 import { localSession } from "@/server/auth/session";
 import { storage } from "@/server/storage";
+import { scaledOriginal } from "@jotdown/core/lib/images";
+import { scaleImage } from "@jotdown/core/server/scale-image";
 import { uploadType } from "@jotdown/core/server/uploads";
 
 const SHA = /^[0-9a-f]{40}$/;
@@ -13,6 +15,9 @@ const KEPT = "public, max-age=31536000, s-maxage=31536000, immutable";
  * only somebody who was shown the file can name it. GitHub is read with the
  * editor's own token. The file name gives the content type and the name a
  * download is saved under.
+ *
+ * A name ending in a width, `a.png.w960.webp`, asks for the picture scaled
+ * down to it as WebP, which is just as fixed as the blob it is made from.
  */
 export async function GET(
   _request: Request,
@@ -25,7 +30,11 @@ export async function GET(
   const blob = await storage.readBlob(key, (await localSession()).token, sha).catch(() => null);
   if (!blob) return new Response(null, { status: 404, headers: { "cache-control": "no-store" } });
 
-  return new Response(blob.body, {
+  const scaled = scaledOriginal(name);
+  const body = scaled ? await scaleImage(await blob.arrayBuffer(), scaled.width).catch(() => null) : blob.body;
+  if (body === null) return new Response(null, { status: 415, headers: { "cache-control": "no-store" } });
+
+  return new Response(body, {
     headers: {
       "content-type": uploadType(name),
       "cache-control": KEPT,

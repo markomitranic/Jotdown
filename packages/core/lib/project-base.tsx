@@ -3,27 +3,25 @@ import { uploadFile } from "@jotdown/core/server/uploads";
 import type { Project } from "@jotdown/core/server/project";
 
 /** Where the open project serves its pages, its uploads when they are kept by content, and the folder they are in. */
-type Served = Pick<Project, "base" | "assetBase" | "uploads"> & { config: Pick<Project["config"], "uploads"> };
+type Served = Pick<Project, "base" | "uploads"> & { config: Pick<Project["config"], "uploads"> };
 
 /**
  * A site-absolute address as the open project serves it, under its `/owner/repo` in the studio.
  *
  * A page is written for a site at the root, so `/manual/sections` and
  * `/img/docs/a.png` mean the project's own page and upload. An upload the
- * project keeps by content goes to that address instead. A `file` is fetched
- * by the browser itself, so it goes under the project's `assetBase` when it
- * has one. Anything else, a relative path, a fragment or another origin, is
- * already right.
+ * project keeps by content goes to that address instead. Anything else, a
+ * relative path, a fragment or another origin, is already right.
  *
  * @example atBase(handbook, "/manual/sections"); // "/you/notes/manual/sections"
  * @example atBase({ ...handbook, uploads: { "docs/_uploads/img/a.png": "/api/blobs/you/notes/3f1c…/a.png" } }, "/img/a.png"); // "/api/blobs/you/notes/3f1c…/a.png"
  * @example atBase(publication, "/manual/sections"); // "/manual/sections"
  * @example atBase(handbook, "https://x.test"); // "https://x.test"
  */
-export function atBase({ base, assetBase, uploads, config }: Served, address: string, kind: "page" | "file" = "page") {
+export function atBase({ base, uploads, config }: Served, address: string) {
   if (!address.startsWith("/") || address.startsWith("//")) return address;
 
-  return uploads?.[uploadFile(address, config.uploads)] ?? (kind === "file" ? (assetBase ?? base) : base) + address;
+  return uploads?.[uploadFile(address, config.uploads)] ?? base + address;
 }
 
 /**
@@ -54,8 +52,7 @@ export function underBase<P extends Partial<Record<"href" | "src", unknown>>>(
 ) {
   return function UnderBase(props: P) {
     const address = props[prop];
-    const moved =
-      typeof address === "string" ? { [prop]: atBase(project, address, prop === "src" ? "file" : "page") } : {};
+    const moved = typeof address === "string" ? { [prop]: atBase(project, address) } : {};
     return <Component {...props} {...moved} />;
   };
 }

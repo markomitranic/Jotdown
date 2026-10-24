@@ -35,9 +35,9 @@ export async function readSkills(): Promise<FrameworkFile[]> {
 /**
  * The files a content repository copies to publish on a host, by their path from its root, with the `.gitignore` that keeps the build's leftovers out of git.
  *
- * @example await readDeployment("github-pages"); // [{ path: ".github/workflows/jotdown.yml", … }, { path: ".jotdown/.gitignore", … }]
+ * @example await readDeployment("vercel"); // [{ path: ".jotdown/vercel.json", … }, { path: ".jotdown/.gitignore", … }]
  */
-export async function readDeployment(host: "vercel" | "github-pages"): Promise<FrameworkFile[]> {
+export async function readDeployment(host: "vercel"): Promise<FrameworkFile[]> {
   const folder = join(ROOT, "deployment", host);
   const entries = await readdir(folder, { recursive: true, withFileTypes: true });
   const paths = entries

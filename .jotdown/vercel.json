@@ -3,7 +3,5 @@
   "framework": null,
   "bunVersion": "1.4.x",
   "installCommand": "rm -rf framework && git clone --quiet --depth 1 --branch \"$(bun --print \"require('./config.json').jotdown || 'main'\")\" https://github.com/markomitranic/Jotdown.git framework",
-  "buildCommand": "bash framework/apps/publication/build.sh",
-  "outputDirectory": "out",
-  "cleanUrls": true
+  "buildCommand": "bash framework/apps/publication/build.sh"
 }

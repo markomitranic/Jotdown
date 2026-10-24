@@ -5,14 +5,14 @@ import { DOCS_ROOT, docUrl, finalHome, inUnderscoreFolder } from "@jotdown/core/
 import { contentDirectory } from "@jotdown/core/server/config";
 
 /**
- * Every address `docs/moved.json` records, as route segments, with the address its page lives at now.
+ * A permanent redirect from every address `docs/moved.json` records to where that page lives now.
  *
- * An address a page lives at again is left out, and so is a page that moved
- * back to where it started, since either would forward to itself.
+ * An address a page lives at again is left alone, since a redirect is
+ * answered before any page is.
  *
- * @example movedPages("/work/handbook", "/notes"); // [{ slugs: ["guides", "old"], to: "/notes/guides/new" }]
+ * @example movedRedirects("/work/handbook"); // [{ source: "/guides/old", destination: "/guides/new", permanent: true }]
  */
-export function movedPages(repository: string, base: string) {
+export function movedRedirects(repository: string) {
   const directory = contentDirectory(repository);
   const moves = readMoves(directory);
   const pages = new Set(pageFiles(join(directory, DOCS_ROOT)).map((path) => docUrl(path)));
@@ -21,7 +21,7 @@ export function movedPages(repository: string, base: string) {
     const home = finalHome(moves, from);
     const source = docUrl(from);
     if (!home || source === "/" || pages.has(source) || source === docUrl(home)) return [];
-    return [{ slugs: source.slice(1).split("/"), to: docUrl(home, base) }];
+    return [{ source, destination: docUrl(home), permanent: true }];
   });
 }
 

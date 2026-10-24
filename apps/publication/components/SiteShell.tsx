@@ -23,7 +23,7 @@ export async function SiteShell({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <PublishSearchSections base={project.assetBase} sections={searchSections(source)} />
+      <PublishSearchSections base={project.base} sections={searchSections(source)} />
       <DocsShell
         tree={tree}
         tabs={sectionTabs(tree, project.base)}

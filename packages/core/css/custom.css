@@ -482,7 +482,7 @@ html {
    stays inside its block. A picture meant to stand wider is written inside
    `:::wide` or `:::full`. The height cap keeps a tall export from filling the
    window on its own. Scaled rather than cropped, so nothing in the picture is
-   decided for the reader, and one click still opens the original. */
+   decided for the reader, and one click opens it larger on the stage. */
 .jd-shot {
   display: block;
   margin-inline: auto;
@@ -494,6 +494,19 @@ html {
   max-width: 100%;
   max-height: var(--jd-shot-height, 80svh);
   height: auto;
+}
+
+/* A picture whose pixel size the page knows is drawn at that size, shrunk to
+   the height cap with its proportions kept. The width is set rather than read
+   off the file, because the scaled copy a screen takes has fewer pixels. */
+.jd-shot-img[data-sized] {
+  width: min(
+    var(--jd-shot-natural-width) *
+    1px,
+    var(--jd-shot-height, 80svh) *
+    var(--jd-shot-natural-width) /
+    var(--jd-shot-natural-height)
+  );
 }
 
 .jd-shot__frame {

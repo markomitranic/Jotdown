@@ -1,7 +1,7 @@
 ---
 title: Publishing it as a site
 icon: Globe
-description: Build a project into a static website on every push, with Jotdown cloned beside the content at the version you pin.
+description: Deploy a project as a website on Vercel on every push, with Jotdown cloned beside the content at the version you pin.
 ---
 
 :::wide
@@ -12,12 +12,11 @@ description: Build a project into a static website on every push, with Jotdown c
 
 A
 <abbr title="The read-only website built from one project's docs for its readers, with no editor in it.">site</abbr>
-is one project built into static files, hosted on anything that serves files:
-GitHub Pages, Vercel, a bucket behind a CDN. The repository stays content:
-`docs/`, its uploads included, and a `.jotdown/config.json` that names the
-Jotdown version to build with. On every push the host clones Jotdown at that
-version beside the content, runs its build script, and serves the files that
-come out. Nothing is committed back.
+is one project built into a Next.js app and deployed on Vercel. The repository
+stays content: `docs/`, its uploads included, and a `.jotdown/config.json` that
+names the Jotdown version to build with. On every push Vercel clones Jotdown at
+that version beside the content, runs its build script, and deploys the app
+that comes out. Nothing is committed back.
 
 <figure className="jd-fig">
   <div className="jd-fig-frame">
@@ -55,10 +54,12 @@ come out. Nothing is committed back.
 </figure>
 
 The build writes every page, markdown twin, upload and search index once, so
-the site needs no server, no secret and no sign-in, and carries none of the
+Vercel serves them from its CDN, and the site carries none of the
 <abbr title="The app on your own machine where you read and edit every project">studio</abbr>'s
-editing code. Why it is built this way is in
-[ADR 0018](../decision-records/0018-publication-is-its-own-app.mdx).
+editing code. Pictures go through Next's image optimizer, which hands each
+reader a WebP copy sized to their screen. Why it is built this way is in
+[ADR 0018](../decision-records/0018-publication-is-its-own-app.mdx) and
+[ADR 0027](../decision-records/0027-a-site-is-a-nextjs-app-on-vercel.mdx).
 
 ## Set up a site
 
@@ -76,15 +77,14 @@ wizard made is already like this.
 
 ### Say where it is hosted, and pin the Jotdown version
 
-`url` is the site's address, and a site hosted below a domain's root, like a
-GitHub Pages project site, is built under that path. Every build clones the
-tag or branch `jotdown` names, `main` when unset:
+`url` is the site's address, which the studio hands out as the link to a page.
+Every build clones the tag or branch `jotdown` names, `main` when unset:
 
 ```json title=".jotdown/config.json"
 {
   "jotdown": "v0.3.1",
   "title": "Notes",
-  "url": "https://you.github.io/notes"
+  "url": "https://notes.vercel.app"
 }
 ```
 
@@ -96,9 +96,8 @@ A release's own tag freezes the site on it until you bump it by hand, and
 
 ### Deploy it
 
-[On GitHub Pages](./github-pages.mdx) is one workflow file and a setting.
-[On Vercel](./vercel.mdx) is two files and a project setting. Anywhere else,
-`.jotdown/out` is the site: copy it to whatever serves files.
+[On Vercel](./vercel.mdx) is two files in `.jotdown/` and a project whose
+root directory is `.jotdown`.
 
 </Step>
 <Step>
@@ -126,23 +125,24 @@ it yourself.
   [Reading the docs over HTTP](../context-warehouse/reading-over-http.mdx).
 - **Uploads** at `/uploads/…`, `/img/…`, `/files/…` and `/whiteboards/…`,
   from the project's uploads folder.
+- **Pictures** through `/_next/image`, scaled to the reader's screen. The
+  original stays at its own address for the download button.
 - **Search**, opened with ⌘ K or Ctrl K. Each section's text is written
   during the build and searched in the reader's browser.
-- **A forwarding page** at every old address in `docs/moved.json`, which sends
-  the reader on to where the page lives now.
+- **A permanent redirect** from every old address in `docs/moved.json` to
+  where the page lives now.
 
 There is no editor. Search engines are turned away by `robots.txt` and a meta
 tag on every page.
 
 <Accordions>
   <Accordion title="Look at a site before you push">
-    From a checkout of Jotdown, point `jotdown` at the project folder. `dev`
-    serves the site and rebuilds a page as its file changes; `build` writes
-    the files a host would get into the project's `.jotdown/out`:
+    From a checkout of Jotdown, point `jotdown dev` at the project folder. It
+    serves the site and rebuilds a page as its file changes. A branch you push
+    gets its own preview deployment on Vercel.
 
     ```sh
     bun scripts/jotdown.ts dev ~/Sites/notes
-    bun scripts/jotdown.ts build ~/Sites/notes
     ```
 
     `bun run check:links ~/Sites/notes` runs the link check on its own.

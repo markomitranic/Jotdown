@@ -1,7 +1,7 @@
 Jotdown is a single-user tool for personal sites, docs and a second brain. It has three lenses:
 
 1. **The app.** The studio, where every project is listed and edited in place, inside an Electrobun desktop app (`apps/desktop`). `bun run dev` runs the same studio in a browser.
-2. **The site.** A project built read-only for readers, deployed anywhere.
+2. **The site.** A project built read-only for readers, deployed on Vercel.
 3. **Context for agents.** Each project's repository holds its own content, which agents read directly.
 
 A project is recognised by `.jotdown/config.json` in its repository. [PLAN.md](./PLAN.md) is the roadmap: read it first, and keep it current when a decision changes.
