@@ -446,8 +446,9 @@ html {
    The main area's width is worked out from the docs grid's own columns,
    because the article is centred in it and nothing inside the article can
    measure it otherwise without becoming a containing block for every fixed
-   overlay the page opens. Outside the docs shell the variables are unset and
-   the window is the main area. */
+   overlay the page opens. Outside the docs shell the window is the main area,
+   unless a layout of the project's own says how wide its main area is with
+   `--jd-main-width` on the column, `100%` for the column itself. */
 :root {
   --jd-wide-width: 75rem;
   --jd-bleed: 1.5rem;
@@ -456,7 +457,7 @@ html {
 [data-block-width] {
   --jd-beside-main: calc(var(--jd-sidebar-col, 0px) + var(--jd-toc-width, 0px));
   --jd-main-cap: calc(var(--jd-layout-width, 97rem) - var(--jd-sidebar-width, 0px) - var(--jd-toc-width, 0px));
-  --jd-main-width: min(100vw - var(--jd-beside-main), var(--jd-main-cap));
+  --jd-main: var(--jd-main-width, min(100vw - var(--jd-beside-main), var(--jd-main-cap)));
 
   width: max(100%, var(--jd-block-width));
   max-width: none;
@@ -464,11 +465,11 @@ html {
 }
 
 [data-block-width="wide"] {
-  --jd-block-width: min(var(--jd-main-width) - 2 * var(--jd-bleed), var(--jd-wide-width));
+  --jd-block-width: min(var(--jd-main) - 2 * var(--jd-bleed), var(--jd-wide-width));
 }
 
 [data-block-width="full"] {
-  --jd-block-width: calc(var(--jd-main-width) - 2 * var(--jd-bleed));
+  --jd-block-width: calc(var(--jd-main) - 2 * var(--jd-bleed));
 }
 
 /* ------------------------------------------------------------- pictures -- */

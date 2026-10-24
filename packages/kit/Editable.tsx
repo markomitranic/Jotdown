@@ -2,15 +2,16 @@
 
 import { useRef, useState, type ChangeEvent, type ElementType, type KeyboardEvent } from "react";
 import { cn } from "cn";
-import { useEditing } from "./context";
+import { useEditing, usePage, usePageFields } from "./context";
 
 /**
  * The primitives a project block draws its props with, plain on the site and editable in the canvas.
  *
  * A prop drawn through one of these is written back into the block's tag in
- * the file when the reader changes it in the canvas, always as a string. A
- * block drawn anywhere else gets exactly the markup it would have drawn
- * without them.
+ * the file when the reader changes it in the canvas, always as a string. The
+ * page's own title and description are written back into its front matter. A
+ * block or layout drawn anywhere else gets exactly the markup it would have
+ * drawn without them.
  */
 
 const EDITABLE_RING =
@@ -147,5 +148,32 @@ function Image({ prop, src, alt = "", className }: ImageProps) {
   );
 }
 
-/** A block's props, drawn so the canvas can edit them where they stand. */
-export const Editable = { Text, Image };
+type FieldProps = { as?: ElementType; className?: string };
+
+/**
+ * The page's title, from its front matter, for a layout that draws its own heading.
+ *
+ * @example <Editable.Title className="text-5xl font-semibold" />
+ */
+function Title({ as: Tag = "h1", className }: FieldProps) {
+  const { title } = usePage();
+  const Field = usePageFields()?.Title;
+
+  return <Tag className={className}>{Field ? <Field>{title}</Field> : title}</Tag>;
+}
+
+/**
+ * The sentence under the page's title, which a page without one leaves out except in the canvas, where it can be written.
+ *
+ * @example <Editable.Description as="p" className="lead" />
+ */
+function Description({ as: Tag = "p", className }: FieldProps) {
+  const { description } = usePage();
+  const Field = usePageFields()?.Description;
+  if (!Field && !description) return null;
+
+  return <Tag className={className}>{Field ? <Field>{description}</Field> : description}</Tag>;
+}
+
+/** A block's props and the page's own fields, drawn so the canvas can edit them where they stand. */
+export const Editable = { Text, Image, Title, Description };

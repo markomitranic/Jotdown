@@ -21,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@jotdown/core/components/ui/dropdown-menu";
+import { confirmInPage } from "@jotdown/core/components/confirm";
 import { Pulse } from "../client/Banner";
 import { faceOf, type Doing } from "./face";
 import { useInplaceSession, type InplaceSession } from "./session";
@@ -315,8 +316,13 @@ function ConflictActions({ text, dismiss }: { text: string; dismiss(): void }) {
       <Button
         size="sm"
         variant="ghost"
-        onClick={() => {
-          if (window.confirm("Remove this change from the recovery copy?")) dismiss();
+        onClick={async () => {
+          const yes = await confirmInPage({
+            title: "Remove this change?",
+            description: "It leaves the recovery copy, so copy it first if you still want it.",
+            confirm: "Remove",
+          });
+          if (yes) dismiss();
         }}
       >
         Dismiss this change

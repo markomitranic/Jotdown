@@ -75,3 +75,33 @@ test("keeps the project open past a page with no title and a meta.json that is n
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test("gives a page naming no layout the one its nearest folder names", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "docs-layouts-"));
+  try {
+    await mkdir(join(directory, "docs/blog/drafts"), { recursive: true });
+    await mkdir(join(directory, "docs/z"), { recursive: true });
+    await writeFile(join(directory, "docs/meta.json"), '{ "layout": "home" }');
+    await writeFile(join(directory, "docs/index.mdx"), "---\ntitle: Home\n---\n");
+    await writeFile(join(directory, "docs/z/meta.json"), '{ "layout": "zine" }');
+    await writeFile(join(directory, "docs/z/issue.mdx"), "---\ntitle: Issue\n---\n");
+    await writeFile(join(directory, "docs/blog/meta.json"), '{ "title": "Writing", "layout": "post" }');
+    await writeFile(join(directory, "docs/blog/hello.mdx"), "---\ntitle: Hello\n---\n");
+    await writeFile(join(directory, "docs/blog/about.mdx"), "---\ntitle: About\nlayout: profile\n---\n");
+    await writeFile(join(directory, "docs/blog/drafts/meta.json"), '{ "layout": "draft" }');
+    await writeFile(join(directory, "docs/blog/drafts/next.mdx"), "---\ntitle: Next\n---\n");
+    const source = await projectSource({ id: "layouts", base: "", directory, config: readProjectConfig(directory) });
+    const layoutOf = (...slug: string[]) => {
+      const data = source.getPage(slug)?.data;
+      return data?.layout ?? data?.folderLayout;
+    };
+
+    expect(layoutOf()).toBe("home");
+    expect(layoutOf("z", "issue")).toBe("zine");
+    expect(layoutOf("blog", "hello")).toBe("post");
+    expect(layoutOf("blog", "about")).toBe("profile");
+    expect(layoutOf("blog", "drafts", "next")).toBe("draft");
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});

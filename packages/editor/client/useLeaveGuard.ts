@@ -8,6 +8,7 @@
  */
 
 import { useEffect } from "react";
+import { confirmInPage } from "@jotdown/core/components/confirm";
 
 let activeGuards = 0;
 
@@ -16,15 +17,22 @@ export function hasUnsavedChanges() {
   return activeGuards > 0;
 }
 
-const LEAVE_PROMPT = "You have edits that were never saved. Leave this page and lose them?";
+const LEAVE_QUESTION = {
+  title: "Leave without saving?",
+  description: "Your edits on this page were never saved and will be lost.",
+  confirm: "Leave",
+};
+
+/** Set while the click a reader agreed to is replayed, so every guard lets it through. */
+let agreed = false;
 
 /**
  * Whether the page may be left from code, asking first when an editor holds unsaved writing, as a link would.
  *
- * @example if (mayLeave()) router.push(url);
+ * @example if (await mayLeave()) router.push(url);
  */
-export function mayLeave() {
-  return !hasUnsavedChanges() || window.confirm(LEAVE_PROMPT);
+export async function mayLeave() {
+  return !hasUnsavedChanges() || confirmInPage(LEAVE_QUESTION);
 }
 
 /**
@@ -33,7 +41,9 @@ export function mayLeave() {
  * `beforeunload` covers leaving the site altogether. The router never unloads
  * the page, so a link is caught by a capture-phase listener on `document`,
  * which runs before React's own and therefore before the router sees the
- * click. Both hang off an effect, so neither runs during the prerender.
+ * click. The click is stopped while the page asks, and replayed on the same
+ * link once the reader agrees. Both hang off an effect, so neither runs during
+ * the prerender.
  *
  * Back and forward are not covered: nothing in the app router can stop a
  * history entry from being popped, so the browser's own buttons will take the
@@ -51,10 +61,16 @@ export function useLeaveGuard(active: boolean) {
       event.returnValue = "";
     };
 
-    const ask = (event: MouseEvent) => {
-      if (!leadsAway(event) || window.confirm(LEAVE_PROMPT)) return;
+    const ask = async (event: MouseEvent) => {
+      const link = leadsAway(event);
+      if (link === null || agreed) return;
+
       event.preventDefault();
-      event.stopPropagation();
+      event.stopImmediatePropagation();
+      if (!(await confirmInPage(LEAVE_QUESTION))) return;
+      agreed = true;
+      link.click();
+      agreed = false;
     };
 
     window.addEventListener("beforeunload", warn);
@@ -69,24 +85,25 @@ export function useLeaveGuard(active: boolean) {
 }
 
 /**
- * Whether a click is about to replace the page the editor is open on.
+ * The link a click is following, when it is about to replace the page the editor is open on.
  *
  * A modified click, a download and a new tab all leave this page where it is,
  * a bare fragment only moves the scroll position, and anything off our own
  * origin is a real navigation that `beforeunload` will catch on its own.
  *
- * @example leadsAway(event); // true for a sidebar link
+ * @example leadsAway(event); // the sidebar link, or null
  */
 function leadsAway(event: MouseEvent) {
-  if (event.defaultPrevented || event.button !== 0) return false;
-  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+  if (event.defaultPrevented || event.button !== 0) return null;
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return null;
 
   const clicked = event.target instanceof Element ? event.target.closest("a[href]") : null;
-  if (!(clicked instanceof HTMLAnchorElement)) return false;
-  if (clicked.target === "_blank" || clicked.hasAttribute("download")) return false;
+  if (!(clicked instanceof HTMLAnchorElement)) return null;
+  if (clicked.target === "_blank" || clicked.hasAttribute("download")) return null;
 
   const to = new URL(clicked.href, window.location.href);
-  if (to.origin !== window.location.origin) return false;
+  if (to.origin !== window.location.origin) return null;
 
-  return to.pathname !== window.location.pathname || to.search !== window.location.search;
+  const away = to.pathname !== window.location.pathname || to.search !== window.location.search;
+  return away ? clicked : null;
 }

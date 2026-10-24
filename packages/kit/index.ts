@@ -14,6 +14,7 @@ export {
   usePages,
   useSite,
   type KitEditor,
+  type KitFields,
   type KitPage,
   type KitPageSummary,
   type KitSite,

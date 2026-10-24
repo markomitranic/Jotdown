@@ -34,7 +34,7 @@ export default async function Page({ params }: Props) {
   const MDX = compiled.body;
   const path = `${DOCS_ROOT}/${page.path}`;
   const components = { ...getMDXComponents(await pageBindings({ project, source, page })), ...projectBlocks };
-  const layout = page.data.layout ?? project.config.layout;
+  const layout = page.data.layout ?? page.data.folderLayout ?? project.config.layout;
   const kit = { project, source, page };
 
   if (layout !== "docs")

@@ -11,6 +11,7 @@ import {
   type WhiteboardData,
   type WhiteboardRequest,
 } from "@jotdown/core/components/blocks/whiteboard/model";
+import { confirmInPage } from "@jotdown/core/components/confirm";
 import { dataUrl } from "./fromFile";
 
 /** Hosts Excalidraw and applies its editable file and preview to the page draft. */
@@ -42,8 +43,15 @@ export default function WhiteboardCanvas({ request, onClose }: { request: Whiteb
   }
 
   /** Confirms before closing a drawing that has not been applied to its page draft. */
-  function close() {
-    if (!changed.current || window.confirm("Discard the changes made in this whiteboard window?")) onClose();
+  async function close() {
+    const closing =
+      !changed.current ||
+      (await confirmInPage({
+        title: "Discard this drawing's changes?",
+        description: "They were never applied to the page.",
+        confirm: "Discard changes",
+      }));
+    if (closing) onClose();
   }
 
   useEffect(() => {

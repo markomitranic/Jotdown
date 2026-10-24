@@ -7,6 +7,7 @@ import { hasUnsavedChanges } from "@jotdown/editor/client/useLeaveGuard";
 import { parseProjectKey, type ProjectKey } from "@/lib/project-key";
 import { rememberAnsweredBookmarks, useAnsweredBookmarks } from "./saved";
 import { wearBrand } from "@jotdown/core/lib/wear-brand";
+import { confirmInPage } from "@jotdown/core/components/confirm";
 
 /** A project GitHub lists for the editor, as `GET /api/projects` answers, with the address its icon is drawn from. */
 export type ProjectListing = { key: string; title: string; description: string; icon: string | null };
@@ -188,9 +189,15 @@ export function useOpenProject() {
     onError: (error) => advance({ problem: error.message }),
   });
 
-  function open(key: string, title: string | null, bookmark: boolean) {
-    if (hasUnsavedChanges() && !window.confirm("Switch projects? Your unsaved edits on this page will be lost."))
-      return;
+  async function open(key: string, title: string | null, bookmark: boolean) {
+    const switching =
+      !hasUnsavedChanges() ||
+      (await confirmInPage({
+        title: "Switch projects?",
+        description: "Your unsaved edits on this page will be lost.",
+        confirm: "Switch",
+      }));
+    if (!switching) return;
 
     const parts = parseProjectKey(key);
     setOpening({ key, title, parts, step: "reading", found: null, look: null, problem: null });

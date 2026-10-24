@@ -12,14 +12,13 @@ import type { InternalTypeConfig } from "fumadocs-mdx/runtime/types";
 import { dynamic } from "fumadocs-mdx/runtime/dynamic";
 import { frontmatter } from "fumadocs-core/content/md/frontmatter";
 import { loader } from "fumadocs-core/source";
-import { metaSchema } from "fumadocs-core/source/schema";
 import { createElement } from "react";
 import { TriangleAlert } from "lucide-react";
 import * as config from "@jotdown/core/source.config";
 import { dataDirectory, type Project } from "./project";
 import { resolvePageIcon } from "@jotdown/core/lib/page-icon";
 import { cachedSearchText, hashOf } from "./search";
-import { readPageFrontmatter, type PageFrontmatter } from "@jotdown/core/lib/front-matter";
+import { folderMetaSchema, readPageFrontmatter, type PageFrontmatter } from "@jotdown/core/lib/front-matter";
 import { readJsonFile, type FileProblem } from "@jotdown/core/lib/broken-file";
 import { DOCS_ROOT, MOVED_FILE, inUnderscoreFolder, movesSchema } from "@jotdown/core/lib/paths";
 import { orderSections } from "@jotdown/core/lib/sections";
@@ -98,6 +97,29 @@ function sectionFinder(meta: Record<string, { title?: string; root?: string | bo
 }
 
 /**
+ * The layout each page gets from the deepest folder above it whose `meta.json` names one, or none.
+ *
+ * @example layoutFinder({ "blog/meta.json": { layout: "post" } })("blog/personal/hello.mdx"); // "post"
+ */
+function layoutFinder(meta: Record<string, { layout?: string }>) {
+  const folders = Object.entries(meta)
+    .flatMap(([path, { layout }]) => (layout ? [{ prefix: folderPrefix(path), layout }] : []))
+    .sort((a, b) => b.prefix.length - a.prefix.length);
+
+  return (path: string) => folders.find(({ prefix }) => path.startsWith(prefix))?.layout;
+}
+
+/**
+ * What every path inside a `meta.json`'s folder starts with, nothing for the docs root.
+ *
+ * @example folderPrefix("blog/meta.json"); // "blog/"
+ */
+function folderPrefix(metaPath: string) {
+  const folder = dirname(metaPath);
+  return folder === "." ? "" : `${folder}/`;
+}
+
+/**
  * The name a page is listed under while its own title cannot be read.
  *
  * @example fallbackTitle("guides/setup.mdx"); // "setup"
@@ -122,15 +144,15 @@ function sidebarIcon(name: string | undefined) {
  *
  * A file that cannot be read fails on its own. A page with broken front matter
  * stays in the tree under its file name, carrying `problem` instead of
- * compiling. A broken `meta.json` is left out, so its folder lists its pages in
- * their default order, and is reported in `problems` with a broken
- * `docs/moved.json`. An MDX page is checked for code right before its first
+ * compiling. Every page knows the layout its nearest folder names. A broken
+ * `meta.json` is left out, so its folder lists its pages in their default
+ * order, and is reported in `problems` with a broken `docs/moved.json`. An MDX page is checked for code right before its first
  * compile, so it too fails alone.
  */
 async function loadContent(project: Project, root: string, projectFiles: ProjectFile[], moved: string | null) {
   const files = new Map<string, ProjectFile>(projectFiles.map((file) => [file.path, file]));
   const problems: FileProblem[] = [];
-  const meta: Record<string, ReturnType<typeof metaSchema.parse>> = {};
+  const meta: Record<string, ReturnType<typeof folderMetaSchema.parse>> = {};
   const pages: { info: { path: string; fullPath: string }; data: PageFrontmatter }[] = [];
   const broken = new Map<string, string>();
 
@@ -138,7 +160,7 @@ async function loadContent(project: Project, root: string, projectFiles: Project
     const info = { path: file.path, fullPath: file.fullPath };
 
     if (file.path.endsWith("meta.json")) {
-      const read = readJsonFile(metaSchema, file.text);
+      const read = readJsonFile(folderMetaSchema, file.text);
       if (read.ok) meta[file.path] = read.data;
       else problems.push({ file: `${DOCS_ROOT}/${file.path}`, problem: read.problem });
       continue;
@@ -162,6 +184,7 @@ async function loadContent(project: Project, root: string, projectFiles: Project
   for (const meta of docs.meta) meta.info.fullPath = join(root, meta.info.path);
 
   const sectionOf = sectionFinder(meta);
+  const layoutOf = layoutFinder(meta);
   const checked = docs.docs.map((page) => {
     const file = files.get(page.info.path);
     if (!file) throw new Error(`${DOCS_ROOT}/${page.info.path}: compiled without being read`);
@@ -180,6 +203,7 @@ async function loadContent(project: Project, root: string, projectFiles: Project
       ...page,
       problem,
       section: sectionOf(file.path),
+      folderLayout: layoutOf(file.path),
       textHash,
       load: () => check().then(page.load),
       searchText: () => (problem ? Promise.resolve(null) : cachedSearchText(file.path, file.text, textHash)),

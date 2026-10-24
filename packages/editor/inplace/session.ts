@@ -15,13 +15,18 @@ import { useChanges, useInplace, useRecovery } from "./context";
 import { LiveEditFailure, fetchSource, refusedWith, saveSource, useDocTarget, useLiveEditConfig } from "../client/api";
 import { useIdentity, type EditorIdentity } from "../client/identity";
 import { useLeaveGuard } from "../client/useLeaveGuard";
+import { confirmInPage } from "@jotdown/core/components/confirm";
 
 /** Reloads the page, which is how a saved or stale page shows the file as it is now. */
 function reload() {
   window.location.reload();
 }
 
-const DISMISS_PROMPT = "This reloads the page and throws away everything you have changed on it. Sure?";
+const DISMISS_QUESTION = {
+  title: "Discard your changes?",
+  description: "The page reloads as the file has it, and everything you changed on it is gone.",
+  confirm: "Discard changes",
+};
 
 export type Saving =
   /** Nothing in flight. The draft is either empty or waiting to be sent. */
@@ -96,7 +101,7 @@ export function useInplaceSession() {
 
   /** Discards after asking, for a button that is not already the answer to a question. */
   const dismiss = useCallback(() => {
-    if (window.confirm(DISMISS_PROMPT)) discard();
+    void confirmInPage(DISMISS_QUESTION).then((yes) => yes && discard());
   }, [discard]);
 
   if (!inplace) return null;

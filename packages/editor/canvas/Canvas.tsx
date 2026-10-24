@@ -226,7 +226,9 @@ function useStudioHandoffs(studio: string | null, showing: string | undefined) {
  * the one showing stays up whole, its tree and its body together, until the
  * next is ready to draw. The project's own blocks are drawn by their
  * components and edited from inside, and a tag nobody draws gets a labelled
- * stand-in rather than stopping the page.
+ * stand-in rather than stopping the page. The layout is the page's own, then
+ * its folder's, then the site's, and one of the project's own is handed the
+ * editors of the page's title and description to draw where it likes.
  */
 function CanvasPage({ load, title, site, layout, blocks, layouts }: { load: CanvasLoad } & Drawing) {
   const config = load.config as LiveEditGlobalData;
@@ -280,7 +282,8 @@ function CanvasPage({ load, title, site, layout, blocks, layouts }: { load: Canv
     [front, load.target.title, load.url, site, config.base, tree],
   );
 
-  const named = front?.layout ?? layout;
+  const editable = config.editable && !load.target.generated;
+  const named = front?.layout ?? load.folderLayout ?? layout;
   const Layout = layouts[named];
   const body = "problem" in page ? <Problem>{page.problem}</Problem> : <page.body components={components} />;
   const article = (children: ReactNode) => (
@@ -292,7 +295,7 @@ function CanvasPage({ load, title, site, layout, blocks, layouts }: { load: Canv
   return (
     <FrameworkProvider {...framework}>
       <NavigationTracker />
-      <KitProvider {...kit} inStudio>
+      <KitProvider {...kit} inStudio fields={editable ? EDITABLE_FIELDS : null}>
         <ProjectInserts blocks={blocks}>
           <LiveEditRoot config={config}>
             {named === "docs" || !front ? (
@@ -318,7 +321,7 @@ function CanvasPage({ load, title, site, layout, blocks, layouts }: { load: Canv
                         description={page.data.description}
                         icon={page.data.icon}
                         generated={load.target.generated}
-                        editable={config.editable && !load.target.generated}
+                        editable={editable}
                         fields={EDITABLE_FIELDS}
                       >
                         {body}

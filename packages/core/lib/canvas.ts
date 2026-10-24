@@ -66,6 +66,8 @@ const load = z.object({
   url: z.string(),
   path: z.string(),
   text: z.string(),
+  /** The layout the page's nearest folder names, for when its own front matter names none. */
+  folderLayout: z.string().optional(),
   tree: z.unknown(),
   config: z.unknown(),
   target: z.object({

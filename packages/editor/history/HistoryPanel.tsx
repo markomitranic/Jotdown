@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@jotdown/core/components/ui/button";
+import { confirmInPage } from "@jotdown/core/components/confirm";
 import { useDocTarget, useLiveEditConfig } from "../client/api";
 import { useInplace, type Inplace } from "../inplace/context";
 import type { PageRevision } from "../types";
@@ -205,8 +206,14 @@ async function loadAsDraft({ page, text }: { page: Inplace; text: string }) {
   await page.recovery.start();
   const changed =
     page.draft.edits().size > 0 || page.draft.replacement() !== null || page.recovery.get().conflicts.length > 0;
-  if (changed && !window.confirm("Replace your unsaved browser edits with this version? Nothing will be saved yet."))
-    return false;
+  const replacing =
+    !changed ||
+    (await confirmInPage({
+      title: "Replace your unsaved edits?",
+      description: "This version takes their place in the editor. Nothing is saved yet.",
+      confirm: "Replace",
+    }));
+  if (!replacing) return false;
   page.recovery.replace(text);
   return true;
 }

@@ -19,7 +19,7 @@
 import type { Editor } from "@tiptap/core";
 import type { Inplace } from "./context";
 import { blockAt, type BlockOps, type BlockSnapshot } from "./handles";
-import { handleAt } from "./handleGeometry";
+import { boxOf, handleAt } from "./handleGeometry";
 import { blockOf, childrenOf, meant, parentOf, siblingsOf, standing } from "./blockSelection";
 import { carriedBlocks, copiedMarkdown, writeBlocks } from "./clipboard";
 
@@ -118,7 +118,7 @@ export function selectBlocks(container: HTMLElement, page: Inplace): () => void 
     let nearest: { ops: BlockOps; gap: number } | null = null;
 
     for (const ops of siblingsOf(handles, null)) {
-      const box = ops.box.getBoundingClientRect();
+      const box = boxOf(ops.box);
       const gap = y < box.top ? box.top - y : Math.max(y - box.bottom, 0);
       if (nearest === null || gap < nearest.gap) nearest = { ops, gap };
     }
@@ -436,7 +436,7 @@ const THIN = 12;
 function onFrame(ops: BlockOps, target: EventTarget | null, x: number, y: number): boolean {
   if (target === ops.dom || target === ops.box) return true;
 
-  const box = ops.box.getBoundingClientRect();
+  const box = boxOf(ops.box);
   if (box.height <= THIN) return true;
 
   const inset = x >= box.left + FRAME && x <= box.right - FRAME && y >= box.top + FRAME && y <= box.bottom - FRAME;
