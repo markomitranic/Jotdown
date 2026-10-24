@@ -657,8 +657,11 @@ Record the decisions in this plan as Jotdown ADRs:
 
 ### 6.5 Layouts
 
-- `layout` in front matter, with a default in the config.
+- `layout` in front matter, then the nearest folder's `meta.json`, then the config. Resolved when the page is drawn, never written into new pages.
 - Layouts are React components receiving `{ page, site, children }`. The framework ships `docs` (from Phase 4) and `blank`.
+- A layout draws the page's title and description with `Editable.Title` and `Editable.Description`; the canvas hands the kit its front matter editors.
+- A project block's editing wrapper draws no box, so a layout places the block's own root as the site does. Its settings live in the grip menu.
+- Wide and full measure against the window outside the docs shell, unless a layout sets `--jd-main-width`.
 
 ### 6.6 `jotdown add <block|layout>`
 

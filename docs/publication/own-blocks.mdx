@@ -57,7 +57,7 @@ What a block draws through the kit's primitives is what the canvas lets you chan
 - `Editable.Image` is a picture whose address is a prop. In the canvas it offers **Replace picture**, which uploads the file you pick and writes its address.
 - `Slot` is where the prose between the tags goes. Each paragraph in it edits like any other on the page, and an empty slot offers a first line to type.
 
-Every block also gets a grip, so it moves, copies and deletes like any block, and a settings button on its corner that edits its source. Register it with `defineBlock` and the settings become a field per prop, and `/` offers it by name:
+Every block also gets a grip, so it moves, copies and deletes like any block, and **Settings…** in the grip's menu edits its source. Register it with `defineBlock` and the settings become a field per prop, and `/` offers it by name:
 
 ```tsx
 import { defineBlock } from "@jotdown/kit";
@@ -115,6 +115,48 @@ export default function Landing({ site, children }: LayoutProps) {
 ```
 
 To change the layout of every page that names none, set `"layout"` in `.jotdown/config.json`.
+
+In the canvas a block's root is placed by your layout exactly as on the site, so a grid of blocks spanning its columns with `col-span-2` lays out the same while you edit. Put the span on the block itself, as a class or an attribute it styles: the studio keeps a boxless element around each block, which a child selector like `.bento > [data-cols]` can't see through.
+
+### Drawing the page's title
+
+A layout that draws its own heading gets the page's title and description through `Editable.Title` and `Editable.Description`. On the site they are plain text. In the canvas they are written back into the page's front matter, and an empty description still shows, so it can be written:
+
+```tsx title=".jotdown/layouts/post.tsx"
+import { Editable, type LayoutProps } from "@jotdown/kit";
+
+export default function Post({ children }: LayoutProps) {
+  return (
+    <article className="prose mx-auto max-w-2xl py-16">
+      <Editable.Title className="text-4xl" />
+      <Editable.Description className="lead" />
+      {children}
+    </article>
+  );
+}
+```
+
+`as` picks the tag, `h1` and `p` unless you say otherwise.
+
+### A layout for a whole folder
+
+Every post of a blog wants the same layout, and a post written in the app should get it without anyone typing `layout: post`. Name it once in the folder's `meta.json`:
+
+```json title="docs/blog/meta.json"
+{ "title": "Writing", "layout": "post" }
+```
+
+A page takes its own front matter's layout first, then the nearest folder's above it, then the config's. Nothing is written into the pages, so moving a page into the folder gives it the layout, and moving it out takes it away.
+
+### Wide and full blocks in your layout
+
+A picture or a table set to wide or full stands wider than the column, measured against the main area. In the docs shell that is the space between the sidebar and the table of contents. In your layout it is the window, which is right for a column centred on the page and wrong for one beside a sidebar. Say how wide your main area is with `--jd-main-width` on the column:
+
+```css
+.post-column { --jd-main-width: calc(100% + 4rem); --jd-bleed: 0px; }
+```
+
+`100%` is the column itself, so wide and full read as the column. `--jd-bleed` is how far full stops short of the main area's edges, `1.5rem` unless you set it, and `--jd-wide-width` caps wide, `75rem` unless you set it. The width grips in the canvas follow the same values.
 
 ## Starting from ours
 
