@@ -29,8 +29,13 @@ const bundled = ["shiki", "@jotdown/core", "@jotdown/editor"];
  * Vercel serves what the build wrote from its CDN, scales every picture through
  * Next's image optimizer, and answers each address `docs/moved.json` records
  * with a permanent redirect to where its page lives now.
+ *
+ * Its scripts are scoped to each deployment, never shared across them as
+ * immutable assets. The site is deployed with no framework preset, so Vercel
+ * injects its toolbar into the deployment, and it refuses to on immutable files.
  */
 const config: NextConfig = {
+  supportsImmutableAssets: false,
   transpilePackages: bundled,
   reactStrictMode: true,
   agentRules: false,
