@@ -53,6 +53,13 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.5.1](https://github.com/markomitranic/Jotdown/compare/v0.5.0...v0.5.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* **core:** stamp the prose of project blocks nested inside other project blocks ([febacf6](https://github.com/markomitranic/Jotdown/commit/febacf64106ef9d191ecea712d91f678b0733f2f))
+
 ## [0.5.0](https://github.com/markomitranic/Jotdown/compare/v0.4.2...v0.5.0) (2026-10-24)
 
 
