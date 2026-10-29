@@ -53,6 +53,13 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.5.3](https://github.com/markomitranic/Jotdown/compare/v0.5.2...v0.5.3) (2026-10-29)
+
+
+### Features
+
+* **studio:** set the reading toggle beside the page and tint it while on ([f93838e](https://github.com/markomitranic/Jotdown/commit/f93838eeb3e19e759ae5025a0af792f5dcad5ad3))
+
 ## [0.5.2](https://github.com/markomitranic/Jotdown/compare/v0.5.1...v0.5.2) (2026-10-29)
 
 
