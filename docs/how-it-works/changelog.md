@@ -53,6 +53,13 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.5.2](https://github.com/markomitranic/Jotdown/compare/v0.5.1...v0.5.2) (2026-10-29)
+
+
+### Features
+
+* **studio:** switch a page between editing and reading from the status strip ([4c6f08d](https://github.com/markomitranic/Jotdown/commit/4c6f08d689252ed1bc63a3dff01970e5d062792a))
+
 ## [0.5.1](https://github.com/markomitranic/Jotdown/compare/v0.5.0...v0.5.1) (2026-10-29)
 
 
