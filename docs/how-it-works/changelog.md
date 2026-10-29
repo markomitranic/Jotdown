@@ -53,6 +53,18 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.5.6](https://github.com/markomitranic/Jotdown/compare/v0.5.5...v0.5.6) (2026-10-29)
+
+
+### Features
+
+* let a project switch off its site's llms.txt and assistant links ([6952135](https://github.com/markomitranic/Jotdown/commit/69521352f245333009fad0392a29843b34173fe6))
+
+
+### Bug Fixes
+
+* open pictures on the fullscreen stage in a project's own layouts ([54648be](https://github.com/markomitranic/Jotdown/commit/54648be1cedb8b38ad36138772f4f9db4dae1b3c))
+
 ## [0.5.5](https://github.com/markomitranic/Jotdown/compare/v0.5.4...v0.5.5) (2026-10-29)
 
 
