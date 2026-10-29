@@ -153,10 +153,24 @@ const TITLE_BAR = "[data-window-drag], [data-toc-popover] > header";
 const PRESSABLE = "a, button, input, textarea, select, [role='dialog']";
 
 /**
+ * The same-origin link a click landed on, as a url, or nothing for another site or a new-window link.
+ *
+ * @example pageLink(event); // URL { pathname: "/you/notes/guides/setup" }
+ */
+function pageLink(event: MouseEvent) {
+  const link = (event.target as Element | null)?.closest("a[href]");
+  if (!(link instanceof HTMLAnchorElement) || link.target === "_blank") return null;
+
+  const url = new URL(link.href, location.href);
+  return url.origin === location.origin ? url : null;
+}
+
+/**
  * Sends link clicks, the studio's own shortcuts and presses on the title bar up to the studio, once one has answered.
  *
  * A link clicked away from the page `showing` starts a trip there, so the
- * sidebar moves to it and the page fades while the studio fetches it. The app
+ * sidebar moves to it and the page fades while the studio fetches it. Links
+ * here carry the studio's addresses, so one opened in a new tab opens the studio. The app
  * only sees presses on its own page, so a press on the canvas's title bar is
  * handed up for the app to start moving the window, and the release after it
  * to stop.
@@ -168,15 +182,27 @@ function useStudioHandoffs(studio: string | null, showing: string | undefined) {
     if (!studio) return;
 
     function click(event: MouseEvent) {
-      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return;
-      const link = (event.target as Element | null)?.closest("a[href]");
-      if (!(link instanceof HTMLAnchorElement) || link.target === "_blank") return;
+      if (event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey) return openInStudio(event);
+      const url = pageLink(event);
+      if (!url || (url.hash && url.pathname === location.pathname)) return;
 
-      const url = new URL(link.href, location.href);
-      if (url.origin !== location.origin || (url.hash && url.pathname === location.pathname)) return;
       event.preventDefault();
       if (showing) startTrip(url.pathname, showing);
       post(window.parent, studio as string, { type: "navigate", url: url.pathname + url.hash });
+    }
+
+    function auxclick(event: MouseEvent) {
+      if (event.defaultPrevented || event.button !== 1) return;
+      openInStudio(event);
+    }
+
+    function openInStudio(event: MouseEvent) {
+      const url = pageLink(event);
+      if (!url) return;
+
+      event.preventDefault();
+      window.open(`${studio}${url.pathname}${url.search}${url.hash}`, "_blank", "noopener");
     }
 
     function key(event: KeyboardEvent) {
@@ -209,11 +235,13 @@ function useStudioHandoffs(studio: string | null, showing: string | undefined) {
     }
 
     document.addEventListener("click", click, true);
+    document.addEventListener("auxclick", auxclick, true);
     document.addEventListener("mousedown", press, true);
     window.addEventListener("mouseup", release, true);
     window.addEventListener("keydown", key);
     return () => {
       document.removeEventListener("click", click, true);
+      document.removeEventListener("auxclick", auxclick, true);
       document.removeEventListener("mousedown", press, true);
       window.removeEventListener("mouseup", release, true);
       window.removeEventListener("keydown", key);
