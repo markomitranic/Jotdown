@@ -160,6 +160,12 @@ function projectConfig(answers: SetupAnswers, inspection: Inspection) {
     ...(answers.content && { content: answers.content }),
     ...(answers.icon && { logo: { alt: answers.title, src: icon }, favicon: icon }),
     ...(palette && { theme: { light: palette.light, dark: palette.dark } }),
+    ...(!(answers.llms && answers.assistants) && {
+      features: {
+        ...(!answers.llms && { llms: false }),
+        ...(!answers.assistants && { assistants: false }),
+      },
+    }),
   };
 
   return `${JSON.stringify(config, null, 2)}\n`;

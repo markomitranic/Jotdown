@@ -5,9 +5,14 @@
 /**
  * Every dotted path whose value differs between two configs, objects walked and anything else compared whole.
  *
- * @example changedPaths({ title: "A" }, { title: "B", url: "https://x.dev" }); // ["title", "url"]
+ * An object added or removed counts as empty on the side it is missing from, so its leaves are named one by one.
+ *
+ * @example changedPaths({ title: "A" }, { title: "B", features: { llms: false } }); // ["title", "features.llms"]
  */
 export function changedPaths(before: unknown, after: unknown, at = ""): string[] {
+  if (before === undefined && isObject(after)) return changedPaths({}, after, at);
+  if (after === undefined && isObject(before)) return changedPaths(before, {}, at);
+
   const bothObjects = isObject(before) && isObject(after);
   if (!bothObjects) return JSON.stringify(before) === JSON.stringify(after) ? [] : [at];
 

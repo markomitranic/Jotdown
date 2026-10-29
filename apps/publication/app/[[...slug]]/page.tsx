@@ -54,6 +54,7 @@ export default async function Page({ params }: Props) {
             title={page.data.title}
             markdownUrl={markdownUrl(page.slugs)}
             githubUrl={githubBlobUrl(project.config, path)}
+            assistants={project.config.features.assistants}
           >
             <PageContent
               title={page.data.title}

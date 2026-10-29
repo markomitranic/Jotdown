@@ -145,6 +145,17 @@ async function pressNext() {
   await userEvent.click(next);
 }
 
+/** The agents step: the repository's skills and note, and the site's llms.txt and assistant links, all on. */
+export const Agents = meta.story({
+  args: { start: FOUND.target },
+  play: async () => {
+    const page = within(document.body);
+    await page.findByText(/^Default branch main/);
+    for (let step = 0; step < 5; step++) await pressNext();
+    await page.findByText("List every page in llms.txt");
+  },
+});
+
 /** Next answers every question with its default, up to the review of every file. */
 export const Review = meta.story({
   args: { start: FOUND.target },

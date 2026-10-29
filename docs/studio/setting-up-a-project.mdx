@@ -89,8 +89,13 @@ record, or just a home page. Either is a placeholder for your agent to replace.
 **Install skills** copies the docs skills into `.agents/skills/` and links them
 into `.claude/skills/`. **Tell agents where the docs are** adds a short
 Documentation section to `AGENTS.md`, or creates it with a `CLAUDE.md` that
-imports it. Both are on by default, and both are explained in
+imports it. Both are explained in
 [Connecting your agents](../context-warehouse/connecting-agents.mdx).
+
+The other two are for the site. **List every page in llms.txt** serves the
+index agents read the site from, and **Open pages in assistants** keeps Open in
+Claude, ChatGPT and Cursor in each page's menu. Unticking either writes it off
+under `features` in the config. All four are on by default.
 
 </Step>
 <Step>

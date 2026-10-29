@@ -39,6 +39,10 @@ curl https://docs.example.com/markdown/checkout/refunds.md
 The index links to twins rather than HTML pages, so the second fetch lands on
 source text. There is no search: the agent picks a page by its title and description.
 
+A site that should not hand itself to agents sets `"features": { "llms": false }`
+in its [configuration](../how-it-works/configuration.mdx#features), and
+`/llms.txt` answers 404.
+
 ## Why not the studio
 
 The studio answers the same kind of addresses under each project, such as

@@ -22,6 +22,8 @@ const answers: SetupAnswers = {
   pages: "home",
   skills: false,
   agentNote: false,
+  llms: true,
+  assistants: true,
   publishing: "none",
   moveOld: false,
 };
@@ -59,7 +61,7 @@ function text(write: Write) {
 
 test("the config names only what was answered, and the docs sit in the folder it names", () => {
   const writes = planSetup(
-    { ...answers, content: "apps/docs", palette: "ocean", icon: "iVBORw0KGgo=", publishing: "vercel" },
+    { ...answers, content: "apps/docs", palette: "ocean", icon: "iVBORw0KGgo=", publishing: "vercel", llms: false },
     inspection,
     { ...sources, icon: new Uint8Array([0x89]) },
   );
@@ -71,6 +73,7 @@ test("the config names only what was answered, and the docs sit in the folder it
     repository: "https://github.com/you/site",
     content: "apps/docs",
     favicon: "/uploads/icon.png",
+    features: { llms: false },
   });
   expect(config.theme.dark.primary).toBe("#7fb2ff");
   expect(config).not.toHaveProperty("description");
@@ -80,6 +83,7 @@ test("the config names only what was answered, and the docs sit in the folder it
   const plain = JSON.parse(text(find(planSetup(answers, inspection, sources), ".jotdown/config.json")));
   expect(plain).not.toHaveProperty("theme");
   expect(plain).not.toHaveProperty("content");
+  expect(plain).not.toHaveProperty("features");
 });
 
 test("a file already there is kept, and a skill already there is replaced", () => {

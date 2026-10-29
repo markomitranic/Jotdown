@@ -35,6 +35,15 @@ export const projectConfigSchema = z.object({
   favicon: uploadUrl.optional(),
   /** The layout a page is drawn in when its front matter names none. */
   layout: z.string().min(1).default("docs"),
+  /** What a publication offers agents beyond its pages, each on unless switched off. */
+  features: z
+    .object({
+      /** The `/llms.txt` index of every page. */
+      llms: z.boolean().default(true),
+      /** The page menu's rows that open the page in Claude, ChatGPT and Cursor. */
+      assistants: z.boolean().default(true),
+    })
+    .prefault({}),
 });
 
 export type ProjectConfig = z.infer<typeof projectConfigSchema>;

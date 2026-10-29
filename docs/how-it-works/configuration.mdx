@@ -27,7 +27,8 @@ lists a GitHub repository among its projects once the file exists.
   "content": "site",
   "logo": { "alt": "Notes", "src": "/uploads/logo.svg" },
   "favicon": "/uploads/favicon.png",
-  "theme": { "light": { "primary": "#433a86" }, "dark": { "primary": "#b9acff" } }
+  "theme": { "light": { "primary": "#433a86" }, "dark": { "primary": "#b9acff" } },
+  "features": { "llms": false, "assistants": false }
 }
 ```
 
@@ -47,6 +48,7 @@ lists a GitHub repository among its projects once the file exists.
 | `logo` | none | `alt`, `src` and an optional `srcDark`, each an upload address. Drawn in the sidebar's corner. |
 | `favicon` | none | The publication's tab icon, an upload address. The studio always shows its own. |
 | `theme` | the default palette | The project's colours per mode, its radius and its typefaces. See [Branding](../studio/branding.mdx). |
+| `features` | everything on | What the site offers agents, each switched off with `false`. See [Features](#features). |
 
 ## Addresses
 
@@ -55,3 +57,17 @@ asks for, starting with a slash, like `/uploads/logo.svg`, `/img/docs/hero.png`,
 `/files/docs/brief.pdf` or `/whiteboards/flow.png`. `logo`, `favicon` and a
 font's `src` take these. `/uploads/` means the uploads folder wherever it is,
 so moving the uploads never changes an address.
+
+## Features
+
+`features` switches off what a site offers agents beyond its pages. Each one
+is on until the config sets it to `false`, and it only changes the site: the
+studio keeps all of them on your own machine. The setup wizard asks about them
+on its Agents step, and the project's settings switch them under For agents.
+
+| Feature | What `false` does |
+| --- | --- |
+| `llms` | `/llms.txt` answers 404. See [Reading the docs over HTTP](../context-warehouse/reading-over-http.mdx). |
+| `assistants` | The page menu drops Open in Claude, Open in ChatGPT and Open in Cursor. |
+
+The markdown twins stay either way, since search previews a page from its twin.

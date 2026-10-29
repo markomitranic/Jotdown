@@ -19,6 +19,8 @@ type Props = {
   markdownUrl: string;
   /** The page's `.mdx` file on GitHub. */
   githubUrl: string;
+  /** Whether the menu offers to open the page in Claude, ChatGPT and Cursor. */
+  assistants?: boolean;
   /** Opens the page's share controls, where there are any; otherwise Share copies the address. */
   onShare?: () => void;
   /** Rows of the app's own, listed after View as Markdown. */
@@ -38,7 +40,7 @@ type Props = {
  *
  * @example <PageActions markdownUrl="/markdown/architecture.md" githubUrl="https://…" />
  */
-export function PageActions({ markdownUrl, githubUrl, onShare, children, onCloseAutoFocus }: Props) {
+export function PageActions({ markdownUrl, githubUrl, assistants = true, onShare, children, onCloseAutoFocus }: Props) {
   const [copied, copy] = useCopyMarkdown(markdownUrl);
   const [linked, copyAddress] = useCopyButton(() => navigator.clipboard.writeText(window.location.href));
 
@@ -69,8 +71,12 @@ export function PageActions({ markdownUrl, githubUrl, onShare, children, onClose
               Open in GitHub
             </Elsewhere>
           )}
-          <DropdownMenuSeparator />
-          <AssistantLinks />
+          {assistants && (
+            <>
+              <DropdownMenuSeparator />
+              <AssistantLinks />
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

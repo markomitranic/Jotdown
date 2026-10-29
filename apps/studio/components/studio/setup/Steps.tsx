@@ -13,6 +13,8 @@ import {
   BookOpen,
   Library,
   Link2,
+  ListTree,
+  MessageSquareText,
   Sparkles,
   Triangle,
 } from "lucide-react";
@@ -306,24 +308,22 @@ export function PagesStep({
   );
 }
 
-type AgentsProps = {
-  skills: boolean;
-  agentNote: boolean;
+type AgentsProps = Pick<SetupAnswers, "skills" | "agentNote" | "llms" | "assistants"> & {
   agentFile: "AGENTS.md" | "CLAUDE.md" | null;
-  onChange: (next: { skills?: boolean; agentNote?: boolean }) => void;
+  onChange: (next: Partial<Pick<SetupAnswers, "skills" | "agentNote" | "llms" | "assistants">>) => void;
 };
 
 /**
- * Whether the docs skills are installed, and whether the repository's agent instructions point at the docs. Either, both or neither.
+ * How agents meet the docs: skills and a note in the repository, an index and assistant links on the site. Any of them, or none.
  *
- * @example <AgentsStep skills agentNote agentFile="AGENTS.md" onChange={change} />
+ * @example <AgentsStep skills agentNote llms assistants agentFile="AGENTS.md" onChange={change} />
  */
-export function AgentsStep({ skills, agentNote, agentFile, onChange }: AgentsProps) {
+export function AgentsStep({ skills, agentNote, llms, assistants, agentFile, onChange }: AgentsProps) {
   return (
     <QuestionnaireItem name="agents" multiple>
       <Question
         title="Let agents know about the docs?"
-        description="Set up the repo for easy use with Claude, Codex and OpenCode."
+        description="Set up the repo and the site for easy use with Claude, Codex and OpenCode."
       />
       <QuestionnaireChoices>
         <QuestionnaireChoice
@@ -360,6 +360,22 @@ export function AgentsStep({ skills, agentNote, agentFile, onChange }: AgentsPro
                 maintain the docs, and <Path>CLAUDE.md</Path> importing it.
               </>
             )}
+          </QuestionnaireChoiceDescription>
+        </QuestionnaireChoice>
+        <QuestionnaireChoice value="llms" checked={llms} onChange={(event) => onChange({ llms: event.target.checked })}>
+          <ChoiceName icon={<ListTree />}>List every page in llms.txt</ChoiceName>
+          <QuestionnaireChoiceDescription>
+            The site serves <Path>/llms.txt</Path>, an index agents anywhere can read the docs from.
+          </QuestionnaireChoiceDescription>
+        </QuestionnaireChoice>
+        <QuestionnaireChoice
+          value="assistants"
+          checked={assistants}
+          onChange={(event) => onChange({ assistants: event.target.checked })}
+        >
+          <ChoiceName icon={<MessageSquareText />}>Open pages in assistants</ChoiceName>
+          <QuestionnaireChoiceDescription>
+            Each page's menu on the site offers Open in Claude, ChatGPT and Cursor.
           </QuestionnaireChoiceDescription>
         </QuestionnaireChoice>
       </QuestionnaireChoices>

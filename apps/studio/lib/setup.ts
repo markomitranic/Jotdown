@@ -42,6 +42,10 @@ export const setupAnswersSchema = z.object({
   pages: z.enum(["home", "starter"]),
   skills: z.boolean(),
   agentNote: z.boolean(),
+  /** The site's `/llms.txt`, the index agents read every page from. */
+  llms: z.boolean(),
+  /** The site's page menu rows that open a page in Claude, ChatGPT and Cursor. */
+  assistants: z.boolean(),
   publishing: z.enum(["none", "vercel"]),
   /** Move what the content folder already holds into `_old/` inside it, so docs can be set up there. */
   moveOld: z.boolean(),

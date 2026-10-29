@@ -74,6 +74,8 @@ describe("the settings draft", () => {
     const draft = { title: "Docs", url: "https://docs.dev", theme: { light: { primary: "#1f5fbf" } } };
 
     expect(changedPaths(saved, draft)).toEqual(["theme.light.primary", "theme.radius", "url"]);
+    expect(changedPaths({}, { features: { llms: false } })).toEqual(["features.llms"]);
+    expect(changedPaths({ features: { llms: false } }, {})).toEqual(["features.llms"]);
   });
 
   it("writes one path without touching its neighbours, and drops what a cleared field leaves", () => {

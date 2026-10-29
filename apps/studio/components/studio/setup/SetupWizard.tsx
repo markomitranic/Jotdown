@@ -58,6 +58,8 @@ const FIRST_DRAFT: Draft = {
   pages: "starter",
   skills: true,
   agentNote: true,
+  llms: true,
+  assistants: true,
   publishing: "none",
   moveOld: false,
   elsewhere: false,
@@ -271,6 +273,8 @@ export function SetupWizard({ start = null, onClose, onOpenProject, api = setupA
           <AgentsStep
             skills={draft.skills}
             agentNote={draft.agentNote}
+            llms={draft.llms}
+            assistants={draft.assistants}
             agentFile={inspection.data?.agentFile ?? null}
             onChange={change}
           />

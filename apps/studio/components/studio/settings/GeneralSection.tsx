@@ -6,11 +6,12 @@ import { cn } from "cn";
 import { CircleAlert, CircleCheck, LoaderCircle, RotateCw, TriangleAlert } from "lucide-react";
 import { Button } from "@jotdown/core/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@jotdown/core/components/ui/select";
+import { Switch } from "@jotdown/core/components/ui/switch";
 import { fetchJson, postJson } from "@jotdown/core/lib/fetch-json";
 import type { Branches } from "@/server/projects/branches";
 import type { HealthCheck } from "@/server/settings/health";
 import { type Config, useDraft } from "./draft";
-import { withValue } from "@/lib/settings/config-draft";
+import { valueAt, withValue } from "@/lib/settings/config-draft";
 import { SettingsBlock, SettingsGroup, SettingsRow, TextSetting } from "./parts";
 
 /**
@@ -61,6 +62,25 @@ export function GeneralSection() {
         </SettingsRow>
       </SettingsGroup>
 
+      <SettingsGroup title="For agents">
+        <SettingsRow
+          label="llms.txt"
+          description="The site serves an index of every page, for agents to read the docs from."
+          paths={["features.llms"]}
+          keywords="ai llm index features"
+        >
+          <FeatureSetting path="features.llms" label="llms.txt" />
+        </SettingsRow>
+        <SettingsRow
+          label="Open in assistants"
+          description="Each page's menu offers Open in Claude, ChatGPT and Cursor."
+          paths={["features.assistants"]}
+          keywords="ai claude chatgpt cursor features menu"
+        >
+          <FeatureSetting path="features.assistants" label="Open in assistants" />
+        </SettingsRow>
+      </SettingsGroup>
+
       <SettingsGroup
         title="Advanced"
         action={
@@ -104,6 +124,23 @@ export function GeneralSection() {
         )}
       </SettingsGroup>
     </>
+  );
+}
+
+/**
+ * A switch for one of the site's features, on unless the config says `false`, and taken out of the config when turned back on.
+ *
+ * @example <FeatureSetting path="features.llms" label="llms.txt" />
+ */
+function FeatureSetting({ path, label }: { path: string; label: string }) {
+  const { config, update } = useDraft();
+
+  return (
+    <Switch
+      aria-label={label}
+      checked={valueAt(config, path) !== false}
+      onCheckedChange={(on) => update((current) => withValue(current, path, on ? undefined : false))}
+    />
   );
 }
 

@@ -15,6 +15,8 @@ type Props = {
   markdownUrl: string;
   /** The page's file on GitHub, or empty when the project names no repository. */
   githubUrl: string;
+  /** Whether the page menu offers to open the page in an assistant. */
+  assistants: boolean;
   /** The whole readable page: the title, the description and the body. */
   children: ReactNode;
 };
@@ -25,15 +27,20 @@ type Props = {
  * The drawer holds the addresses to share the page by, and Share in the page
  * menu opens it on those.
  *
- * @example <ReadingArticle title="Setup" markdownUrl="/markdown/setup.md" githubUrl=""><PageContent … /></ReadingArticle>
+ * @example <ReadingArticle title="Setup" markdownUrl="/markdown/setup.md" githubUrl="" assistants><PageContent … /></ReadingArticle>
  */
-export function ReadingArticle({ title, markdownUrl, githubUrl, children }: Props) {
+export function ReadingArticle({ title, markdownUrl, githubUrl, assistants, children }: Props) {
   const drawer = usePageDrawer("share");
 
   return (
     <div className="relative">
       <div className="absolute top-0 right-0 z-2 flex items-center gap-2">
-        <PageActions markdownUrl={markdownUrl} githubUrl={githubUrl} onShare={() => drawer.show("share")} />
+        <PageActions
+          markdownUrl={markdownUrl}
+          githubUrl={githubUrl}
+          assistants={assistants}
+          onShare={() => drawer.show("share")}
+        />
         <PageDrawer drawer={drawer} title={title}>
           <TabsList>
             <TabsTrigger value="share">
