@@ -53,6 +53,13 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.5.5](https://github.com/markomitranic/Jotdown/compare/v0.5.4...v0.5.5) (2026-10-29)
+
+
+### Bug Fixes
+
+* **editor:** open canvas links in the studio on a modified or middle click ([c7de2a0](https://github.com/markomitranic/Jotdown/commit/c7de2a0632fc1178477b110f6545aa0643745bce))
+
 ## [0.5.4](https://github.com/markomitranic/Jotdown/compare/v0.5.3...v0.5.4) (2026-10-29)
 
 
