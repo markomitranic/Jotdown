@@ -19,7 +19,7 @@ const meta = preview.meta({
   parameters: { layout: "fullscreen" },
 });
 
-const EDITOR = { login: "grace", name: "Grace Hopper" };
+const EDITOR = { login: "grace", name: "Grace Hopper", email: "grace@example.com" };
 
 /** The strip of one project, alone in the window, with the colour stripe along its top edge. */
 function Strip({ projectKey, title }: { projectKey: string; title: string }) {
@@ -40,24 +40,34 @@ function Strip({ projectKey, title }: { projectKey: string; title: string }) {
 
 /** The pages of a handbook, three levels deep, with one folder that is only a label. */
 const PAGES: PageOutline[] = [
-  { title: "Welcome", url: "/you/handbook", children: [] },
+  { title: "Welcome", url: "/you/handbook", path: "docs/index.mdx", children: [] },
   {
     title: "Guides",
     url: "/you/handbook/guides",
+    path: "docs/guides/index.mdx",
     children: [
-      { title: "Setup", url: "/you/handbook/guides/setup", children: [] },
-      { title: "Releasing", url: "/you/handbook/guides/releasing", children: [] },
+      { title: "Setup", url: "/you/handbook/guides/setup", path: "docs/guides/setup.mdx", children: [] },
+      { title: "Releasing", url: "/you/handbook/guides/releasing", path: "docs/guides/releasing.mdx", children: [] },
       {
         title: "Deploying",
         url: null,
-        children: [{ title: "On Vercel", url: "/you/handbook/guides/deploying/vercel", children: [] }],
+        path: null,
+        children: [
+          {
+            title: "On Vercel",
+            url: "/you/handbook/guides/deploying/vercel",
+            path: "docs/guides/deploying/vercel.mdx",
+            children: [],
+          },
+        ],
       },
     ],
   },
   {
     title: "Decision records",
     url: null,
-    children: [{ title: "ADR 0001", url: "/you/handbook/adr/0001", children: [] }],
+    path: null,
+    children: [{ title: "ADR 0001", url: "/you/handbook/adr/0001", path: null, children: [] }],
   },
 ];
 
@@ -66,6 +76,9 @@ function answers(branches: Branches, update: string | null = null) {
   return [
     http.get("/api/projects/p1/branches", () => HttpResponse.json(branches)),
     http.get("/api/projects/p1/pages", () => HttpResponse.json({ pages: PAGES })),
+    http.post("/api/projects/p1/live-edit/structure", () =>
+      HttpResponse.json({ commitSha: "b2", changed: 1, moves: [] }),
+    ),
     http.get("/api/projects/p1/version", () => HttpResponse.json({ version: "a1" })),
     http.get("/api/projects/bookmarks", () => HttpResponse.json({ bookmarks: [] })),
     http.get("/api/update", () => HttpResponse.json({ update: update && { version: update } })),
@@ -138,8 +151,50 @@ export const PickingAPage = meta.story({
     await waitFor(() => expect(within(list).getByText("Deploying")).toBeVisible());
 
     await userEvent.type(picker.getByRole("textbox", { name: "Search pages" }), "guides vercel");
-    await expect(within(list).getAllByRole("option")).toHaveLength(1);
+    await expect(within(list).getAllByRole("option", { name: /On Vercel/ })).toHaveLength(1);
     await waitFor(() => expect(within(list).getByText("Guides / Deploying")).toBeVisible());
+  },
+});
+
+/** A title that matches nothing becomes a new page, beside the page on screen. */
+export const MakingAPage = meta.story({
+  render: () => <Strip projectKey="you/handbook" title="Engineering handbook" />,
+  parameters: { nextjs: { navigation: { pathname: "/you/handbook/guides/setup" } } },
+  beforeEach: ({ msw }) => {
+    msw.use(...answers({ current: "main", home: "main", branches: ["main"] }));
+  },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(await within(canvasElement).findByRole("button", { name: "Setup" }));
+
+    const picker = within(canvasElement.ownerDocument.body);
+    const list = await picker.findByRole("listbox", { name: "Pages" });
+    await waitFor(() => expect(within(list).getByText("Releasing")).toBeVisible());
+    await userEvent.type(picker.getByRole("textbox", { name: "Search pages" }), "Rolling back");
+
+    const made = within(list).getByRole("option", { name: /New page Rolling back/ });
+    await expect(made).toHaveAttribute("aria-selected", "true");
+    await expect(within(made).getByText("in Guides")).toBeVisible();
+  },
+});
+
+/** The highlighted page's bin asks twice before the page is deleted. */
+export const DeletingAPage = meta.story({
+  render: () => <Strip projectKey="you/handbook" title="Engineering handbook" />,
+  parameters: { nextjs: { navigation: { pathname: "/you/handbook/guides/setup" } } },
+  beforeEach: ({ msw }) => {
+    msw.use(...answers({ current: "main", home: "main", branches: ["main"] }));
+  },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(await within(canvasElement).findByRole("button", { name: "Setup" }));
+
+    const picker = within(canvasElement.ownerDocument.body);
+    const list = await picker.findByRole("listbox", { name: "Pages" });
+    await waitFor(() => expect(within(list).getByText("Releasing")).toBeVisible());
+    await expect(within(list).queryByRole("button", { name: "Delete Welcome" })).toBeNull();
+
+    await userEvent.click(within(list).getByRole("button", { name: "Delete Setup" }));
+    await userEvent.click(await picker.findByRole("button", { name: "Delete" }));
+    await expect(await picker.findByRole("button", { name: 'Delete "Setup"' })).toBeVisible();
   },
 });
 

@@ -21,7 +21,7 @@ import { useBookmarks, useOpenProject } from "./projects";
 import { useStudioPulse } from "./pulse";
 
 type Workspace = {
-  editor: { login: string; name: string };
+  editor: { login: string; name: string; email: string };
   project: { id: string; key: string; title: string; base: string };
   /** The theme the page was drawn with, which a settings draft is tried on against. */
   theme?: Theme;

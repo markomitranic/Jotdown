@@ -28,13 +28,19 @@ describe("pageOutline", () => {
       },
     };
 
-    expect(pageOutline(tree)).toEqual([
-      { title: "Welcome", url: "/", children: [] },
-      { title: "Studio", url: null, children: [{ title: "Branding", url: "/studio/branding", children: [] }] },
+    expect(pageOutline(tree, { "/examples": "docs/examples/index.mdx" })).toEqual([
+      { title: "Welcome", url: "/", path: null, children: [] },
+      {
+        title: "Studio",
+        url: null,
+        path: null,
+        children: [{ title: "Branding", url: "/studio/branding", path: null, children: [] }],
+      },
       {
         title: "Examples",
         url: "/examples",
-        children: [{ title: "Every block", url: "/examples/every-block", children: [] }],
+        path: "docs/examples/index.mdx",
+        children: [{ title: "Every block", url: "/examples/every-block", path: null, children: [] }],
       },
     ]);
   });

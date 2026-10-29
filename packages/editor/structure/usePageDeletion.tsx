@@ -44,33 +44,51 @@ export function usePageDeletion() {
   const structure = useStructure();
   const { path, title, generated } = useDocTarget();
   const { identity } = useIdentity();
-  const [step, setStep] = useState<Step>(null);
+  const [asking, setAsking] = useState(false);
 
   if (generated || !structure || isRoot(path) || !identity) return null;
 
-  const remove = () => {
-    setStep(null);
-    structure.commitNow({ kind: "delete", path }, identity);
-  };
-
   return {
-    ask: () => setStep("explain"),
+    ask: () => setAsking(true),
     dialog: (
-      <AlertDialog open={step !== null} onOpenChange={(open) => open || setStep(null)}>
-        <AlertDialogContent>
-          {step === "sure" ? (
-            <LastChance title={title} onDelete={remove} />
-          ) : (
-            <Explain path={path} title={title} onContinue={() => setStep("sure")} />
-          )}
-        </AlertDialogContent>
-      </AlertDialog>
+      <PageDeletion
+        page={asking ? { path, title } : null}
+        onCancel={() => setAsking(false)}
+        onDelete={() => {
+          setAsking(false);
+          structure.commitNow({ kind: "delete", path }, identity);
+        }}
+      />
     ),
   };
 }
 
-/** Which of the two confirmations is on screen, or neither. */
-type Step = "explain" | "sure" | null;
+type DeletionProps = {
+  /** The page being asked about, or null while nothing is. */
+  page: { path: string; title: string } | null;
+  onCancel: () => void;
+  onDelete: () => void;
+};
+
+/**
+ * The two confirmations that stand between a page and the commit deleting it, open while there is a page to ask about.
+ *
+ * @example <PageDeletion page={{ path: "docs/old.mdx", title: "Old" }} onCancel={close} onDelete={remove} />
+ */
+export function PageDeletion({ page, onCancel, onDelete }: DeletionProps) {
+  const [sure, setSure] = useState(false);
+  const [shown, setShown] = useState(page);
+  if (page && page.path !== shown?.path) setShown(page);
+
+  return (
+    <AlertDialog open={page !== null} onOpenChange={(open) => open || onCancel()}>
+      <AlertDialogContent onCloseAutoFocus={() => setSure(false)}>
+        {shown && sure && <LastChance title={shown.title} onDelete={onDelete} />}
+        {shown && !sure && <Explain path={shown.path} title={shown.title} onContinue={() => setSure(true)} />}
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
 
 /** What deleting this page actually does, and the first of the two Yeses. */
 function Explain({ path, title, onContinue }: { path: string; title: string; onContinue: () => void }) {

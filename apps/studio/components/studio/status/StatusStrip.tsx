@@ -42,7 +42,7 @@ export function StatusStrip() {
     >
       <ProjectItem folder={folder} />
       <BranchMenu projectId={workspace.project.id} folder={folder} />
-      <PagePicker projectId={workspace.project.id} />
+      <PagePicker project={workspace.project} editor={workspace.editor} />
       <ReadingButton />
       <Said />
       <UpdateNotice className={cn(ITEM, "h-5.5 px-1.5 font-medium text-primary")} />
