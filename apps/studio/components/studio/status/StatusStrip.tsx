@@ -21,7 +21,7 @@ import { PagePicker } from "./PagePicker";
 import { ITEM, note, useNote } from "./note";
 
 /**
- * The studio's own chrome, a strip along the foot of the window: the project, its branch and the page on the left, the studio's tools on the right.
+ * The studio's own chrome, a strip along the foot of the window: the project, its branch, the page and whether it reads or edits on the left, the studio's tools on the right.
  *
  * Everything above it is the project, drawn by the studio or by its site, so
  * nothing about the studio sits in the site's look. The colour stripe runs
@@ -43,11 +43,11 @@ export function StatusStrip() {
       <ProjectItem folder={folder} />
       <BranchMenu projectId={workspace.project.id} folder={folder} />
       <PagePicker projectId={workspace.project.id} />
+      <ReadingButton />
       <Said />
       <UpdateNotice className={cn(ITEM, "h-5.5 px-1.5 font-medium text-primary")} />
       <RefreshButton />
       {folder && <EditorButton />}
-      <ReadingButton />
       <RendererMenu className={ITEM} />
       <SettingsButton />
     </footer>
@@ -180,7 +180,10 @@ function ReadingButton() {
           aria-label={label}
           aria-pressed={reading}
           onClick={() => setReading(!reading)}
-          className={cn(ITEM, "aria-pressed:bg-accent aria-pressed:font-medium aria-pressed:text-accent-foreground")}
+          className={cn(
+            ITEM,
+            "aria-pressed:bg-(color:--chart-2)/15 aria-pressed:hover:bg-(color:--chart-2)/22 aria-pressed:font-medium aria-pressed:text-[color-mix(in_oklab,var(--chart-2),var(--foreground)_35%)]",
+          )}
         >
           <Eye className="size-3.5" aria-hidden="true" />
           {reading && <span className="animate-fade-in">Reading</span>}
