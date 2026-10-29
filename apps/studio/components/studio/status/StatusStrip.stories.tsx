@@ -1,6 +1,8 @@
 import { HttpResponse, http } from "msw";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import preview from "@/.storybook/preview";
+import { PageStory } from "@/.storybook/page";
+import * as callout from "@/stories/blocks/Callout.mdx";
 import type { PageOutline } from "@/lib/page-outline";
 import type { Branches } from "@/server/projects/branches";
 import { WorkspaceProvider } from "../Workspace";
@@ -138,5 +140,30 @@ export const PickingAPage = meta.story({
     await userEvent.type(picker.getByRole("textbox", { name: "Search pages" }), "guides vercel");
     await expect(within(list).getAllByRole("option")).toHaveLength(1);
     await waitFor(() => expect(within(list).getByText("Guides / Deploying")).toBeVisible());
+  },
+});
+
+/** Reading takes the editor off the page above the strip, and editing puts it back. */
+export const ReadingThePage = meta.story({
+  render: () => (
+    <>
+      <PageStory page={callout} editing />
+      <Strip projectKey="you/handbook" title="Engineering handbook" />
+    </>
+  ),
+  beforeEach: ({ msw }) => {
+    msw.use(...answers({ current: "main", home: "main", branches: ["main"] }));
+  },
+  play: async ({ canvasElement }) => {
+    const strip = within(canvasElement);
+    const editor = () => canvasElement.querySelector("[contenteditable=true]");
+    await waitFor(() => expect(editor()).not.toBeNull());
+
+    await userEvent.click(strip.getByRole("button", { name: "View as a reader" }));
+    await expect(strip.getByRole("button", { name: "Back to editing" })).toHaveAttribute("aria-pressed", "true");
+    await waitFor(() => expect(editor()).toBeNull());
+
+    await userEvent.click(strip.getByRole("button", { name: "Back to editing" }));
+    await waitFor(() => expect(editor()).not.toBeNull());
   },
 });

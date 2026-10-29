@@ -8,6 +8,7 @@ import { useDocTarget, useLiveEditConfig } from "@jotdown/editor/client/api";
 import { DocTargetProvider, type DocTarget } from "@jotdown/editor/client/config";
 import { useIdentity } from "@jotdown/editor/client/identity";
 import { useIsBrowser } from "@jotdown/editor/client/useIsBrowser";
+import { useReading } from "@jotdown/editor/client/reading";
 import { InplaceEditing } from "@jotdown/editor/inplace/context";
 import { InplaceSelectionMenu } from "@jotdown/editor/inplace/SelectionMenu";
 import { usePageDeletion } from "@jotdown/editor/structure/usePageDeletion";
@@ -31,7 +32,8 @@ import { ProjectEditing } from "@jotdown/editor/project/editing";
  * the page menu both want it and neither is a child of the other.
  *
  * A new source remounts the editor and its DOM together, so refreshed text
- * never receives edits using the previous version's line positions.
+ * never receives edits using the previous version's line positions. While
+ * the page is drawn for reading, there is no editor at all.
  */
 export function Article({
   target,
@@ -44,10 +46,11 @@ export function Article({
   children: ReactNode;
 }) {
   useScrollToHeading(target.path);
+  const editable = useReading() || target.generated ? null : source;
 
   return (
     <DocTargetProvider target={target}>
-      <InplaceEditing key={`${target.path}:${source}`} source={target.generated ? null : source}>
+      <InplaceEditing key={`${target.path}:${editable}`} source={editable}>
         <ProjectEditing>
           <Beside>{children}</Beside>
         </ProjectEditing>

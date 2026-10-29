@@ -581,6 +581,7 @@ A typed, zod-validated, versioned message set in core:
 | `navigate` | both ways | the page to show |
 | `shortcut` | canvas to studio | a key combination |
 | `theme` | studio to canvas | the colour mode |
+| `reading` | studio to canvas | the page drawn for readers, with the editor off |
 
 - The editor's `client/api.ts` gets a `postMessage` transport. The studio forwards to the existing live-edit endpoints, so storage code doesn't change.
 - Origins are checked as described in the target design.

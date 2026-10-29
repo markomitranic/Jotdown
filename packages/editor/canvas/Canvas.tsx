@@ -41,6 +41,7 @@ import { EDITABLE_FIELDS, getMDXComponents } from "@jotdown/editor/components/md
 import { ArrangeableSidebar } from "@jotdown/editor/components/sidebar/ArrangeableSidebar";
 import { sendRequestsThrough } from "@jotdown/editor/client/api";
 import { canvasTransport } from "@jotdown/editor/client/canvas";
+import { setReading, useReading } from "@jotdown/editor/client/reading";
 import type { LiveEditGlobalData } from "@jotdown/editor/types";
 import { KitProvider, type KitSite, type LayoutProps, type ProjectBlock } from "@jotdown/kit";
 import { withUnknownBlocks } from "@jotdown/core/components/blocks/UnknownBlock";
@@ -118,6 +119,7 @@ export function Canvas({ project, framework, ...drawing }: Props) {
       if (message.data.type === "theme") followStudio(message.data.mode);
       if (message.data.type === "window") document.documentElement.toggleAttribute("data-app", message.data.app);
       if (message.data.type === "look") wearLook(message.data.theme);
+      if (message.data.type === "reading") setReading(message.data.on);
     }
 
     window.addEventListener("message", listen);
@@ -178,7 +180,7 @@ function useStudioHandoffs(studio: string | null, showing: string | undefined) {
     }
 
     function key(event: KeyboardEvent) {
-      if (!pressed(event, [...SHORTCUTS.switcher, ...SHORTCUTS.pages])) return;
+      if (!pressed(event, [...SHORTCUTS.switcher, ...SHORTCUTS.pages, ...SHORTCUTS.reading])) return;
       event.preventDefault();
       post(window.parent, studio as string, {
         type: "shortcut",
@@ -282,7 +284,8 @@ function CanvasPage({ load, title, site, layout, blocks, layouts }: { load: Canv
     [front, load.target.title, load.url, site, config.base, tree],
   );
 
-  const editable = config.editable && !load.target.generated;
+  const reading = useReading();
+  const editable = config.editable && !load.target.generated && !reading;
   const named = front?.layout ?? load.folderLayout ?? layout;
   const Layout = layouts[named];
   const body = "problem" in page ? <Problem>{page.problem}</Problem> : <page.body components={components} />;

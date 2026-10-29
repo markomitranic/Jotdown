@@ -12,7 +12,8 @@ import { themeSchema } from "./theme";
  * the desktop app, and the canvas hands back the studio's own shortcuts as
  * `shortcut` and a press on its title bar as `drag`, for the app to move the
  * window. While the project's settings hold an unsaved theme, the studio sends
- * it as `look` for the canvas to wear, and `look` with none to take it off. A
+ * it as `look` for the canvas to wear, and `look` with none to take it off,
+ * and switches the page between editing and reading with `reading`. A
  * message one side does not know is ignored, so adding one is not a new
  * protocol.
  *
@@ -96,11 +97,14 @@ const appWindow = z.object({ type: z.literal("window"), app: z.boolean() });
 /** A draft of the project's theme for the canvas to wear until it is saved, or null to wear the built one again. */
 const look = z.object({ type: z.literal("look"), theme: themeSchema.nullable() });
 
+/** Whether the page is drawn as the site's readers get it, with nothing on it editable. */
+const reading = z.object({ type: z.literal("reading"), on: z.boolean() });
+
 /** Anything a canvas may send. */
 export const fromCanvas = z.discriminatedUnion("type", [hello, request, navigate, theme, shortcut, drag]);
 
 /** Anything the studio may send. */
-export const fromStudio = z.discriminatedUnion("type", [load, response, navigate, theme, appWindow, look]);
+export const fromStudio = z.discriminatedUnion("type", [load, response, navigate, theme, appWindow, look, reading]);
 
 export type FromCanvas = z.infer<typeof fromCanvas>;
 export type FromStudio = z.infer<typeof fromStudio>;

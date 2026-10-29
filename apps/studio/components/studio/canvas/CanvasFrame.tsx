@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CloudOff, FileQuestion, History, Unplug } from "lucide-react";
 import { fetchJson, postJson } from "@jotdown/core/lib/fetch-json";
+import { useReading } from "@jotdown/editor/client/reading";
 import {
   CANVAS_PROTOCOL,
   colourMode,
@@ -64,6 +65,7 @@ export function CanvasFrame({ src, project }: Props) {
   const draft = useDraft();
   const draftTheme = useDraftTheme(draft.saved.theme);
   const queries = useQueryClient();
+  const reading = useReading();
 
   const slug = pathname.startsWith(project.base) ? pathname.slice(project.base.length).replace(/^\//, "") : "";
   const page = useQuery({
@@ -142,6 +144,11 @@ export function CanvasFrame({ src, project }: Props) {
   useEffect(() => {
     if (hello) post({ type: "look", theme: draftTheme });
   }, [hello, JSON.stringify(draftTheme)]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reading is sent again whenever it or the canvas changes
+  useEffect(() => {
+    if (hello) post({ type: "reading", on: reading });
+  }, [hello, reading]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: a canvas learns once, as it says hello, whether the app frames it
   useEffect(() => {

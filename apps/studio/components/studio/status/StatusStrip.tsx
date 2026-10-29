@@ -3,11 +3,12 @@
 import type { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronsUpDown, CodeXml, HardDrive, RotateCw, Settings } from "lucide-react";
+import { ChevronsUpDown, CodeXml, Eye, HardDrive, RotateCw, Settings } from "lucide-react";
 import { cn } from "cn";
 import { postJson } from "@jotdown/core/lib/fetch-json";
 import { GitHubMark } from "@jotdown/core/components/brand-icons";
-import { SHORTCUTS, ShortcutHint } from "@jotdown/core/components/shortcuts";
+import { SHORTCUTS, ShortcutHint, useShortcut } from "@jotdown/core/components/shortcuts";
+import { setReading, useReading } from "@jotdown/editor/client/reading";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@jotdown/core/components/ui/tooltip";
 import type { Update } from "@/server/updates";
 import { UpdateNotice } from "../account/UpdateNotice";
@@ -46,6 +47,7 @@ export function StatusStrip() {
       <UpdateNotice className={cn(ITEM, "h-5.5 px-1.5 font-medium text-primary")} />
       <RefreshButton />
       {folder && <EditorButton />}
+      <ReadingButton />
       <RendererMenu className={ITEM} />
       <SettingsButton />
     </footer>
@@ -161,6 +163,33 @@ function EditorButton() {
         <CodeXml className="size-3.5" aria-hidden="true" />
       </button>
     </Tool>
+  );
+}
+
+/** Switches between editing the page and seeing it as its readers do, and says so while reading. */
+function ReadingButton() {
+  const reading = useReading();
+  const label = reading ? "Back to editing" : "View as a reader";
+  useShortcut(SHORTCUTS.reading, () => setReading(!reading));
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          aria-label={label}
+          aria-pressed={reading}
+          onClick={() => setReading(!reading)}
+          className={cn(ITEM, "aria-pressed:bg-accent aria-pressed:font-medium aria-pressed:text-accent-foreground")}
+        >
+          <Eye className="size-3.5" aria-hidden="true" />
+          {reading && <span className="animate-fade-in">Reading</span>}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="top">
+        <ShortcutHint label={label} chords={SHORTCUTS.reading} />
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
