@@ -17,6 +17,7 @@ import { FrameworkProvider } from "fumadocs-core/framework";
 import { DocsShell, SidebarFooter } from "@jotdown/core/components/DocsShell";
 import { DocsBody, DocsPage, DocsTitle } from "@jotdown/core/components/docs/page";
 import { PageContent } from "@jotdown/core/components/PageContent";
+import FigureStage from "@jotdown/core/components/blocks/FigureStage";
 import { SiteLink } from "@jotdown/core/components/SiteLink";
 import { NavigationTracker, startTrip } from "@jotdown/core/components/OptimisticPathname";
 import { TitleBarControls, WindowTitleBar } from "@jotdown/core/components/WindowTitleBar";
@@ -362,12 +363,20 @@ function CanvasPage({ load, title, site, layout, blocks, layouts }: { load: Canv
                 )}
               </DocsShell>
             ) : named === "blank" ? (
-              article(<main className="prose max-w-none">{body}</main>)
+              article(
+                <main className="prose max-w-none">
+                  {body}
+                  <FigureStage />
+                </main>,
+              )
             ) : Layout ? (
               article(
-                <Layout page={kit.page} site={kit.site}>
-                  {body}
-                </Layout>,
+                <>
+                  <Layout page={kit.page} site={kit.site}>
+                    {body}
+                  </Layout>
+                  <FigureStage />
+                </>,
               )
             ) : (
               <main className="p-8">

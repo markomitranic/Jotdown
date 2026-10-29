@@ -2,6 +2,7 @@ import type { ComponentType, ReactNode } from "react";
 import { blocksOf, KitProvider, type LayoutProps } from "@jotdown/kit";
 import * as project from "@project";
 import { pageList } from "@jotdown/core/lib/page-list";
+import FigureStage from "@jotdown/core/components/blocks/FigureStage";
 import type { Source, SourcePage } from "@jotdown/core/components/CompiledPage";
 import type { publication } from "@/server/project";
 
@@ -60,6 +61,7 @@ export function kitData({ project, source, page }: { project: Project; source: S
 /**
  * A page's content in a layout other than the docs: the bare page, or one of the project's own.
  *
+ * Either opens its pictures and figures on the fullscreen stage, as the docs do.
  * A page naming a layout nobody has stops the build, saying which.
  *
  * @example <OwnLayout name="landing" project={project} source={source} page={page}>{body}</OwnLayout>
@@ -75,7 +77,13 @@ export function OwnLayout({
   page: SourcePage;
   children: ReactNode;
 }) {
-  if (name === "blank") return <main className="prose max-w-none">{children}</main>;
+  if (name === "blank")
+    return (
+      <main className="prose max-w-none">
+        {children}
+        <FigureStage />
+      </main>
+    );
 
   const Layout = ownLayouts[name];
   if (!Layout)
@@ -85,8 +93,11 @@ export function OwnLayout({
 
   const { page, site } = kitData(kit);
   return (
-    <Layout page={page} site={site}>
-      {children}
-    </Layout>
+    <>
+      <Layout page={page} site={site}>
+        {children}
+      </Layout>
+      <FigureStage />
+    </>
   );
 }
