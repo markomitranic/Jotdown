@@ -53,6 +53,13 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.5.4](https://github.com/markomitranic/Jotdown/compare/v0.5.3...v0.5.4) (2026-10-29)
+
+
+### Features
+
+* **studio:** make and delete pages from the page picker ([be105fb](https://github.com/markomitranic/Jotdown/commit/be105fbb93600ba2a42b907a0eff643d6e4a94d6))
+
 ## [0.5.3](https://github.com/markomitranic/Jotdown/compare/v0.5.2...v0.5.3) (2026-10-29)
 
 
