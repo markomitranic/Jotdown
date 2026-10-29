@@ -132,6 +132,21 @@ describe("remarkSourceRange", () => {
   });
 });
 
+describe("remarkSourceRange inside project blocks", () => {
+  it("stamps the prose of a project block standing inside another one", async () => {
+    const file = "<Sky>\n\n<Paper>\n\nHello there.\n\n</Paper>\n\n</Sky>";
+    const out = String(
+      await compile(file, { jsx: true, remarkPlugins: [[remarkSourceRange, { inside: ["Sky", "Paper"] }]] }),
+    );
+    const slices = [...out.matchAll(new RegExp(`${SOURCE_RANGE}[="':\\s]+([\\d:-]+)`, "g"))].map((match) => {
+      const range = rangeIn(file, match[1]!)!;
+      return file.slice(range.start, range.end);
+    });
+
+    expect(slices).toContain("Hello there.");
+  });
+});
+
 describe("rangeIn", () => {
   it("reads a stamp against the original file", () => {
     expect(rangeIn("---\nt: x\n---\n\n# Hi\n", "5:1-5:5")).toEqual({

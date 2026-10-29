@@ -45,20 +45,22 @@ type Stampable = RootContent & {
  * across, so by the time a component sees a fence the stamp is on the `<pre>`.
  *
  * The blocks named in `inside` have their children stamped as well, so the
- * prose between a project block's tags is edited in place like the page's own.
+ * prose between a project block's tags is edited in place like the page's own,
+ * however deep that block stands among other project blocks.
  *
  * @example [remarkSourceRange, { inside: ["Hero"] }]
  */
 export function remarkSourceRange({ inside = [] }: { inside?: string[] } = {}) {
   const opened = new Set(inside);
 
-  return (tree: Root) => {
-    for (const node of tree.children as Stampable[]) {
+  const stampAll = (nodes: Stampable[]) => {
+    for (const node of nodes) {
       stamp(node);
-      if (node.type === "mdxJsxFlowElement" && opened.has(node.name ?? ""))
-        for (const child of node.children as Stampable[]) stamp(child);
+      if (node.type === "mdxJsxFlowElement" && opened.has(node.name ?? "")) stampAll(node.children as Stampable[]);
     }
   };
+
+  return (tree: Root) => stampAll(tree.children as Stampable[]);
 }
 
 /** Writes one block's range onto it, as an attribute for a JSX element and a property for the rest. */
