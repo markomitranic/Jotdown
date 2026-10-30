@@ -13,6 +13,7 @@ describe("the in-place slash menu", () => {
       "Heading 4",
       "Bulleted list",
       "Numbered list",
+      "To-do list",
       "Quote",
       "Code block",
       "Diagram",

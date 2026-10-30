@@ -55,6 +55,7 @@ export type Becomes = (editor: Editor, block: JSONContent) => void;
 const SHORTHAND: Array<{ find: RegExp; block(): JSONContent }> = [
   { find: /^[-*+]\s$/, block: () => blockFor("bulletList") },
   { find: /^\d+[.)]\s$/, block: () => blockFor("orderedList") },
+  { find: /^\[ ?\]\s$/, block: () => blockFor("taskList") },
   { find: /^>\s$/, block: () => blockFor("blockquote") },
   { find: /^#{1,2}\s$/, block: () => blockFor("heading2") },
   { find: /^###\s$/, block: () => blockFor("heading3") },

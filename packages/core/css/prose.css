@@ -133,6 +133,75 @@
     :where(ul > li):not(:where([class~="not-prose"], [class~="not-prose"] *))::marker {
       color: var(--tw-prose-bullets);
     }
+
+    /* A to-do, `- [ ]` or `- [x]`. The box is drawn in the bullet's place, so
+       the article's own disabled `<input>` and the editor's bare item look the
+       same. The editor marks a done item with `data-checked`, the article with
+       a checked input inside it. */
+    :where(li.task-list-item):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+      --jd-task-box: 1.05em;
+      position: relative;
+      list-style: none;
+      margin-inline-start: calc(-1rem * var(--tw-prose-size));
+      padding-inline-start: calc(var(--jd-task-box) + 0.6em);
+    }
+    :where(li.task-list-item > input, li.task-list-item > p > input) {
+      display: none;
+    }
+    :where(li.task-list-item)::before,
+    :where(li.task-list-item)::after {
+      content: "";
+      position: absolute;
+      inset-inline-start: 0;
+      top: calc(0.5lh - var(--jd-task-box) / 2);
+      width: var(--jd-task-box);
+      height: var(--jd-task-box);
+      box-sizing: border-box;
+    }
+    :where(li.task-list-item)::before {
+      border: 1.5px solid color-mix(in oklab, var(--tw-prose-bullets) 70%, transparent);
+      border-radius: 0.3em;
+      transition:
+        background-color 120ms ease,
+        border-color 120ms ease;
+    }
+    :where(li.task-list-item)::after {
+      scale: 0.5;
+      opacity: 0;
+      background: var(--color-primary-foreground);
+      mask:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+        center / 80% no-repeat;
+      transition:
+        scale 140ms cubic-bezier(0.2, 0.9, 0.3, 1.3),
+        opacity 100ms ease;
+    }
+    :where(
+        li.task-list-item[data-checked="true"],
+        li.task-list-item:has(> input:checked, > p:first-child > input:checked)
+      ) {
+      color: var(--tw-prose-bullets);
+    }
+    :where(
+        li.task-list-item[data-checked="true"],
+        li.task-list-item:has(> input:checked, > p:first-child > input:checked)
+      )::before {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+    }
+    :where(
+        li.task-list-item[data-checked="true"],
+        li.task-list-item:has(> input:checked, > p:first-child > input:checked)
+      )::after {
+      scale: 1;
+      opacity: 1;
+    }
+    :where([contenteditable="true"] li.task-list-item)::before {
+      cursor: pointer;
+    }
+    :where([contenteditable="true"] li.task-list-item[data-checked="false"]:hover)::before {
+      border-color: var(--color-primary);
+    }
     :where(blockquote):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
       margin-top: 1.6em;
       margin-bottom: 1.6em;

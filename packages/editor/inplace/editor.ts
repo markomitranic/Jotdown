@@ -12,6 +12,7 @@ import type { Node as ProseNode, Schema } from "@tiptap/pm/model";
 import StarterKit from "@tiptap/starter-kit";
 import { Abbr } from "../editor/abbr";
 import { listSpread, TIGHT_LIST } from "../editor/listSpread";
+import { taskItem } from "../editor/taskItem";
 import { parseDocument } from "../markdown/parse";
 import { MermaidBlock } from "../editor/nodes/MermaidBlock";
 import { PreviewImage } from "../editor/nodes/PreviewImage";
@@ -245,6 +246,7 @@ export function bodyExtensions(holds: string) {
     ...(inline ? [] : [MermaidBlock, PreviewImage.configure({ inline: false }), ...tableNodes]),
     Abbr,
     listSpread,
+    taskItem,
   ];
 }
 

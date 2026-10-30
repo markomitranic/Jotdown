@@ -13,6 +13,11 @@ describe("shorthandFor", () => {
     expect(shorthandFor("- ")?.content).toEqual([{ type: "listItem", content: [{ type: "paragraph" }] }]);
   });
 
+  it("starts a to-do list from an empty box", () => {
+    expect(shorthandFor("[] ")?.content?.[0]?.attrs).toEqual({ checked: false });
+    expect(shorthandFor("[ ] ")?.content?.[0]?.attrs).toEqual({ checked: false });
+  });
+
   it("counts the hashes, and gives a single one the largest heading a page can hold", () => {
     expect(shorthandFor("# ")?.attrs).toEqual({ level: 2 });
     expect(shorthandFor("## ")?.attrs).toEqual({ level: 2 });

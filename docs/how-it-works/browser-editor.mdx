@@ -477,7 +477,7 @@ paragraph goes inert instead.
       <text x="530" y="90" fontSize="12" fill="var(--jd-fig-i-ink)">one inert block</text>
       <text x="530" y="116" fontSize="10.5" fill="var(--jd-fig-i-ink)">holding the paragraph's exact bytes,</text>
       <text x="530" y="132" fontSize="10.5" fill="var(--jd-fig-i-ink)">emitted again unchanged on save</text>
-      <text x="20" y="196" fontSize="10.5" fill="var(--jd-fig-muted)">the same rule covers a task list: no home in the schema, so no edit</text>
+      <text x="20" y="196" fontSize="10.5" fill="var(--jd-fig-muted)">the same rule covers any tag: no home in the schema, so no edit</text>
     </svg>
   </div>
   <figcaption>Losing content is the one failure this design refuses. A block the bridge does not understand is shown as it is written and handed back identical, so the worst case is that you cannot edit something, never that you destroy it.</figcaption>
@@ -486,8 +486,9 @@ paragraph goes inert instead.
 A code fence tagged `js title="x"` used to go inert for the same reason, since
 dropping the meta string would change how the page renders the block. The
 fence node now carries that string as one attribute and prints it back as
-written, so the fence edits like any other. Task lists still go inert because
-GFM checkboxes are not in the schema. In every case the fallback is the same,
+written, so the fence edits like any other. Task lists went inert too, until a
+list item learned to carry its checkbox the way GFM does, as one `checked`
+attribute that is null on a plain item. In every case the fallback is the same,
 and it is the reason a save can never lose text.
 
 ## The menu offered blocks a .md page cannot render

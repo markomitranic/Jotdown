@@ -92,6 +92,22 @@ export const PREVIEWS: Record<PreviewKind, Preview> = {
       </ol>
     ),
   },
+  taskList: {
+    about: "Things to do, ticked off as they get done.",
+    sample: (
+      <ul>
+        <li className="task-list-item" data-checked="true">
+          Book the venue
+        </li>
+        <li className="task-list-item" data-checked="false">
+          Send the invites
+        </li>
+        <li className="task-list-item" data-checked="false">
+          Order the cake
+        </li>
+      </ul>
+    ),
+  },
   blockquote: {
     about: "Set a passage apart, often somebody else's words.",
     sample: (

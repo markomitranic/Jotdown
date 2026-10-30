@@ -25,6 +25,7 @@ import { drawable } from "./editor";
 import StarterKit from "@tiptap/starter-kit";
 import { Abbr } from "../editor/abbr";
 import { listSpread } from "../editor/listSpread";
+import { taskItem } from "../editor/taskItem";
 import { Accordion, Accordions } from "../editor/nodes/Accordions";
 import { Admonition } from "../editor/nodes/Admonition";
 import { Card, Cards } from "../editor/nodes/Cards";
@@ -140,6 +141,7 @@ export function soloExtensions(type: string, uploading?: Uploading, inFrame = fa
     FileAttachment,
     Abbr,
     listSpread,
+    taskItem,
     Placeholder.configure({
       showOnlyCurrent: true,
       placeholder: ({ editor, node, pos }) => {

@@ -17,6 +17,7 @@ export type TurnKind =
   | "heading4"
   | "bulletList"
   | "orderedList"
+  | "taskList"
   | "codeBlock"
   | "blockquote"
   | "callout";
@@ -29,6 +30,7 @@ export const TURN_KINDS: Array<{ kind: TurnKind; title: string }> = [
   { kind: "heading4", title: "Heading 4" },
   { kind: "bulletList", title: "Bulleted list" },
   { kind: "orderedList", title: "Numbered list" },
+  { kind: "taskList", title: "To-do list" },
   { kind: "codeBlock", title: "Code" },
   { kind: "blockquote", title: "Quote" },
   { kind: "callout", title: "Callout" },
@@ -50,10 +52,12 @@ export function isEmbed(block: JSONContent): boolean {
 export function kindOf(block: JSONContent): TurnKind | null {
   switch (block.type) {
     case "paragraph":
-    case "bulletList":
     case "orderedList":
     case "blockquote":
       return block.type;
+
+    case "bulletList":
+      return block.content?.some(isTask) ? "taskList" : "bulletList";
 
     case "heading":
       return headingKind(block.attrs?.level);
@@ -79,7 +83,7 @@ export function turnInto(block: JSONContent, kind: TurnKind): JSONContent[] {
   const from = kindOf(block);
   if (from === kind) return [block];
 
-  if (isList(kind) && from !== null && isList(from)) return [{ ...block, type: kind }];
+  if (isList(kind) && from !== null && isList(from)) return [listOf(kind, block.content ?? [], block.attrs)];
   if (isBox(kind) && from !== null && isBox(from)) return [boxOf(kind, block.content ?? [])];
 
   const lines = linesOf(block);
@@ -95,7 +99,8 @@ export function turnInto(block: JSONContent, kind: TurnKind): JSONContent[] {
 
     case "bulletList":
     case "orderedList":
-      return [{ type: kind, content: lines.map(itemOf) }];
+    case "taskList":
+      return [listOf(kind, lines.map(itemOf))];
 
     case "blockquote":
     case "callout":
@@ -160,6 +165,36 @@ function itemOf(line: Line): JSONContent {
   return { type: "listItem", content: [{ type: "paragraph", content: line }] };
 }
 
+/**
+ * A list of the kind asked for, holding these items.
+ *
+ * A to-do list is a bulleted list whose items carry a checkbox, so turning into
+ * one gives every item an open box and keeps the ticks already there, and
+ * turning out of one takes the boxes off.
+ */
+function listOf(
+  kind: "bulletList" | "orderedList" | "taskList",
+  items: JSONContent[],
+  attrs?: JSONContent["attrs"],
+): JSONContent {
+  return {
+    type: kind === "taskList" ? "bulletList" : kind,
+    ...(attrs && { attrs }),
+    content: items.map((item) => {
+      if (kind === "taskList") return withChecked(item, item.attrs?.checked === true);
+      return isTask(item) ? withChecked(item, null) : item;
+    }),
+  };
+}
+
+function withChecked(item: JSONContent, checked: boolean | null): JSONContent {
+  return { ...item, attrs: { ...item.attrs, checked } };
+}
+
+function isTask(item: JSONContent): boolean {
+  return typeof item.attrs?.checked === "boolean";
+}
+
 function boxOf(kind: "blockquote" | "callout", content: JSONContent[]): JSONContent {
   if (kind === "blockquote") return { type: "blockquote", content };
 
@@ -177,8 +212,8 @@ function isTextblock(node: JSONContent): boolean {
   return node.type === "paragraph" || node.type === "heading";
 }
 
-function isList(kind: TurnKind): kind is "bulletList" | "orderedList" {
-  return kind === "bulletList" || kind === "orderedList";
+function isList(kind: TurnKind): kind is "bulletList" | "orderedList" | "taskList" {
+  return kind === "bulletList" || kind === "orderedList" || kind === "taskList";
 }
 
 function isBox(kind: TurnKind): kind is "blockquote" | "callout" {

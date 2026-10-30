@@ -18,6 +18,7 @@ export type InplaceBlock =
   | "heading4"
   | "bulletList"
   | "orderedList"
+  | "taskList"
   | "blockquote"
   | "horizontalRule"
   | "note"
@@ -136,6 +137,13 @@ const ITEMS: Item[] = [
     hint: "Ordered steps",
     glyph: "1.",
     keywords: ["list", "ordered", "number", "ol"],
+  },
+  {
+    block: "taskList",
+    title: "To-do list",
+    hint: "Items to tick off",
+    glyph: "☐",
+    keywords: ["list", "todo", "to-do", "task", "checkbox", "check"],
   },
   {
     block: "blockquote",
@@ -346,6 +354,12 @@ export function blockFor(kind: InplaceBlock, size = DEFAULT_TABLE): JSONContent 
     case "bulletList":
     case "orderedList":
       return { type: kind, content: [{ type: "listItem", content: [{ type: "paragraph" }] }] };
+
+    case "taskList":
+      return {
+        type: "bulletList",
+        content: [{ type: "listItem", attrs: { checked: false }, content: [{ type: "paragraph" }] }],
+      };
 
     case "blockquote":
       return { type: "blockquote", content: [{ type: "paragraph" }] };

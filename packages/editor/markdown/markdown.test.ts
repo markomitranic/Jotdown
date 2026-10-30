@@ -383,12 +383,22 @@ describe("editor mapping", () => {
     expect(output).toContain("![a diagram](/img/docs/ff01.webp)");
   });
 
-  test("a task list goes inert rather than losing its checkboxes", () => {
-    const source = "- [x] done\n- [ ] not done\n";
+  test("a task list is a list whose items carry their checkbox", () => {
+    const source = "- [x] done\n- [ ] not done\n- plain\n";
     const parsed = parseDocument(source);
+    const [list] = parsed.doc.content ?? [];
 
-    expect((parsed.doc.content ?? [])[0]!.type).toBe("mdxBlock");
+    expect(list?.type).toBe("bulletList");
+    expect(list?.content?.map((item) => item.attrs?.checked)).toEqual([true, false, null]);
     expect(serializeDocument(parsed, parsed.doc)).toBe(source);
+  });
+
+  test("ticking a to-do writes its checkbox back", () => {
+    const output = edit("- [ ] Book the hairdresser\n", ([list]) => [
+      { ...list, content: list?.content?.map((item) => ({ ...item, attrs: { ...item.attrs, checked: true } })) },
+    ]);
+
+    expect(output).toBe("- [x] Book the hairdresser\n");
   });
 });
 

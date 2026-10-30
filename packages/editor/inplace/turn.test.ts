@@ -27,6 +27,28 @@ describe("turn into", () => {
     expect(turnInto(list, "orderedList")).toEqual([{ type: "orderedList", content: [item("One")] }]);
   });
 
+  it("gives every item an open box when a list becomes a to-do list", () => {
+    const list = { type: "bulletList", content: [item("One"), item("Two")] };
+
+    expect(turnInto(list, "taskList")).toEqual([
+      {
+        type: "bulletList",
+        content: [
+          { ...item("One"), attrs: { checked: false } },
+          { ...item("Two"), attrs: { checked: false } },
+        ],
+      },
+    ]);
+  });
+
+  it("takes the boxes off when a to-do list becomes a numbered one", () => {
+    const list = { type: "bulletList", content: [{ ...item("One"), attrs: { checked: false } }] };
+
+    expect(turnInto(list, "orderedList")).toEqual([
+      { type: "orderedList", content: [{ ...item("One"), attrs: { checked: null } }] },
+    ]);
+  });
+
   it("keeps a quote's blocks when it becomes a callout", () => {
     const inside = [{ type: "paragraph", content: words("Said") }];
 

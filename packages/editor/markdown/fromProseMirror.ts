@@ -420,7 +420,7 @@ function listItems(content: JSONContent[] | undefined) {
   return (content ?? []).map((item) => ({
     type: "listItem" as const,
     spread: item.attrs?.spread === true,
-    checked: null,
+    checked: typeof item.attrs?.checked === "boolean" ? item.attrs.checked : null,
     children: nestedBlocks(item.content),
   }));
 }

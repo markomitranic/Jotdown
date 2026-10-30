@@ -112,11 +112,7 @@ function codeToProseMirror(node: Code): JSONContent {
   };
 }
 
-/** Task lists go inert: GFM checkboxes are not in the editor schema. */
 function listToProseMirror(node: List, source: string): JSONContent | null {
-  if (node.children.some((item) => item.checked === true || item.checked === false)) {
-    return null;
-  }
   const content: JSONContent[] = [];
   for (const item of node.children) {
     const mapped = listItemToProseMirror(item, source);
@@ -135,7 +131,7 @@ function listItemToProseMirror(item: ListItem, source: string): JSONContent | nu
   return (
     content && {
       type: "listItem",
-      attrs: { spread: item.spread === true },
+      attrs: { spread: item.spread === true, checked: item.checked ?? null },
       content: orEmptyParagraph(content),
     }
   );
