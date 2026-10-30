@@ -53,6 +53,13 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.5.7](https://github.com/markomitranic/Jotdown/compare/v0.5.6...v0.5.7) (2026-10-30)
+
+
+### Features
+
+* edit task lists in place, with a drawn checkbox ([e8ee0b2](https://github.com/markomitranic/Jotdown/commit/e8ee0b26ecfba6eda9b0c61e948edc6c9d3435da))
+
 ## [0.5.6](https://github.com/markomitranic/Jotdown/compare/v0.5.5...v0.5.6) (2026-10-29)
 
 
