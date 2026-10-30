@@ -402,6 +402,25 @@ describe("editor mapping", () => {
   });
 });
 
+describe("a time in prose", () => {
+  const source = "- [ ] Out at 13:25, back 21:10 (Red).\n";
+
+  test("stays editable rather than reading as a directive", () => {
+    const parsed = parseDocument(source);
+
+    expect((parsed.doc.content ?? [])[0]?.type).toBe("bulletList");
+    expect(serializeDocument(parsed, parsed.doc)).toBe(source);
+  });
+
+  test("is written back as typed when its block changes", () => {
+    const output = edit(source, ([list]) => [
+      { ...list, content: list?.content?.map((item) => ({ ...item, attrs: { ...item.attrs, checked: true } })) },
+    ]);
+
+    expect(output).toBe("- [x] Out at 13:25, back 21:10 (Red).\n");
+  });
+});
+
 describe("video embeds", () => {
   const source = ["Before.", "", '<VideoEmbed url="https://youtu.be/dQw4w9WgXcQ" />', "", "After.", ""].join("\n");
 

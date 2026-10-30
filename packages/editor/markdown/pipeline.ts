@@ -78,7 +78,31 @@ const markdownOptions: Options = {
 
 /** Parses file text into mdast, with positions on every node. */
 export function parseMarkdown(source: string): Root {
-  return processor.parse(source);
+  const tree = processor.parse(source);
+  literalTextDirectives(tree, source);
+  return tree;
+}
+
+/**
+ * Puts every inline directive back as the text the author typed.
+ *
+ * `remark-directive` reads a colon followed by a word as one, so the time in
+ * `lands at 13:25` parses as a directive named `25`. The site prints those back
+ * as text, and the editor has no node for one, so without this any block
+ * mentioning a time went inert.
+ */
+function literalTextDirectives(node: Nodes, source: string) {
+  if (!("children" in node)) return;
+
+  node.children = node.children.map((child) => {
+    const from = child.position?.start.offset;
+    const to = child.position?.end.offset;
+    if (child.type !== "textDirective" || from === undefined || to === undefined) return child;
+
+    return { type: "text", value: source.slice(from, to), position: child.position };
+  }) as typeof node.children;
+
+  for (const child of node.children) literalTextDirectives(child, source);
 }
 
 /**
