@@ -53,6 +53,13 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.5.8](https://github.com/markomitranic/Jotdown/compare/v0.5.7...v0.5.8) (2026-10-30)
+
+
+### Bug Fixes
+
+* keep blocks with a time in them editable ([b39f323](https://github.com/markomitranic/Jotdown/commit/b39f3238be83ff37b98cfef191a07f32c9f3e7ad))
+
 ## [0.5.7](https://github.com/markomitranic/Jotdown/compare/v0.5.6...v0.5.7) (2026-10-30)
 
 
