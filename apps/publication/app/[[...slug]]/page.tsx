@@ -15,12 +15,12 @@ import { OwnLayout, ProjectKit, projectBlocks } from "@/components/ProjectCode";
 type Props = { params: Promise<{ slug?: string[] }> };
 
 /**
- * Every page of the publication, rendered once at build time, in the layout it asks for.
+ * Every page of the publication, rendered once and kept, in the layout it asks for.
  *
  * A page is drawn in the docs shell unless its front matter, or the config,
  * names another layout. The project's own blocks win over the framework's by
  * name. An address no page lives at is a 404. A page that does not compile
- * stops the build, so a reader never gets one that says so.
+ * stops a prerendering build, and otherwise shows the error page to its reader.
  */
 export default async function Page({ params }: Props) {
   const project = publication();
@@ -81,11 +81,12 @@ function githubBlobUrl({ repository, branch, content }: ProjectConfig, path: str
 }
 
 /**
- * Every page's address, so each one is written at build time.
+ * Every page's address when the config asks for them at build time, or none, so each is written on its first visit.
  *
  * @example await generateStaticParams(); // [{ slug: [] }, { slug: ["manual", "sections"] }, …]
  */
 export async function generateStaticParams() {
+  if (!publication().config.prerender) return [];
   return (await publicationSource()).generateParams();
 }
 
@@ -101,4 +102,3 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export const dynamic = "error";
-export const dynamicParams = false;

@@ -35,6 +35,8 @@ export const projectConfigSchema = z.object({
   favicon: uploadUrl.optional(),
   /** The layout a page is drawn in when its front matter names none. */
   layout: z.string().min(1).default("docs"),
+  /** Whether a publication's build writes every page ahead, instead of each on its first visit. */
+  prerender: z.boolean().default(false),
   /** What a publication offers agents beyond its pages, each on unless switched off. */
   features: z
     .object({

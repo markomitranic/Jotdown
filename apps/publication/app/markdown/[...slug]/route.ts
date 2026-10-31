@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { twinPage, twinPath } from "@/lib/markdown-url";
-import { publicationSource } from "@/server/project";
+import { publication, publicationSource } from "@/server/project";
 
 /**
  * The markdown source of one page, as text, at `/markdown/<page>.md`, with the landing page at `__root.md`.
@@ -20,10 +20,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   });
 }
 
-/** Every page's twin, written at build time. */
+/** Every page's twin when the config asks for them at build time, or none, so each is written on its first visit. */
 export async function generateStaticParams() {
+  if (!publication().config.prerender) return [];
   return (await publicationSource()).generateParams().map(({ slug }) => ({ slug: twinPath(slug ?? []) }));
 }
 
 export const dynamic = "force-static";
-export const dynamicParams = false;

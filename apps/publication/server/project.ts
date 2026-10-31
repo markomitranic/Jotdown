@@ -25,8 +25,9 @@ export const publication = cache(() => {
 /**
  * The publication's pages, compiled from the content repository.
  *
- * Any file that could not be read stops the build, every one of them named,
- * so a reader never gets a site with a page or a section missing.
+ * Any file that could not be read stops whatever is drawing from it, the build
+ * or a first visit, every one of them named, so a reader never gets a site
+ * with a page or a section missing.
  */
 export const publicationSource = cache(async () => {
   const source = await projectSource(publication());

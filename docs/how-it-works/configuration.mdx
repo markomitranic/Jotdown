@@ -28,6 +28,7 @@ lists a GitHub repository among its projects once the file exists.
   "logo": { "alt": "Notes", "src": "/uploads/logo.svg" },
   "favicon": "/uploads/favicon.png",
   "theme": { "light": { "primary": "#433a86" }, "dark": { "primary": "#b9acff" } },
+  "prerender": true,
   "features": { "llms": false, "assistants": false }
 }
 ```
@@ -48,6 +49,7 @@ lists a GitHub repository among its projects once the file exists.
 | `logo` | none | `alt`, `src` and an optional `srcDark`, each an upload address. Drawn in the sidebar's corner. |
 | `favicon` | none | The publication's tab icon, an upload address. The studio always shows its own. |
 | `theme` | the default palette | The project's colours per mode, its radius and its typefaces. See [Branding](../studio/branding.mdx). |
+| `prerender` | `false` | Whether the site's build writes every page ahead. See [Prerendering](#prerendering). |
 | `features` | everything on | What the site offers agents, each switched off with `false`. See [Features](#features). |
 
 ## Addresses
@@ -57,6 +59,14 @@ asks for, starting with a slash, like `/uploads/logo.svg`, `/img/docs/hero.png`,
 `/files/docs/brief.pdf` or `/whiteboards/flow.png`. `logo`, `favicon` and a
 font's `src` take these. `/uploads/` means the uploads folder wherever it is,
 so moving the uploads never changes an address.
+
+## Prerendering
+
+A site writes each page, markdown twin and search section on its first visit,
+and serves that copy until the next deploy. `"prerender": true` writes all of
+them during the build instead: the build takes longer, but a page that does not
+compile stops it, rather than showing the error page to the first reader who
+opens it. The studio switches it under Where it lives.
 
 ## Features
 

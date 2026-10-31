@@ -1,15 +1,15 @@
 import { notFound } from "next/navigation";
 import { searchDocuments, searchSections } from "@jotdown/core/server/search";
 import { markdownUrl } from "@/lib/markdown-url";
-import { publicationSource } from "@/server/project";
+import { publication, publicationSource } from "@/server/project";
 
 type Params = { params: Promise<{ key: string; id?: string[] }> };
 
 /**
  * One section's search text, for the browser to index: `/api/search/section/<key>/manual`.
  *
- * Written at build time under the key of the text it holds, so the browser
- * keeps it for good and a new build is new addresses.
+ * Served under the key of the text it holds, so the browser keeps it for
+ * good and a new build is new addresses.
  */
 export async function GET(_request: Request, { params }: Params) {
   const { key, id = [] } = await params;
@@ -22,10 +22,10 @@ export async function GET(_request: Request, { params }: Params) {
   });
 }
 
-/** Every section's text, written at build time. */
+/** Every section's text when the config asks for it at build time, or none, so each is written on its first visit. */
 export async function generateStaticParams() {
+  if (!publication().config.prerender) return [];
   return searchSections(await publicationSource()).map(({ key, id }) => ({ key, id: id ? id.split("/") : [] }));
 }
 
 export const dynamic = "force-static";
-export const dynamicParams = false;

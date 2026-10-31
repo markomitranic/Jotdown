@@ -53,8 +53,9 @@ that comes out. Nothing is committed back.
   <figcaption>The content repository never holds a copy of Jotdown. The host clones it next to the content for the build, and serves the app that comes out.</figcaption>
 </figure>
 
-The build writes every page, markdown twin, upload and search index once, so
-Vercel serves them from its CDN, and the site carries none of the
+Each page, markdown twin and search section is written once, on its first
+visit, and Vercel serves it from its CDN after that. The uploads are copied in
+during the build. The site carries none of the
 <abbr title="The app on your own machine where you read and edit every project">studio</abbr>'s
 editing code. Pictures go through Next's image optimizer, which hands each
 reader a WebP copy sized to their screen. Why it is built this way is in
@@ -104,9 +105,9 @@ root directory is `.jotdown`.
 
 ### Push and check
 
-The build log prints `Jotdown commit:`, then the link check. A broken link or
-a page that does not compile stops the build, and the last good deployment
-keeps serving. Once it is live, open a page with an image, `/llms.txt`,
+The build log prints `Jotdown commit:`, then the link check. A broken link
+stops the build, and the last good deployment keeps serving. A page that does
+not compile shows the error page until it is fixed. Once it is live, open a page with an image, `/llms.txt`,
 `/markdown/__root.md`, and one old address from `docs/moved.json`.
 
 </Step>
@@ -128,7 +129,7 @@ it yourself.
 - **Pictures** through `/_next/image`, scaled to the reader's screen. The
   original stays at its own address for the download button.
 - **Search**, opened with ⌘ K or Ctrl K. Each section's text is written
-  during the build and searched in the reader's browser.
+  once and searched in the reader's browser.
 - **A permanent redirect** from every old address in `docs/moved.json` to
   where the page lives now.
 

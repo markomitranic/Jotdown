@@ -60,6 +60,14 @@ export function GeneralSection() {
         <SettingsRow label="Branch" description="The branch a publication builds from." paths={["branch"]}>
           <BranchSetting />
         </SettingsRow>
+        <SettingsRow
+          label="Prerender pages"
+          description="The build writes every page ahead, instead of each on its first visit."
+          paths={["prerender"]}
+          keywords="build static vercel deploy"
+        >
+          <PrerenderSetting />
+        </SettingsRow>
       </SettingsGroup>
 
       <SettingsGroup title="For agents">
@@ -140,6 +148,23 @@ function FeatureSetting({ path, label }: { path: string; label: string }) {
       aria-label={label}
       checked={valueAt(config, path) !== false}
       onCheckedChange={(on) => update((current) => withValue(current, path, on ? undefined : false))}
+    />
+  );
+}
+
+/**
+ * A switch for writing every page at build time, off unless the config says `true`, and taken out of the config when turned off.
+ *
+ * @example <PrerenderSetting />
+ */
+function PrerenderSetting() {
+  const { config, update } = useDraft();
+
+  return (
+    <Switch
+      aria-label="Prerender pages"
+      checked={valueAt(config, "prerender") === true}
+      onCheckedChange={(on) => update((current) => withValue(current, "prerender", on || undefined))}
     />
   );
 }
