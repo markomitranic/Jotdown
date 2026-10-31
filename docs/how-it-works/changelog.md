@@ -53,6 +53,19 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.5.9](https://github.com/markomitranic/Jotdown/compare/v0.5.8...v0.5.9) (2026-10-31)
+
+
+### Features
+
+* render a site's pages on their first visit, prerendering only when the config asks ([c024a6b](https://github.com/markomitranic/Jotdown/commit/c024a6b94e5e129965bd3c6f06a6a17f13c37979))
+
+
+### Bug Fixes
+
+* **publication:** build on Node 24 whatever the Vercel project says ([52faffc](https://github.com/markomitranic/Jotdown/commit/52faffca3524687b9943fb5fd851f8958878de3a))
+* **publication:** carry a copy of the content in every server function ([5581bac](https://github.com/markomitranic/Jotdown/commit/5581bac35564133fb4a2603912e81685c85a3da4))
+
 ## [0.5.8](https://github.com/markomitranic/Jotdown/compare/v0.5.7...v0.5.8) (2026-10-30)
 
 
