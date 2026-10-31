@@ -2,6 +2,9 @@
   "name": "@jotdown/publication",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "bun run --bun next dev -p 6193",
     "build": "bun run --bun next build",
