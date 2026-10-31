@@ -1,49 +1,36 @@
-import { join, relative, resolve } from "node:path";
+import { resolve } from "node:path";
 import type { NextConfig } from "next";
 import { imageConfig } from "../../packages/core/lib/images";
-import { CONFIG_FILE, contentDirectory, readProjectConfig } from "@jotdown/core/server/config";
 import { movedRedirects } from "./redirects";
 import { contentRepository } from "./repository";
 import { syncProjectCode, watchProjectCode } from "./project-code";
+import { syncProjectContent } from "./project-content";
 import { syncProjectUploads, uploadAliases, uploadHeaders, watchProjectUploads } from "./project-uploads";
 
 /** The Jotdown checkout this app is part of, where the lockfile and the shared packages live. */
 const workspace = resolve(import.meta.dirname, "../..");
 
 /**
- * The project this site is built from, the folder its own components and layouts are copied into, and the one its uploads are.
+ * The project this site is built from, and the folders its own components and layouts, its uploads and its content are copied into.
  *
- * The uploads are copied once, before the build's workers start, since each of
- * them loads this file too and would empty `public/` while the build reads it.
+ * The uploads and the content are copied once, before the build's workers
+ * start, since each of them loads this file too and would empty the folders
+ * while the build reads them.
  */
 const repository = contentRepository(workspace);
 const projectCode = resolve(import.meta.dirname, ".project");
 const projectUploads = resolve(import.meta.dirname, "public");
+const projectContent = resolve(import.meta.dirname, ".content");
 syncProjectCode(repository, projectCode);
-if (!process.env.JOTDOWN_UPLOADS_COPIED) {
+if (!process.env.JOTDOWN_PROJECT_COPIED) {
   syncProjectUploads(repository, projectUploads);
-  process.env.JOTDOWN_UPLOADS_COPIED = "1";
+  syncProjectContent(repository, projectContent);
+  process.env.JOTDOWN_PROJECT_COPIED = "1";
 }
 if (process.env.NODE_ENV === "development") {
   watchProjectCode(repository, projectCode);
   watchProjectUploads(repository, projectUploads);
 }
-
-/**
- * The project's config, pages and pictures, bundled with every server function, which reads them to draw a page on its first visit.
- *
- * Paths are from `apps/publication`. Of the uploads only the pictures come
- * along, for their sizes; every other file is served from `public/`.
- */
-const content = relative(import.meta.dirname, contentDirectory(repository));
-const uploads = join(content, readProjectConfig(repository).uploads);
-const contentFiles = {
-  "/*": [
-    join(relative(import.meta.dirname, repository), CONFIG_FILE),
-    `${content}/docs/**/*.{md,mdx,json}`,
-    `${uploads}/**/*.{png,jpg,jpeg,webp}`,
-  ],
-};
 
 /**
  * Packages compiled with the app instead of loaded from `node_modules`.
@@ -72,7 +59,7 @@ const config: NextConfig = {
   agentRules: false,
   turbopack: { root: workspace, resolveAlias: { "@project": "./.project/index.ts" } },
   outputFileTracingRoot: workspace,
-  outputFileTracingIncludes: contentFiles,
+  outputFileTracingIncludes: { "/*": ["./.content/**/*"] },
   images: imageConfig,
   redirects: async () => movedRedirects(repository),
   rewrites: async () => uploadAliases(),

@@ -1,3 +1,5 @@
 .project/
 # The project's uploads, copied in by next.config.ts on every build and dev start.
 public/
+# A copy of the project's config, pages and pictures, taken by next.config.ts for the built site to read.
+.content/

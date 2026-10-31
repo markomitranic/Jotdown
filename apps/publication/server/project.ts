@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import { cache } from "react";
 import { contentRepository } from "@/repository";
 import { contentDirectory, readProjectConfig } from "@jotdown/core/server/config";
@@ -8,12 +9,13 @@ import { projectSource, sourceProblems } from "@jotdown/core/server/content";
  *
  * The repository is the one this checkout of Jotdown was cloned into, and its
  * `.jotdown/config.json` names the folder holding `docs/` when that is not the
- * repository itself, and the address it is hosted at.
+ * repository itself, and the address it is hosted at. A built site reads the
+ * copy of it the build took into `.content/`, which its server functions carry.
  *
  * @example publication(); // { id: "publication", base: "", directory: "/work/handbook", … }
  */
 export const publication = cache(() => {
-  const repository = contentRepository();
+  const repository = process.env.NODE_ENV === "production" ? resolve(process.cwd(), ".content") : contentRepository();
   return {
     id: "publication",
     base: "",
