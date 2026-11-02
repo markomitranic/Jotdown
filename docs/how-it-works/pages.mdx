@@ -33,6 +33,9 @@ so "Restoring a backup" becomes `restoring-a-backup.mdx`.
 The new row waits with a dot until you save, and only then can it be opened
 and written in. Save as soon as the page is where you want it.
 
+A new page starts unlisted, so you can write it before anyone can read it.
+[Publish it](#publish-a-page) when it is ready.
+
 ## Drag it where it belongs
 
 Press a row and move it. Up and down picks the gap between rows; left and
@@ -72,6 +75,25 @@ A card in the bottom left corner counts what is waiting, "3 unsaved changes",
 with an undo arrow for the last one, **Discard** and **Save**. Save writes
 everything at once. The waiting changes are kept in this browser, so a reload
 does not lose them.
+
+## Publish a page
+
+An unlisted page is in the studio and nowhere else. The site builds nothing
+for it: no page, no search entry, no line in `llms.txt`, and its address is a
+404. Its file is still in the repository, so anyone who can read the
+repository, and every agent working in it, can read the page.
+
+An unlisted page has a closed eye at the end of its row, and the bar at the
+foot of the page offers **Publish**. Publishing saves any changes waiting on
+the page in the same commit. **Unpublish**, in the page menu, the `⋯` on its
+row and **Page settings**, takes a page off the site again. Both commit
+straight away rather than waiting for **Save**, and wait themselves while the
+page has changes of its own to save or dismiss.
+
+In the file it is one line of front matter, `unlisted: true`, gone once the
+page is published. The home page is always published. Moving, renaming or
+deleting an unlisted page leaves nothing in `docs/moved.json`, since no
+reader ever had its address.
 
 ## Delete a page
 

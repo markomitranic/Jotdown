@@ -6,6 +6,7 @@ import type {
   PageHistoryResponse,
   SaveRequest,
   SaveResponse,
+  StructureResponse,
   SourceResponse,
 } from "@jotdown/editor/types";
 
@@ -75,6 +76,10 @@ export function studioApi(scenario: Scenario = "free") {
       branch.set(save.path, save.text);
       return HttpResponse.json<SaveResponse>({ commitSha: "c0ffee5", sha: SHA });
     }),
+
+    http.post(`${API}/structure`, () =>
+      HttpResponse.json<StructureResponse>({ commitSha: "c0ffee5", changed: 1, moves: [] }),
+    ),
 
     http.get("/llms.mdx/*", ({ params }) => HttpResponse.text(branch.get(`docs/${params[0]}.mdx`) ?? "")),
 

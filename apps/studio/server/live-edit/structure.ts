@@ -1,4 +1,5 @@
 import type { StructureOp, StructureRequest, StructureResponse } from "@jotdown/editor/types";
+import { readPageFrontmatter } from "@jotdown/core/lib/front-matter";
 import { MOVED_FILE, isDoc } from "@jotdown/core/lib/paths";
 import { applyOps, type Move } from "./_structure";
 import {
@@ -29,6 +30,9 @@ import { storage } from "../storage";
  * the words it was spelt as. Neither is a nicety: a link whose target is gone
  * renders with the href exactly as typed and 404s on the click, silently.
  *
+ * A move or delete of an unlisted page is left out of `docs/moved.json`, since
+ * no reader ever had its address to be forwarded from.
+ *
  * Refusals come back as a **422** listing which staged change was impossible and
  * why, so the sidebar can mark that one row rather than throwing the queue away.
  * A page moving underneath a queue built before it is a **409**.
@@ -56,7 +60,7 @@ export async function POST(request: Request) {
     return errorResponse({ status: 422, error: "Nothing in this queue changes anything." });
   }
 
-  const forwarding = await recordMoves(moves);
+  const forwarding = await recordMoves(moves.filter(({ from }) => !isUnlisted(docs.value.corpus.get(from))));
   if (!forwarding.ok) return errorResponse(forwarding.failure);
 
   const committed = await storage.commitTree({
@@ -109,6 +113,16 @@ async function recordMoves(moves: Move[]): Promise<Result<{ path: string; conten
   };
 }
 
+/**
+ * Whether a page's file keeps it off the site, so no reader ever had its address to be forwarded from.
+ *
+ * @example isUnlisted("---\ntitle: Later\nunlisted: true\n---\n"); // true
+ */
+function isUnlisted(text: string | undefined) {
+  const read = text === undefined ? null : readPageFrontmatter(text);
+  return read?.ok === true && read.data.unlisted === true;
+}
+
 /** A record that will not parse is treated as empty, never as a reason to refuse. */
 function parseMoves(text: string): Move[] {
   try {
@@ -135,6 +149,7 @@ function describe(ops: StructureOp[]) {
     if (op.kind === "renameSection") return `rename the ${op.path} section to ${op.label}`;
     if (op.kind === "moveSection") return `move the ${op.from} section to ${op.to}`;
     if (op.kind === "icon") return `change the icon of ${op.path}`;
+    if (op.kind === "unlisted") return `${op.unlisted ? "unpublish" : "publish"} ${op.path}`;
     if (op.kind === "defaultOpen") return `${op.open ? "open" : "fold"} ${op.path} by default`;
     return `move ${op.from} to ${op.to}`;
   }
@@ -246,6 +261,13 @@ function parseOp(raw: unknown): Result<StructureOp> {
       if (!path.ok) return path;
       if (!isIcon(icon)) return rejected;
       return { ok: true, value: { kind: "icon", path: path.value, icon } };
+    }
+
+    case "unlisted": {
+      const path = parseContentPath(text("path"));
+      if (!path.ok) return path;
+      if (typeof op.unlisted !== "boolean") return rejected;
+      return { ok: true, value: { kind: "unlisted", path: path.value, unlisted: op.unlisted } };
     }
 
     case "defaultOpen": {

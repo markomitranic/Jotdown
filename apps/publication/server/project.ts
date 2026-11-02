@@ -25,14 +25,17 @@ export const publication = cache(() => {
 });
 
 /**
- * The publication's pages, compiled from the content repository.
+ * The publication's listed pages, compiled from the content repository.
+ *
+ * An unlisted page is not in it, so no route, prerender, markdown twin, search
+ * section or `llms.txt` line is ever made for one.
  *
  * Any file that could not be read stops whatever is drawing from it, the build
  * or a first visit, every one of them named, so a reader never gets a site
  * with a page or a section missing.
  */
 export const publicationSource = cache(async () => {
-  const source = await projectSource(publication());
+  const source = await projectSource(publication(), { listedOnly: true });
   const problems = sourceProblems(source);
   if (problems.length)
     throw new Error(

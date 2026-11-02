@@ -32,6 +32,7 @@ icon: GitPullRequest
 | `icon` | no | A [Lucide](https://lucide.dev/icons/) icon name, beside the title and the sidebar row. |
 | `changelog` | no | `true` draws the page as a filterable release timeline. The page is `.md`. |
 | `generated` | no | `true` marks a page a tool writes, so the studio will not edit it. |
+| `unlisted` | no | `true` keeps the page off the site: the studio shows it, and the site builds no page, search entry or `llms.txt` line for it. See [Publish a page](./pages.mdx#publish-a-page). |
 
 Any other field is dropped. `slug`, `sidebar_label` and `sidebar_position` from
 other frameworks do nothing here.
@@ -76,7 +77,8 @@ first row of the switcher.
 
 `docs/moved.json` records every page that changed address, so an old link
 still lands. The studio appends to it whenever you move or delete a page in the
-sidebar; a move in git is yours to record by hand.
+sidebar, unless the page is unlisted, since no reader had its address. A move
+in git is yours to record by hand.
 
 ```json title="docs/moved.json"
 [

@@ -142,7 +142,13 @@ as `.md` are a page a generator wrote and a changelog; see below.
   no icon offers one in the margin beside its title. Use one when it gives the
   page a clear visual shorthand, not merely to fill the space. The page's URL is
   its path under `docs/` and the sidebar label is its `title`, so `slug`,
-  `sidebar_label` and `sidebar_position` do nothing.
+  `sidebar_label` and `sidebar_position` do nothing. `unlisted: true` keeps a
+  page off the site while it is being written: the studio shows it, the site
+  leaves it out. Treat an unlisted page as unfinished, and do not link to it
+  from a published one, since that link is a 404 on the site. `unlisted: true` keeps a
+  page off the site while it is being written: the studio shows it, the site
+  leaves it out. Treat an unlisted page as unfinished, and do not link to it
+  from a published one, since that link is a 404 on the site.
 3. Add the file name, without its extension, to the `"pages"` array in the
    folder's `meta.json`, at the place it should sit. Leave it out and the page
    still appears, alphabetically, after the named ones, because every `pages`

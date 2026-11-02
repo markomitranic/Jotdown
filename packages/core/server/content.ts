@@ -30,14 +30,21 @@ type ProjectFile = { path: string; fullPath: string; text: string };
 let compiler: ReturnType<typeof dynamic<typeof config, InternalTypeConfig>> | undefined;
 const sources = new Map<string, { hash: string; source: ReturnType<typeof loadContent> }>();
 
+/** Which pages a source holds: every one for the studio, or only the listed ones for a site. */
+type Reach = { listedOnly?: boolean };
+
 /**
  * Discovers a project's content, reusing its page tree while its files are unchanged.
  *
  * Only front matter and `meta.json` are read up front. Each page compiles the
  * first time something renders or indexes it, and requests that arrive while a
  * tree is being built wait for that one build instead of starting their own.
+ * `listedOnly` leaves out every page whose front matter says `unlisted: true`,
+ * as if its file were not there.
+ *
+ * @example await projectSource(project, { listedOnly: true }); // the tree a site serves
  */
-export async function projectSource(project: Project) {
+export async function projectSource(project: Project, reach: Reach = {}) {
   const root = join(project.directory, "docs");
   const entries = await contentFiles(root);
   const files = await Promise.all(
@@ -53,12 +60,12 @@ export async function projectSource(project: Project) {
   files.sort((a, b) => a.path.localeCompare(b.path));
   const moved = await readFile(join(project.directory, MOVED_FILE), "utf8").catch(() => null);
   const hash = createHash("sha256")
-    .update(JSON.stringify({ files, projectConfig: project.config, moved }))
+    .update(JSON.stringify({ files, projectConfig: project.config, moved, reach }))
     .digest("hex");
   const cached = sources.get(project.id);
   if (cached?.hash === hash) return cached.source;
 
-  const source = loadContent(project, root, files, moved);
+  const source = loadContent(project, root, files, moved, reach);
   sources.set(project.id, { hash, source });
   source.catch(() => {
     if (sources.get(project.id)?.source === source) sources.delete(project.id);
@@ -147,9 +154,16 @@ function sidebarIcon(name: string | undefined) {
  * compiling. Every page knows the layout its nearest folder names. A broken
  * `meta.json` is left out, so its folder lists its pages in their default
  * order, and is reported in `problems` with a broken `docs/moved.json`. An MDX page is checked for code right before its first
- * compile, so it too fails alone.
+ * compile, so it too fails alone. An unlisted page is skipped before it reaches
+ * the tree when the source holds listed pages only.
  */
-async function loadContent(project: Project, root: string, projectFiles: ProjectFile[], moved: string | null) {
+async function loadContent(
+  project: Project,
+  root: string,
+  projectFiles: ProjectFile[],
+  moved: string | null,
+  { listedOnly }: Reach,
+) {
   const files = new Map<string, ProjectFile>(projectFiles.map((file) => [file.path, file]));
   const problems: FileProblem[] = [];
   const meta: Record<string, ReturnType<typeof folderMetaSchema.parse>> = {};
@@ -167,6 +181,7 @@ async function loadContent(project: Project, root: string, projectFiles: Project
     }
 
     const read = readPageFrontmatter(file.text);
+    if (listedOnly && read.ok && read.data.unlisted) continue;
     if (!read.ok) broken.set(file.path, read.problem);
     pages.push({ info, data: read.ok ? read.data : { title: fallbackTitle(file.path), icon: BROKEN_ICON } });
   }

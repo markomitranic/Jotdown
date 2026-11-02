@@ -19,6 +19,7 @@ export function pageTarget(project: StudioProject, page: SourcePage) {
     githubUrl: project.fileUrl ? project.fileUrl + path : "",
     publicUrl: publishedUrl(project.config, page.slugs),
     generated: page.data.generated,
+    unlisted: page.data.unlisted,
   };
 }
 

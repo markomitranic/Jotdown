@@ -17,6 +17,7 @@ function indexDocs(source: Source): Record<string, DocEntry> {
       source: `${DOCS_ROOT}/${page.path}`,
       title: page.data.title ?? "",
       generated: page.data.generated,
+      unlisted: page.data.unlisted,
     };
   }
   return entries;

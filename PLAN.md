@@ -713,7 +713,7 @@ Copies a framework default into the project, shadcn-style.
 
 - A default icon for every page.
 - Page preview (peek).
-- Private pages.
+- Private pages. Partly done (2026-11-02) as unlisted pages: `unlisted: true` in front matter keeps a page off the site, which builds no route, prerender, markdown twin, search entry or `llms.txt` line for it, while the studio shows it with a closed eye. Pages made in the studio start unlisted; the bar at the foot of an unlisted page offers Publish, and the page menu, the row menu and Page settings toggle it, committing at once. The home page is always published, and moving or deleting an unlisted page records nothing in `docs/moved.json`. Links from a published page to an unlisted one are the editor's to fix; nothing checks them. Still open: a page kept out of the repository itself.
 - Icon versus logo. Done (2026-10-11): `favicon` is the square icon every square slot draws, fitted in; `logo` is an optional wordmark that stands in when there is no icon.
 - A project settings panel with theme presets. Done (2026-10-11): the gear and ⌘, open every config field over the window, saved as one commit, with palettes, contrast badges, derive dark, a pasted shadcn theme, Google Fonts copied into the uploads, the config's history, search and health checks. The draft repaints the studio, and a canvas through the new `look` message; a site deployed before it ignores that. Still open: a personal preferences tab, and importing a theme from Figma.
 - Image compression and download.

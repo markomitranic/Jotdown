@@ -50,6 +50,8 @@ export type DocTarget = {
   githubUrl: string;
   /** Where readers open the page on the publication, empty when the project names no `publicUrl`. */
   publicUrl: string;
+  /** Kept off the site: only the studio shows this page. */
+  unlisted?: boolean;
 };
 
 const TargetContext = createContext<DocTarget | null>(null);
@@ -62,10 +64,10 @@ const TargetContext = createContext<DocTarget | null>(null);
  * The route hands it down instead.
  */
 export function DocTargetProvider({ target, children }: { target: DocTarget; children: ReactNode }) {
-  const { path, localPath, title, markdownUrl, githubUrl, publicUrl, generated } = target;
+  const { path, localPath, title, markdownUrl, githubUrl, publicUrl, generated, unlisted } = target;
   const value = useMemo(
-    () => ({ path, localPath, title, markdownUrl, githubUrl, publicUrl, generated }),
-    [path, localPath, title, markdownUrl, githubUrl, publicUrl, generated],
+    () => ({ path, localPath, title, markdownUrl, githubUrl, publicUrl, generated, unlisted }),
+    [path, localPath, title, markdownUrl, githubUrl, publicUrl, generated, unlisted],
   );
 
   return <TargetContext.Provider value={value}>{children}</TargetContext.Provider>;

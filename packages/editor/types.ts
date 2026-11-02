@@ -23,6 +23,8 @@ export type DocEntry = {
   /** Repo-relative, `docs/architecture/index.mdx`. */
   source: string;
   title: string;
+  /** Kept off the site: only the studio shows this page. */
+  unlisted?: boolean;
 };
 
 /** What the server hands the browser, once, at the root of the app. */
@@ -159,6 +161,13 @@ export type StructureOp =
       path: string;
       /** A Lucide component name, `BookOpen`, or null to take the icon away. */
       icon: string | null;
+    }
+  | {
+      kind: "unlisted";
+      /** A page's file. The home page is always listed. */
+      path: string;
+      /** True keeps the page off the site, false publishes it. */
+      unlisted: boolean;
     }
   | {
       kind: "defaultOpen";

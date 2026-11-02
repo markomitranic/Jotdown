@@ -4,7 +4,7 @@ import { z } from "zod";
 import { describeIssues } from "@jotdown/core/lib/broken-file";
 
 /**
- * Every field a page's front matter may carry: Fumadocs' page schema plus `changelog` and `generated`.
+ * Every field a page's front matter may carry: Fumadocs' page schema plus `changelog`, `generated`, `layout` and `unlisted`.
  *
  * The schema strips every key it does not name, so a flag left undeclared
  * reaches no remark plugin and no page.
@@ -15,6 +15,8 @@ export const pageFrontmatterSchema = pageSchema.extend({
   generated: z.boolean().optional(),
   /** The layout the page is drawn in, `docs` and `blank` or one of the project's own; the config's when unset. */
   layout: z.string().min(1).optional(),
+  /** Keep this page off the site: only the studio shows it, and nothing is built or served for it. */
+  unlisted: z.boolean().optional(),
 });
 
 export type PageFrontmatter = z.infer<typeof pageFrontmatterSchema>;

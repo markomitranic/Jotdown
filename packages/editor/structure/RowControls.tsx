@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { cn } from "cn";
 import {
+  EyeOff,
   FolderInput,
   FolderOpen,
   Link2,
@@ -15,6 +16,7 @@ import {
   Trash2,
   Unlink,
   FilePlus2,
+  Globe,
   Route,
 } from "lucide-react";
 import {
@@ -40,6 +42,7 @@ import {
   type TreeNode,
 } from "./queue";
 import { useStructure } from "./useStructure";
+import { usePublishing } from "./publishing";
 import { ACTION, ACTIONS } from "./style";
 
 type Props = {
@@ -75,6 +78,9 @@ type Asking = "url" | "move" | null;
  * `Change URL` looks like a rename and is not: it re-slugs the file, rewrites
  * every link that pointed at it and leaves a redirect behind. A separator has
  * no address, so it is placed by dragging alone.
+ *
+ * Publish and Unpublish commit at once rather than joining the queue, like
+ * deleting a page does from the page itself.
  */
 export default function RowControls({
   row,
@@ -90,6 +96,7 @@ export default function RowControls({
   const structure = useStructure();
   const { docs } = useLiveEditConfig();
   const [asking, setAsking] = useState<Asking>(null);
+  const publishing = usePublishing(row.kind === "page" || row.kind === "section" ? row.path : null);
 
   if (!structure) return null;
 
@@ -179,6 +186,16 @@ export default function RowControls({
               </DropdownMenuItem>
               <DropdownMenuItem disabled={immovable} onSelect={() => setAsking("move")}>
                 <FolderInput /> Move to…
+              </DropdownMenuItem>
+            </>
+          )}
+
+          {publishing && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem disabled={publishing.held !== null} onSelect={publishing.toggle}>
+                {publishing.unlisted ? <Globe /> : <EyeOff />}
+                {publishing.unlisted ? "Publish" : "Unpublish"}
               </DropdownMenuItem>
             </>
           )}

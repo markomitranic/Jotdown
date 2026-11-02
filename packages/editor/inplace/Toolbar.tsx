@@ -1,16 +1,17 @@
 "use client";
 
 /**
- * The bar that appears at the foot of the window once a page has changes on it.
+ * The bar that appears at the foot of the window once a page has changes on it, or while it is unlisted.
  *
  * It is the only chrome the in-place editor has. There is no edit mode to enter
  * and nothing to switch on, so the one thing worth saying out loud is that this
- * page is no longer what the file says, and here is what you can do about it.
+ * page is no longer what the file says, or not on the site yet, and here is
+ * what you can do about it.
  */
 
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Check, ChevronUp, Copy, Trash2 } from "lucide-react";
+import { Check, ChevronUp, Copy, EyeOff, Globe, Trash2 } from "lucide-react";
 import { ToggleGroup } from "radix-ui";
 import { cn } from "cn";
 import { Button } from "@jotdown/core/components/ui/button";
@@ -48,7 +49,11 @@ export function InplaceToolbar() {
 function Bar({ session }: { session: InplaceSession }) {
   const { changes, saving } = session;
   const showing =
-    changes > 0 || session.recovery.conflicts.length > 0 || session.recovery.error !== null || saving.at !== "resting";
+    changes > 0 ||
+    session.recovery.conflicts.length > 0 ||
+    session.recovery.error !== null ||
+    saving.at !== "resting" ||
+    (session.unlisted && session.deployed);
   const reassure = useSaveKey(changes > 0);
 
   if (!showing) return null;
@@ -121,29 +126,59 @@ function useSaveKey(active: boolean) {
  * A busy button is only marked disabled, never made so, because a disabled
  * button drops its focus and a keyboard reader would lose their place between
  * Save and Try again. A busy face does nothing when pressed anyway.
+ *
+ * An unlisted page with nothing else to say only says so, beside Publish. With
+ * changes on it, Publish is the loud one and Save keeps them without
+ * publishing.
  */
 function Panel({ session }: { session: InplaceSession }) {
-  const { saving, changes, deployed, local } = session;
+  const { saving, changes, deployed, local, unlisted } = session;
   const face = faceOf({ saving, changes, deployed, local });
+  const quiet = changes === 0 && saving.at === "resting";
+  const publishable = unlisted && deployed && (saving.at === "resting" || saving.at === "failed");
+  const conflicted = session.recovery.conflicts.length > 0;
 
   return (
     <div className="pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-3 rounded-xl border border-border bg-card/90 px-3 py-1.5 shadow-lg backdrop-blur sm:rounded-full">
       {changes > 0 && <Compare session={session} />}
       {face.busy && <Pulse />}
-      <span className="font-label font-medium text-muted-foreground text-xs uppercase tracking-[0.06em]">
-        {face.says}
-      </span>
+      {quiet ? (
+        <span className="flex items-center gap-1.5 font-label font-medium text-muted-foreground text-xs uppercase tracking-[0.06em]">
+          <EyeOff className="size-3.5" />
+          Unlisted
+        </span>
+      ) : (
+        <span className="font-label font-medium text-muted-foreground text-xs uppercase tracking-[0.06em]">
+          {face.says}
+        </span>
+      )}
 
-      <Button
-        type="button"
-        size="sm"
-        className={cn("rounded-full", face.busy && "pointer-events-none opacity-50")}
-        onClick={() => act(session, face.doing)}
-        aria-disabled={face.busy}
-        disabled={session.recovery.conflicts.length > 0 && face.doing === "save"}
-      >
-        {face.does}
-      </Button>
+      {!quiet && (
+        <Button
+          type="button"
+          size="sm"
+          variant={publishable ? "outline" : "default"}
+          className={cn("rounded-full", face.busy && "pointer-events-none opacity-50")}
+          onClick={() => act(session, face.doing)}
+          aria-disabled={face.busy}
+          disabled={conflicted && face.doing === "save"}
+        >
+          {face.does}
+        </Button>
+      )}
+
+      {publishable && (
+        <Button
+          type="button"
+          className="rounded-full px-4"
+          onClick={session.publish}
+          disabled={conflicted}
+          title="Put this page on the site, with any changes on it"
+        >
+          <Globe />
+          Publish
+        </Button>
+      )}
 
       <More session={session} />
     </div>

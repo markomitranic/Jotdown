@@ -11,6 +11,7 @@ import { useIsBrowser } from "@jotdown/editor/client/useIsBrowser";
 import StructureBar from "@jotdown/editor/structure/StructureBar";
 import { useStructure } from "@jotdown/editor/structure/useStructure";
 import { useUnsaved } from "@jotdown/editor/inplace/unsaved";
+import { UnlistedMark } from "@jotdown/editor/structure/publishing";
 
 /**
  * The arranging tree, and the whole drag-and-drop library under it.
@@ -57,7 +58,7 @@ export function ArrangeableSidebar({ components, ...props }: SidebarProps) {
 }
 
 /**
- * A page in the tree, marked when this browser is holding changes for it.
+ * A page in the tree, marked when it is unlisted and when this browser is holding changes for it.
  *
  * A draft lives in the browser until somebody saves it, so a reader who leaves
  * a page mid-sentence and reads three others has nothing telling them the first
@@ -68,17 +69,21 @@ export function ArrangeableSidebar({ components, ...props }: SidebarProps) {
  */
 function UnsavedPage({ item }: { item: PageTree.Item }) {
   const unsaved = useUnsaved();
+  const { docs } = useLiveEditConfig();
 
   return (
     <SidebarPage
       item={item}
       mark={
-        unsaved.has(item.url) && (
-          <span
-            className="ml-auto size-1.5 shrink-0 rounded-full bg-primary"
-            title="This page has changes waiting in this browser"
-          />
-        )
+        <span className="ms-auto flex shrink-0 items-center gap-2 empty:hidden">
+          {docs[item.url]?.unlisted && <UnlistedMark />}
+          {unsaved.has(item.url) && (
+            <span
+              className="size-1.5 shrink-0 rounded-full bg-primary"
+              title="This page has changes waiting in this browser"
+            />
+          )}
+        </span>
       }
     />
   );

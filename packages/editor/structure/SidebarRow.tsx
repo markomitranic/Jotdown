@@ -11,6 +11,7 @@ import { useUnsaved } from "../inplace/unsaved";
 import IconPicker, { dynamicName, UnknownIcon } from "../editor/IconPicker";
 import { linkIn, separatorIn } from "@jotdown/core/lib/paths";
 import { containsGenerated, isGeneratedPage } from "./generated";
+import { UnlistedMark, usePublishing } from "./publishing";
 import { isRoot, isSpelt, nameOf, type NewThing, type Pending, type Row, type RowKind, type TreeNode } from "./queue";
 import RenameField from "./RenameField";
 import RowControls from "./RowControls";
@@ -111,6 +112,7 @@ export default function SidebarRow({
   const pathname = useOptimisticPathname();
   const unsaved = useUnsaved();
   const { docs, icons } = useLiveEditConfig();
+  const publishing = usePublishing(kind === "page" || kind === "section" ? path : null);
   const [picking, setPicking] = useState(false);
 
   const link = kind === "link";
@@ -202,6 +204,8 @@ export default function SidebarRow({
             {node.name}
           </Label>
         )}
+
+        {publishing?.unlisted && !renaming && <UnlistedMark />}
 
         {pending && !renaming && (
           <span

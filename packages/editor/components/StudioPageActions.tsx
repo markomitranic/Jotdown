@@ -2,22 +2,24 @@
 
 import { useRef, type ComponentProps } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { SquarePen } from "lucide-react";
+import { EyeOff, Globe, SquarePen } from "lucide-react";
 import { PageActions } from "@jotdown/core/components/PageActions";
 import { DropdownMenuItem } from "@jotdown/core/components/ui/dropdown-menu";
-import { useLiveEditConfig } from "@jotdown/editor/client/api";
+import { useDocTarget, useLiveEditConfig } from "@jotdown/editor/client/api";
 import { useInplace } from "@jotdown/editor/inplace/context";
 import { currentMarkdown, MarkdownStage } from "@jotdown/editor/inplace/MarkdownStage";
+import { usePublishing } from "@jotdown/editor/structure/publishing";
 
 type Props = Pick<ComponentProps<typeof PageActions>, "markdownUrl" | "githubUrl" | "onShare">;
 
 /**
- * The page menu with the one way past the blocks an editable page offers: its markdown by hand.
+ * The page menu with what only an editor can do to the page: its markdown by hand, and putting it on the site or taking it off.
  *
  * @example <StudioPageActions markdownUrl="/you/notes/llms.mdx/setup" githubUrl="https://…" onShare={() => drawer.show("share")} />
  */
 export function StudioPageActions(props: Props) {
   const markdown = useMarkdownEditing();
+  const publishing = usePublishing(useDocTarget().path);
 
   return (
     <>
@@ -26,6 +28,12 @@ export function StudioPageActions(props: Props) {
           <DropdownMenuItem onSelect={markdown.open}>
             <SquarePen />
             Edit as Markdown
+          </DropdownMenuItem>
+        )}
+        {publishing && (
+          <DropdownMenuItem disabled={publishing.held !== null} onSelect={publishing.toggle}>
+            {publishing.unlisted ? <Globe /> : <EyeOff />}
+            {publishing.unlisted ? "Publish" : "Unpublish"}
           </DropdownMenuItem>
         )}
       </PageActions>

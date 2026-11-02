@@ -5,6 +5,7 @@ import { PageContent } from "@jotdown/core/components/PageContent";
 import { SectionCards } from "@jotdown/core/components/blocks/SectionCards";
 import { Article } from "@jotdown/editor/components/Article";
 import { LiveEditConfigProvider } from "@jotdown/editor/client/config";
+import { StructureProvider } from "@jotdown/editor/structure/useStructure";
 import type { LiveEditGlobalData } from "@jotdown/editor/types";
 import { KitProvider, type ProjectBlock } from "@jotdown/kit";
 import { withUnknownBlocks } from "@jotdown/core/components/blocks/UnknownBlock";
@@ -14,7 +15,7 @@ import { EDITOR, onBranch } from "./studio-api";
 /** A `.mdx` file as a story imports it: the compiled article, its front matter and its text. */
 export type PageModule = {
   default: MDXContent;
-  frontmatter: { title?: string; description?: string; icon?: string };
+  frontmatter: { title?: string; description?: string; icon?: string; unlisted?: boolean };
   source: string;
 };
 
@@ -40,6 +41,8 @@ export function PageStory({ page, editing = false, blocks = {} }: Props) {
   const title = frontmatter.title ?? "Untitled";
   const slug = `stories/${slugOf(title)}`;
   const path = `docs/${slug}.mdx`;
+  const { unlisted } = frontmatter;
+  const studio = { ...STUDIO, docs: { [`/${slug}`]: { source: path, title, unlisted } } };
   onBranch(path, source);
 
   const content = (
@@ -63,22 +66,25 @@ export function PageStory({ page, editing = false, blocks = {} }: Props) {
       pages={PAGES}
       inStudio={editing}
     >
-      <LiveEditConfigProvider config={editing ? STUDIO : PREVIEW}>
-        <DocsPage breadcrumb={false} footer={false} tableOfContent={false}>
-          <Article
-            target={{
-              path,
-              localPath: path,
-              title,
-              markdownUrl: `/llms.mdx/${slug}`,
-              githubUrl: `https://github.com/markomitranic/Jotdown/blob/main/${path}`,
-              publicUrl: `https://handbook.your-org.com/${slug}`,
-            }}
-            source={editing ? source : null}
-          >
-            {content}
-          </Article>
-        </DocsPage>
+      <LiveEditConfigProvider config={editing ? studio : PREVIEW}>
+        <StructureProvider>
+          <DocsPage breadcrumb={false} footer={false} tableOfContent={false}>
+            <Article
+              target={{
+                path,
+                localPath: path,
+                title,
+                markdownUrl: `/llms.mdx/${slug}`,
+                githubUrl: `https://github.com/markomitranic/Jotdown/blob/main/${path}`,
+                publicUrl: `https://handbook.your-org.com/${slug}`,
+                unlisted,
+              }}
+              source={editing ? source : null}
+            >
+              {content}
+            </Article>
+          </DocsPage>
+        </StructureProvider>
       </LiveEditConfigProvider>
     </KitProvider>
   );

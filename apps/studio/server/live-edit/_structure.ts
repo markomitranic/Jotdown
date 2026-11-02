@@ -104,7 +104,7 @@ function runOp(corpus: Corpus, homes: Map<string, string | null>, op: StructureO
   switch (op.kind) {
     case "create":
       if (corpus.has(op.path)) return `${op.path} already exists.`;
-      corpus.set(op.path, newPage(op));
+      corpus.set(op.path, newPage({ ...op, unlisted: docUrl(op.path) !== "/" }));
       listIn(corpus, dirOf(op.path), stemOf(op.path));
       return null;
 
@@ -146,6 +146,15 @@ function runOp(corpus: Corpus, homes: Map<string, string | null>, op: StructureO
 
     case "icon":
       return isDoc(op.path) ? repaintPage(corpus, op.path, op.icon) : repaintFolder(corpus, op.path, op.icon);
+
+    case "unlisted": {
+      const text = corpus.get(op.path);
+      if (text === undefined) return `${op.path} is not there to publish.`;
+      if (op.unlisted && docUrl(op.path) === "/") return "The home page is always published.";
+
+      corpus.set(op.path, op.unlisted ? setField(text, "unlisted", "true") : dropField(text, "unlisted"));
+      return null;
+    }
 
     case "defaultOpen":
       return unfold(corpus, op.path, op.open);
@@ -615,13 +624,14 @@ function diff(before: Corpus, after: Corpus) {
 /**
  * A new page, as the file it will be committed as: front matter and a blank sheet.
  *
- * @example newPage({ title: "Setup", description: null }); // "---\ntitle: Setup\n..."
+ * @example newPage({ title: "Setup", description: null, unlisted: true }); // "---\ntitle: Setup\n...\nunlisted: true\n---\n\n"
  */
-function newPage(page: { title: string; description: string | null; icon?: string | null }) {
+function newPage(page: { title: string; description: string | null; icon?: string | null; unlisted: boolean }) {
   const description = page.description ?? "One sentence on what this page is for.";
   const icon = page.icon ? `icon: ${page.icon}\n` : "";
+  const unlisted = page.unlisted ? "unlisted: true\n" : "";
 
-  return `---\ntitle: ${yaml(page.title)}\ndescription: ${yaml(description)}\n${icon}---\n\n`;
+  return `---\ntitle: ${yaml(page.title)}\ndescription: ${yaml(description)}\n${icon}${unlisted}---\n\n`;
 }
 
 /**

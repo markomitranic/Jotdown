@@ -105,3 +105,22 @@ test("gives a page naming no layout the one its nearest folder names", async () 
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test("leaves an unlisted page out of a site's tree while the studio's still holds it", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "docs-unlisted-"));
+  try {
+    await mkdir(join(directory, "docs"));
+    await writeFile(join(directory, "docs/index.mdx"), "---\ntitle: Home\n---\n\nFine.\n");
+    await writeFile(join(directory, "docs/later.mdx"), "---\ntitle: Later\nunlisted: true\n---\n\nNot yet.\n");
+    const project = { id: "unlisted", base: "", directory, config: readProjectConfig(directory) };
+
+    const studio = await projectSource(project);
+    const site = await projectSource(project, { listedOnly: true });
+
+    expect(studio.getPage(["later"])?.data.unlisted).toBe(true);
+    expect(site.getPage(["later"])).toBeUndefined();
+    expect(site.generateParams()).toEqual([{ slug: [] }]);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});

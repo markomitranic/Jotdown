@@ -544,7 +544,7 @@ describe("icons", () => {
     expect(applied.ok).toBe(true);
     if (!applied.ok) return;
 
-    expect(written(applied.plan, "docs/guide.md")).toContain("\nicon: FileText\n---");
+    expect(written(applied.plan, "docs/guide.md")).toContain("\nicon: FileText\n");
   });
 
   test("a page keeps its icon in front matter", () => {
@@ -606,6 +606,34 @@ describe("opening by default", () => {
       title: "Architecture",
       pages: ["bff", "..."],
     });
+  });
+});
+
+describe("unlisted pages", () => {
+  test("a page made in the browser starts unlisted", () => {
+    const applied = applyOps(corpus(), [{ kind: "create", path: "docs/guide.md", title: "Guide", description: null }]);
+
+    expect(applied.ok).toBe(true);
+    if (!applied.ok) return;
+
+    expect(written(applied.plan, "docs/guide.md")).toContain("\nunlisted: true\n---");
+  });
+
+  test("publishing takes the flag away rather than writing false", () => {
+    const unlisted = corpus();
+    unlisted.set("docs/tooling/index.mdx", "---\ntitle: Tooling\nunlisted: true\n---\n\nBody.\n");
+    const applied = applyOps(unlisted, [{ kind: "unlisted", path: "docs/tooling/index.mdx", unlisted: false }]);
+
+    expect(applied.ok).toBe(true);
+    if (!applied.ok) return;
+
+    expect(written(applied.plan, "docs/tooling/index.mdx")).toBe("---\ntitle: Tooling\n---\n\nBody.\n");
+  });
+
+  test("the home page cannot be unpublished", () => {
+    const applied = applyOps(corpus(), [{ kind: "unlisted", path: "docs/index.mdx", unlisted: true }]);
+
+    expect(applied).toEqual({ ok: false, refusals: [{ op: 0, reason: "The home page is always published." }] });
   });
 });
 

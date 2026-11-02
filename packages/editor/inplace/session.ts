@@ -51,14 +51,14 @@ export type Saving =
 export function useInplaceSession() {
   const inplace = useInplace();
   const { apiBase, editable, local } = useLiveEditConfig();
-  const { path, title } = useDocTarget();
+  const { path, title, unlisted } = useDocTarget();
   const { identity } = useIdentity();
 
   const changes = useChanges();
   const recovery = useRecovery();
 
   const committing = useMutation({
-    mutationFn: (save: Commit) => commitDraft(apiBase, path, title, save),
+    mutationFn: (save: Commit) => commitDraft(apiBase, path, save),
     onSuccess: () => {
       inplace?.recovery.clear();
       if (local) window.location.reload();
@@ -72,10 +72,19 @@ export function useInplaceSession() {
   /** The file as this draft would write it, which is what Save and Copy both send. */
   const written = useCallback(() => (inplace ? applyDraft(inplace.source, inplace.draft.edits()) : ""), [inplace]);
 
-  const save = useCallback(() => {
-    if (!inplace || !identity || inplace.recovery.get().conflicts.length > 0) return;
-    mutate({ text: written(), baseline: inplace.baseline, author: identity });
-  }, [identity, inplace, mutate, written]);
+  const save = useCallback(
+    (message = `update ${title}`) => {
+      if (!inplace || !identity || inplace.recovery.get().conflicts.length > 0) return;
+      mutate({ text: written(), baseline: inplace.baseline, author: identity, message });
+    },
+    [identity, inplace, mutate, title, written],
+  );
+
+  /** Takes `unlisted` out of the front matter and saves, carrying every other change on the page with it. */
+  const publish = useCallback(() => {
+    inplace?.fields.write("unlisted", null);
+    save(`publish ${title}`);
+  }, [inplace, save, title]);
 
   /** Copies the whole page as this draft would write it, front matter and all. */
   const copy = useCallback(async () => {
@@ -117,7 +126,10 @@ export function useInplaceSession() {
     deployed: editable,
     /** Whether the page is a file on this machine, written in place rather than committed. */
     local,
+    /** Whether the page is kept off the site, which only a save that publishes it changes. */
+    unlisted: unlisted === true,
     save,
+    publish,
     copy,
     dismiss,
     discard,
@@ -127,8 +139,8 @@ export function useInplaceSession() {
 
 export type InplaceSession = NonNullable<ReturnType<typeof useInplaceSession>>;
 
-/** One save: the file as the draft writes it, the text the page was rendered from, and who signs it. */
-type Commit = { text: string; baseline: string; author: EditorIdentity };
+/** One save: the file as the draft writes it, the text the page was rendered from, who signs it and what it did. */
+type Commit = { text: string; baseline: string; author: EditorIdentity; message: string };
 
 /**
  * Commits the draft to the project's branch.
@@ -139,9 +151,9 @@ type Commit = { text: string; baseline: string; author: EditorIdentity };
  * rendered from. Anything else means somebody saved in between, so the save is
  * refused as stale rather than guessed at.
  *
- * @example await commitDraft("/api/projects/you~site/live-edit", "docs/seo.mdx", "SEO", { text, baseline, author });
+ * @example await commitDraft("/api/projects/you~site/live-edit", "docs/seo.mdx", { text, baseline, author, message: "update SEO" });
  */
-async function commitDraft(apiBase: string, path: string, title: string, { text, baseline, author }: Commit) {
+async function commitDraft(apiBase: string, path: string, { text, baseline, author, message }: Commit) {
   const head = await fetchSource(apiBase, path);
   if (head.text !== baseline)
     throw new LiveEditFailure(409, { error: "The file changed since this page was rendered." });
@@ -150,7 +162,7 @@ async function commitDraft(apiBase: string, path: string, title: string, { text,
     path,
     text,
     sha: head.sha,
-    message: `docs: (studio) update ${title}\n\nEdited in Jotdown.`,
+    message: `docs: (studio) ${message}\n\nEdited in Jotdown.`,
     author,
   });
 }
