@@ -53,6 +53,13 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.6.0](https://github.com/markomitranic/Jotdown/compare/v0.5.10...v0.6.0) (2026-11-02)
+
+
+### Features
+
+* **kit:** let a project's blocks make and move pages ([14f8cdd](https://github.com/markomitranic/Jotdown/commit/14f8cdd6a41a0ea03b83ae2c952855f33a560e83))
+
 ## [0.5.10](https://github.com/markomitranic/Jotdown/compare/v0.5.9...v0.5.10) (2026-11-02)
 
 ### Features
