@@ -53,6 +53,12 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.5.10](https://github.com/markomitranic/Jotdown/compare/v0.5.9...v0.5.10) (2026-11-02)
+
+### Features
+
+* **studio:** keep a page off the site until it is published ([aa87c6f](https://github.com/markomitranic/Jotdown/commit/aa87c6ffdc10434dcfbac1c59c5b5e2febc92e28))
+
 ## [0.5.9](https://github.com/markomitranic/Jotdown/compare/v0.5.8...v0.5.9) (2026-10-31)
 
 
