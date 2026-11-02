@@ -1,9 +1,15 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
-import { KitEditorScope, type KitEditor } from "@jotdown/kit";
+import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useRouter } from "fumadocs-core/framework";
+import { KitEditorScope, type KitEditor, type KitPageResult } from "@jotdown/kit";
 import { rangeIn, stampAt } from "@jotdown/core/lib/source-range";
+import { docUrl } from "@jotdown/core/lib/paths";
+import { useLiveEditConfig } from "../client/config";
+import { useIdentity } from "../client/identity";
 import { useInplace, type Inplace } from "../inplace/context";
+import { useStructure } from "../structure/useStructure";
+import type { StructureOp } from "../types";
 import { openingTag, withChildren, withProp } from "./tag";
 
 /**
@@ -15,16 +21,62 @@ import { openingTag, withChildren, withProp } from "./tag";
  */
 export function ProjectEditing({ children }: { children: ReactNode }) {
   const inplace = useInplace();
-  const editor = useMemo(() => (inplace ? kitEditor(inplace) : null), [inplace]);
+  const pages = usePageVerbs();
+  const editor = useMemo(() => (inplace ? { ...tagEditor(inplace), ...pages } : null), [inplace, pages]);
 
   return <KitEditorScope editor={editor}>{children}</KitEditorScope>;
+}
+
+type PageVerbs = Pick<KitEditor, "createPage" | "movePage">;
+
+/**
+ * The editor's page verbs: each commits one change to the page tree at once, as deleting a page does.
+ *
+ * A page made is opened, and a page moved is followed when it is the one open,
+ * as every committed move is. Either answers with
+ * the address the page now has, or with the reason the commit was refused, a
+ * path outside `docs/` or a file already there, which the save card shows too.
+ * The verbs read the session through a ref, so a block holding them never
+ * redraws while a save is under way.
+ *
+ * @example const { createPage } = usePageVerbs(); await createPage({ path: "docs/blog/hi.mdx", title: "Hi" });
+ */
+function usePageVerbs(): PageVerbs {
+  const structure = useStructure();
+  const { identity } = useIdentity();
+  const { base } = useLiveEditConfig();
+  const router = useRouter();
+
+  const live = useRef({ structure, identity, base, router });
+  useEffect(() => {
+    live.current = { structure, identity, base, router };
+  }, [structure, identity, base, router]);
+
+  return useMemo(() => {
+    async function commit(op: StructureOp, path: string): Promise<KitPageResult> {
+      const { structure, identity, base } = live.current;
+      if (!structure || !identity) return { ok: false, error: "Pages are made and moved only in the studio." };
+
+      const committed = await structure.commitNow(op, identity);
+      return committed.ok ? { ok: true, path, url: docUrl(path, base) } : committed;
+    }
+
+    return {
+      async createPage({ path, title, description, data, body }) {
+        const made = await commit({ kind: "create", path, title, description: description ?? null, data, body }, path);
+        if (made.ok) live.current.router.push(made.url);
+        return made;
+      },
+      movePage: (from, to) => commit({ kind: "move", from, to }, to),
+    };
+  }, []);
 }
 
 /** What has been changed in one block's tag: its props, and the first paragraph written into it. */
 type TagEdits = { props: Map<string, string>; fill: string | null };
 
 /**
- * The editor a page hands its project blocks: every change is written into the block's opening tag.
+ * The half of the editor that writes into the page itself: every change goes into the block's opening tag.
  *
  * The tag is a stretch of the file of its own in the draft, so a prop edited
  * beside prose typed between the tags never overwrites it, and the block
@@ -33,7 +85,7 @@ type TagEdits = { props: Map<string, string>; fill: string | null };
  * own each time, with every change so far laid over it, so typing a prop
  * twice or filling a block twice replaces rather than adds.
  */
-function kitEditor(inplace: Inplace): KitEditor {
+function tagEditor(inplace: Inplace): Omit<KitEditor, keyof PageVerbs> {
   const tags = new Map<string, TagEdits>();
 
   function edit(stamp: string, change: (edits: TagEdits) => void) {

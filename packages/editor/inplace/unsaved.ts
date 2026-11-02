@@ -57,6 +57,27 @@ export function announceRecovery() {
   if (typeof window !== "undefined") window.dispatchEvent(new Event(RECOVERY_CHANGED));
 }
 
+/**
+ * Moves a page's recovery copy to the address the page moved to, so unsaved writing follows the page.
+ *
+ * A copy already waiting at the new address is left alone rather than overwritten.
+ *
+ * @example carryRecovery("/api/live-edit", "docs/a.mdx", "docs/b/a.mdx");
+ */
+export function carryRecovery(apiBase: string, from: string, to: string) {
+  try {
+    const copy = localStorage.getItem(recoveryKey(`${apiBase}:${from}`));
+    if (copy === null || localStorage.getItem(recoveryKey(`${apiBase}:${to}`)) !== null) return;
+
+    localStorage.setItem(recoveryKey(`${apiBase}:${to}`), copy);
+    localStorage.removeItem(recoveryKey(`${apiBase}:${from}`));
+  } catch {
+    return;
+  }
+
+  announceRecovery();
+}
+
 const NONE: ReadonlySet<string> = new Set();
 
 /** The URL of every page with a recovery copy in this browser, under the project's base. */

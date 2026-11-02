@@ -21,6 +21,17 @@ export const pageFrontmatterSchema = pageSchema.extend({
 
 export type PageFrontmatter = z.infer<typeof pageFrontmatterSchema>;
 
+/**
+ * The front matter fields the framework knows, picked off a page's data, which also carries what the compile added.
+ *
+ * Data that does not read as front matter, a page that would not compile say, gives none.
+ *
+ * @example knownFrontMatter(page.data); // { title: "Setup", icon: "Wrench" }
+ */
+export function knownFrontMatter(data: unknown): Partial<PageFrontmatter> {
+  return pageFrontmatterSchema.safeParse(data).data ?? {};
+}
+
 /** Every field a folder's `meta.json` may carry: Fumadocs' own plus the layout its pages are drawn in. */
 export const folderMetaSchema = metaSchema.extend({
   /** The layout of every page below this folder whose front matter names none, the nearest folder's winning. */

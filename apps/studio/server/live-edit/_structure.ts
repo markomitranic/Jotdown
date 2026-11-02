@@ -102,11 +102,14 @@ export function applyOps(corpus: Corpus, ops: StructureOp[]): Applied {
  */
 function runOp(corpus: Corpus, homes: Map<string, string | null>, op: StructureOp): string | null {
   switch (op.kind) {
-    case "create":
-      if (corpus.has(op.path)) return `${op.path} already exists.`;
+    case "create": {
+      const taken = addressTaken(corpus, op.path);
+      if (taken) return taken;
+
       corpus.set(op.path, newPage({ ...op, unlisted: docUrl(op.path) !== "/" }));
       listIn(corpus, dirOf(op.path), stemOf(op.path));
       return null;
+    }
 
     case "nest": {
       const text = corpus.get(op.path);
@@ -162,7 +165,8 @@ function runOp(corpus: Corpus, homes: Map<string, string | null>, op: StructureO
     case "move": {
       const text = corpus.get(op.from);
       if (text === undefined) return `${op.from} is not there to move.`;
-      if (corpus.has(op.to)) return `${op.to} already exists.`;
+      const taken = addressTaken(corpus, op.to, op.from);
+      if (taken) return taken;
 
       corpus.delete(op.from);
       corpus.set(op.to, text);
@@ -216,6 +220,21 @@ function runOp(corpus: Corpus, homes: Map<string, string | null>, op: StructureO
       setPages(corpus, op.folder, op.names);
       return null;
   }
+}
+
+/**
+ * Why a page cannot go to a path: a file already there, or another one already served at its address.
+ *
+ * `docs/blog.mdx` and `docs/blog/index.mdx` are both `/blog`, and so are
+ * `docs/a.md` and `docs/a.mdx`. The page being moved does not stand in its own way.
+ *
+ * @example addressTaken(corpus, "docs/blog.mdx"); // "docs/blog/index.mdx is already served at /blog."
+ */
+function addressTaken(corpus: Corpus, path: string, moving?: string) {
+  const url = docUrl(path);
+  const taken = [...corpus.keys()].find((other) => other !== moving && isDoc(other) && docUrl(other) === url);
+  if (!taken) return null;
+  return taken === path ? `${path} already exists.` : `${taken} is already served at ${url}.`;
 }
 
 /**
@@ -622,16 +641,21 @@ function diff(before: Corpus, after: Corpus) {
 }
 
 /**
- * A new page, as the file it will be committed as: front matter and a blank sheet.
+ * A new page, as the file it will be committed as: front matter, then the body it was given or a blank sheet.
  *
- * @example newPage({ title: "Setup", description: null, unlisted: true }); // "---\ntitle: Setup\n...\nunlisted: true\n---\n\n"
+ * @example newPage({ kind: "create", path: "docs/setup.mdx", title: "Setup", description: null, unlisted: true }); // "---\ntitle: Setup\n...\nunlisted: true\n---\n\n"
+ * @example newPage({ ...create, data: { date: "2026-11-02" }, body: "<PostMeta />", unlisted: true }); // "...unlisted: true\n---\n\n<PostMeta />\n"
  */
-function newPage(page: { title: string; description: string | null; icon?: string | null; unlisted: boolean }) {
+function newPage(page: Extract<StructureOp, { kind: "create" }> & { unlisted: boolean }) {
   const description = page.description ?? "One sentence on what this page is for.";
   const icon = page.icon ? `icon: ${page.icon}\n` : "";
+  const data = Object.entries(page.data ?? {})
+    .map(([field, value]) => `${field}: ${typeof value === "string" ? yaml(value) : value}\n`)
+    .join("");
   const unlisted = page.unlisted ? "unlisted: true\n" : "";
+  const body = page.body?.trim() ? `${page.body.trimEnd()}\n` : "";
 
-  return `---\ntitle: ${yaml(page.title)}\ndescription: ${yaml(description)}\n${icon}${unlisted}---\n\n`;
+  return `---\ntitle: ${yaml(page.title)}\ndescription: ${yaml(description)}\n${icon}${data}${unlisted}---\n\n${body}`;
 }
 
 /**
@@ -679,9 +703,14 @@ function hasField(text: string, field: string) {
  *
  * Titles in this repo contain colons and slashes often enough that this matters:
  * `title: CI/CD and delivery` is fine, `title: Testing: how we do it` is a
- * parse error that fails the build.
+ * parse error that fails the build. A string YAML would read as a number, a
+ * date or a boolean, `2026-11-02` or `true`, is quoted to stay a string.
  */
 function yaml(value: string) {
   const clean = value.replace(/\s+/g, " ").trim();
-  return /^[A-Za-z0-9][A-Za-z0-9 ./'()&,+-]*$/.test(clean) ? clean : `"${clean.replace(/["\\]/g, "\\$&")}"`;
+  const bare = /^[A-Za-z0-9][A-Za-z0-9 ./'()&,+-]*$/.test(clean) && !READS_AS_OTHER.test(clean);
+  return bare ? clean : `"${clean.replace(/["\\]/g, "\\$&")}"`;
 }
+
+/** A bare scalar YAML reads as something other than a string. */
+const READS_AS_OTHER = /^(?:[0-9]|(?:true|false|yes|no|on|off|null)$)/i;

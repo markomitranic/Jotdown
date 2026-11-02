@@ -25,6 +25,12 @@ export type DocEntry = {
   title: string;
   /** Kept off the site: only the studio shows this page. */
   unlisted?: boolean;
+  /**
+   * Every front matter field the framework knows, for a project's own blocks to list pages by.
+   *
+   * Absent from a studio older than the canvas reading it, which then lists pages with none.
+   */
+  data?: Record<string, unknown>;
 };
 
 /** What the server hands the browser, once, at the root of the app. */
@@ -135,6 +141,10 @@ export type StructureOp =
       description: string | null;
       /** A Lucide component name for its front matter, or absent for none. */
       icon?: string | null;
+      /** More front matter, written after the rest, for a page a project's own block makes. */
+      data?: Record<string, string | number | boolean>;
+      /** What the page says below its front matter, blank when absent. */
+      body?: string;
     }
   | {
       kind: "nest";

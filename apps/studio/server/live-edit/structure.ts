@@ -189,6 +189,34 @@ function isIcon(icon: string | null) {
   return icon === null || /^[A-Z][A-Za-z0-9]*$/.test(icon);
 }
 
+/** The fields the studio writes into every new page, `unlisted` keeping it off the site until published, which `data` cannot name again. */
+const OWN_FIELDS = ["title", "description", "icon", "unlisted"];
+
+/**
+ * Narrows the extra front matter of a new page to plain fields with plain values, or to none.
+ *
+ * @example parseFrontMatter({ date: "2026-11-02", draft: true }); // { ok: true, value: { date: "2026-11-02", draft: true } }
+ * @example parseFrontMatter({ title: "Again" }).ok; // false
+ */
+function parseFrontMatter(raw: unknown): Result<Record<string, string | number | boolean> | undefined> {
+  if (raw === undefined) return { ok: true, value: undefined };
+
+  const refused = (error: string) => ({ ok: false as const, failure: { status: 400, error } });
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return refused("`data` must be an object.");
+
+  const fields: Record<string, string | number | boolean> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (!/^[A-Za-z_][A-Za-z0-9_-]*$/.test(key)) return refused(`${key} is not a front matter field name.`);
+    if (OWN_FIELDS.includes(key)) return refused(`${key} is given on its own, not in \`data\`.`);
+
+    const plain = typeof value === "string" || typeof value === "boolean" || Number.isFinite(value);
+    if (!plain) return refused(`${key} must be a string, a number or a boolean.`);
+    fields[key] = value as string | number | boolean;
+  }
+
+  return { ok: true, value: fields };
+}
+
 function parseOp(raw: unknown): Result<StructureOp> {
   const op = (raw ?? {}) as Record<string, unknown>;
   const text = (key: string) => (typeof op[key] === "string" ? (op[key] as string) : null);
@@ -204,9 +232,22 @@ function parseOp(raw: unknown): Result<StructureOp> {
       if (!path.ok) return path;
       if (!title) return rejected;
       if (!isIcon(text("icon"))) return rejected;
+      if (op.body !== undefined && typeof op.body !== "string") return rejected;
+
+      const data = parseFrontMatter(op.data);
+      if (!data.ok) return data;
+
       return {
         ok: true,
-        value: { kind: "create", path: path.value, title, description: text("description"), icon: text("icon") },
+        value: {
+          kind: "create",
+          path: path.value,
+          title,
+          description: text("description"),
+          icon: text("icon"),
+          ...(data.value && { data: data.value }),
+          ...(op.body !== undefined && { body: op.body }),
+        },
       };
     }
 

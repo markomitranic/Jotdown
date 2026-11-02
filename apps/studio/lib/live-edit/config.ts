@@ -3,12 +3,14 @@ import type { Source } from "@jotdown/core/components/CompiledPage";
 import type { Session } from "@/server/auth/session";
 import type { StudioProject } from "@/server/storage";
 import { DOCS_ROOT, dirOf, isSectionIndex, linkIn, separatorIn } from "@jotdown/core/lib/paths";
+import { knownFrontMatter } from "@jotdown/core/lib/front-matter";
 import type { DocEntry, LiveEditGlobalData } from "@jotdown/editor/types";
 
 /**
  * Every doc keyed by the URL it is served at, from the same source the pages
  * render from, so a page the editor can see is by definition a page the site
- * built. `source` is the repo-relative file path the API writes to.
+ * built. `source` is the repo-relative file path the API writes to, and `data`
+ * the front matter a project's own blocks list pages by.
  */
 function indexDocs(source: Source): Record<string, DocEntry> {
   const entries: Record<string, DocEntry> = {};
@@ -18,6 +20,7 @@ function indexDocs(source: Source): Record<string, DocEntry> {
       title: page.data.title ?? "",
       generated: page.data.generated,
       unlisted: page.data.unlisted,
+      data: knownFrontMatter(page.data),
     };
   }
   return entries;

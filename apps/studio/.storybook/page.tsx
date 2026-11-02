@@ -61,7 +61,7 @@ export function PageStory({ page, editing = false, blocks = {} }: Props) {
 
   return (
     <KitProvider
-      page={{ title, description: frontmatter.description, url: `/${slug}`, data: {} }}
+      page={{ title, description: frontmatter.description, url: `/${slug}`, path, data: frontmatter }}
       site={SITE}
       pages={PAGES}
       inStudio={editing}
@@ -93,8 +93,20 @@ export function PageStory({ page, editing = false, blocks = {} }: Props) {
 const SITE = { title: "Handbook", description: "How we build", base: "" };
 
 const PAGES = [
-  { title: "Browser editor", description: "How a save becomes a commit.", url: "/manual/browser-editor" },
-  { title: "Mermaid diagrams", description: "Ten diagram types, worked through.", url: "/manual/mermaid-diagrams" },
+  {
+    title: "Browser editor",
+    description: "How a save becomes a commit.",
+    url: "/manual/browser-editor",
+    path: "docs/manual/browser-editor.mdx",
+    data: { title: "Browser editor", icon: "PencilLine" },
+  },
+  {
+    title: "Mermaid diagrams",
+    description: "Ten diagram types, worked through.",
+    url: "/manual/mermaid-diagrams",
+    path: "docs/manual/mermaid-diagrams.mdx",
+    data: { title: "Mermaid diagrams" },
+  },
 ];
 
 /**

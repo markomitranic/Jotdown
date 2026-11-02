@@ -72,7 +72,13 @@ export const Hero = defineBlock(HeroBlock, {
 
 ## Reading the site from a block
 
-A block can ask where it stands. `usePage()` is the page's title, description, address and front matter, `useSite()` the site's title and address, and `usePages({ folder: "guides", limit: 6 })` the pages of a folder in the sidebar's order, which is all a "Read next" grid needs. Link between pages with the kit's `Link`, which in the canvas opens the page in the app.
+A block can ask where it stands. `usePage()` is the page's title, description, address, file and front matter, `useSite()` the site's title and address, and `usePages({ folder: "guides", limit: 6 })` the pages of a folder in the sidebar's order, which is all a "Read next" grid needs. Each page in that list has the same `path` and `data` as `usePage()`, so a blog can sort its posts by the date in their filename:
+
+```tsx
+const posts = usePages({ folder: "blog" }).toSorted((a, b) => b.path.localeCompare(a.path));
+```
+
+Link between pages with the kit's `Link`, which in the canvas opens the page in the app.
 
 `useInStudio()` says whether the page is drawn inside the studio rather than for a reader, so a block or a layout can leave out what only readers want while you edit: analytics, a cookie banner, a video that plays on its own. It is true on every page the studio draws, while `useIsEditable()` is true only where a block can be edited in place:
 
@@ -84,6 +90,48 @@ export function Analytics() {
   return <script defer src="https://plausible.io/js/script.js" data-domain="notes.example.com" />;
 }
 ```
+
+## Making and moving pages
+
+A block can make a page and move one, so a blog can have a **New post** button and a byline whose category picker moves the post into that category's folder. Your block decides where a page goes; Jotdown only checks that the path is a `.md` or `.mdx` file under `docs/` and that no page is served at its address yet.
+
+Both verbs are on the editor `useEditing()` hands a block in the canvas. Each commits at once, the way deleting a page does, and answers with the page's new address or with why it could not:
+
+```tsx title=".jotdown/components/NewPost.tsx"
+import { useEditing } from "@jotdown/kit";
+
+export function NewPost({ category = "notes" }: { category?: string }) {
+  const editing = useEditing();
+  if (!editing) return null;
+
+  async function create() {
+    const day = new Date().toISOString().slice(0, 10);
+    const made = await editing.editor.createPage({
+      path: `docs/blog/${category}/${day}-untitled.mdx`,
+      title: "Untitled",
+      description: "",
+      data: { date: day },
+      body: "<PostMeta />",
+    });
+    if (!made.ok) alert(made.error);
+  }
+
+  return <button onClick={create}>New post</button>;
+}
+```
+
+`createPage` writes the title, the description, then each field of `data`, which takes strings, numbers and booleans, and `body` below the front matter. Leave the description out and it gets the same placeholder the sidebar writes. The new page opens in the app, and like every page made there it starts unlisted, kept off the site until you press **Publish** on it.
+
+`movePage(from, to)` moves a page by its file, and `usePage().path` is the file of the page the block is on:
+
+```tsx
+const { path } = usePage();
+const moved = await editing.editor.movePage(path, path.replace("/blog/notes/", "/blog/travel/"));
+```
+
+A move is the same as dragging the page in the sidebar: links to it are repaired, and `docs/moved.json` records the old address so it redirects. When the page you moved is the one open, the app follows it, and anything you wrote on it and have not saved yet comes along. On the published site `useEditing()` is null, so neither verb exists there.
+
+Front matter fields of your own, `date` here, are written into the file but not read back yet: `data` on a page holds only the fields the framework knows, `layout`, `icon` and `unlisted` among them. In the app, `usePages()` lists unlisted pages too, with `data.unlisted` set, so a list can mark or skip them; the site never has them.
 
 ## Giving a page a layout of its own
 

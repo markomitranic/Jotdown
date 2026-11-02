@@ -643,6 +643,7 @@ Record the decisions in this plan as Jotdown ADRs:
 - **Hooks:** `useIsEditable`, `useInStudio`, `usePage`, `useSite`, `usePages({ folder, sort, limit })`.
 - **Primitives:** `Editable.Text`, `Editable.Image`, `Slot`. They render static output in a published page and become editable in the canvas.
 - **`defineBlock` metadata** as optional registration beside a component.
+- **Page verbs:** `createPage` and `movePage` on the editor, committed at once. The block names the path; Jotdown checks it and refuses collisions. ADR 0028.
 
 ### 6.3 Resolution
 
@@ -685,6 +686,7 @@ Copies a framework default into the project, shadcn-style.
 - **6.5** `layout` in front matter and the config (default `docs`). `blank` is built in. Both the site and the canvas draw a page in its layout.
 - **6.6** `jotdown add block|layout [name]` copies from `packages/kit/templates`: `Hero`, `PageList`, `landing` and `article`.
 - **6.7** An unknown tag is a labelled, movable stand-in in Skinny and the canvas, and fails a site build. The framework's own blocks were not rewritten with the kit: each has an editor of its own the primitives cannot match, and the kit-written blocks are the `jotdown add` templates. ADR 0026 records the editing model.
+- **Page verbs (2026-11-02):** `createPage({ path, title, description, data, body })` and `movePage(from, to)` reuse the sidebar's `create` and `move` ops through `commitNow`, so links are repaired and moves recorded. A page made starts unlisted and is opened through the canvas's router, which now posts `navigate`. Any committed move of the open page, from a block or the sidebar, opens it at its new address, and its recovery copy goes with it. A create or move onto an address another file serves (`blog.mdx` beside `blog/index.mdx`) is refused. `usePage()` and `usePages()` carry `path` and the known front matter as `data`. Still open: front matter fields of a project's own, readable and writable from the kit (a `setField` verb and a way to declare them), after draft pages land.
 - **Milestone C** checked with `/tmp`'s scratch project: a `Hero` and a `landing` layout edited through a localhost canvas (title, prose, settings, empty slot, `/` insert, each saved as exactly the changed bytes) and redrawn within seconds of its file changing.
 
 ## Phase 7: Later, unordered

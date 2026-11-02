@@ -20,10 +20,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { usePathname, useRouter as useSiteRouter } from "fumadocs-core/framework";
 import { useMutation } from "@tanstack/react-query";
 import { LiveEditFailure, saveStructure, useLiveEditConfig } from "../client/api";
 import { useIdentity, type EditorIdentity } from "../client/identity";
+import { docUrl } from "@jotdown/core/lib/paths";
 import type { StructureOp, StructureRequest } from "../types";
+import { carryRecovery } from "../inplace/unsaved";
 import { changesIn, undone } from "./queue";
 
 const QUEUE_KEY = "live-edit:structure-queue";
@@ -49,9 +52,12 @@ export type Structure = {
   discard(): void;
   save(): void;
   dismiss(): void;
-  /** Commits one change on its own, deleting a page say. */
-  commitNow(op: StructureOp, who: EditorIdentity): void;
+  /** Commits one change on its own, deleting a page say, and answers whether it landed or why it could not. */
+  commitNow(op: StructureOp, who: EditorIdentity): Promise<Committed>;
 };
+
+/** A commit that landed, or why it was refused. */
+export type Committed = { ok: true } | { ok: false; error: string };
 
 const StructureContext = createContext<Structure | null>(null);
 
@@ -62,9 +68,11 @@ const StructureContext = createContext<Structure | null>(null);
  * one row has to redraw every other row.
  */
 export function StructureProvider({ children }: { children: ReactNode }) {
-  const { apiBase, version } = useLiveEditConfig();
+  const { apiBase, base, version } = useLiveEditConfig();
   const { identity } = useIdentity();
   const router = useRouter();
+  const site = useSiteRouter();
+  const showing = usePathname();
 
   const [phase, setPhase] = useState<Phase>({ name: "idle" });
   const [ops, setStaged] = useState<StructureOp[]>([]);
@@ -121,17 +129,28 @@ export function StructureProvider({ children }: { children: ReactNode }) {
    * queue stops being staged: a reload after it should not offer to apply a
    * rearrangement the repo already has. The save keeps saying so until a
    * refresh draws the commit, or says the studio is behind if none has in time.
+   * Unsaved writing on a page that moved goes with it to its new address, and
+   * the page that is open is followed there, since its old one no longer answers.
    */
   const commit = useCallback(
-    async (queued: StructureOp[], who: EditorIdentity, onCommitted?: () => void) => {
-      const sent = await send({ ops: queued, author: who }).catch(() => null);
-      if (!sent) return;
+    async (queued: StructureOp[], who: EditorIdentity, onCommitted?: () => void): Promise<Committed> => {
+      let sent: Awaited<ReturnType<typeof send>>;
+      try {
+        sent = await send({ ops: queued, author: who });
+      } catch (error) {
+        return { ok: false, error: describe(error as Error) };
+      }
 
       onCommitted?.();
+      for (const { from, to } of sent.moves) if (to) carryRecovery(apiBase, from, to);
       setLanding({ sha: sent.commitSha, ops: queued, changed: sent.changed });
       router.refresh();
+
+      const open = sent.moves.find(({ from }) => docUrl(from, base) === showing);
+      if (open?.to) site.push(docUrl(open.to, base));
+      return { ok: true };
     },
-    [router, send],
+    [apiBase, base, router, send, showing, site],
   );
 
   const value = useMemo<Structure>(
@@ -148,7 +167,7 @@ export function StructureProvider({ children }: { children: ReactNode }) {
       save: () => {
         if (identity && staging) void commit(ops, identity, () => setOps(() => []));
       },
-      commitNow: (op, who) => void commit([op], who),
+      commitNow: (op, who) => commit([op], who),
       dismiss: () => setPhase({ name: "idle" }),
     }),
     [commit, drawn, identity, ops, phase, setOps, staging],

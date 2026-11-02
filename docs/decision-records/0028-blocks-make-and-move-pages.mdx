@@ -1,0 +1,61 @@
+---
+title: "ADR 0028: A project's blocks make and move pages"
+icon: FilePlus2
+description: Why a project's own block can create and move whole pages, committed at once, while every rule about where a page goes stays in the project.
+---
+
+**Accepted** · 2026-11-02 · Extends [ADR 0026](./0026-blocks-edited-from-inside.mdx)
+
+## Context
+
+[ADR 0026](./0026-blocks-edited-from-inside.mdx) lets a project's block edit
+the file it is written in, and nothing else. A blog wants more than that: a
+"New post" button, and a byline whose category and date pickers decide where
+the post lives, `docs/blog/<category>/<YYYY-MM-DD>-<slug>.mdx`. Changing the
+category is moving the file. The rules that turn a category and a date into a
+path are the blog's, and Jotdown should never learn them.
+
+The studio already makes, moves and deletes pages for its sidebar, as staged
+changes to the page tree committed together, with links repaired and every
+move recorded in `docs/moved.json` for redirects.
+
+## Decision
+
+**The kit gets two generic verbs, `createPage` and `movePage`, on the editor a
+block already has.** The block names the whole path. Jotdown only checks it,
+with the same allowlist every other write uses, a `.md` or `.mdx` under
+`docs/`, and refuses a path whose address a file already holds,
+`docs/blog.mdx` beside `docs/blog/index.mdx` as much as the same file twice. `createPage` takes a title,
+a description, more front matter as plain values, and a starting body. Both
+are the sidebar's own `create` and `move` changes, so a move repairs links and
+records its redirect exactly as a drag does.
+
+**A verb commits at once rather than joining the sidebar's staged queue.** It
+is a button pressed on the page, like Delete in the page menu, not an
+arrangement drafted in the tree. A staged page could not be opened, and a
+staged move would leave the byline that asked for it drawing the old category
+until somebody found the card in the corner and pressed Save. The card still
+shows the commit going up, and a refusal.
+
+**The verb answers with the page's new address, and the studio lands there.**
+A page made is opened, unlisted like every page the studio makes. When a
+commit moves the page that is open, from a block or from the sidebar, the
+studio opens it at its new address, and writing on it that was not saved yet
+moves with it.
+
+**A list of pages carries each page's file and front matter.** `usePage()` and
+`usePages()` both give `path` and `data`, so a block can sort posts by the
+date in their filename or group them by a field, instead of parsing addresses.
+
+## Consequences
+
+- A project builds its own page workflows in React, inside the canvas, and its
+  rules stay in its own code.
+- On a published site the editor is null, so the verbs do not exist there.
+- A site picks the verbs up with a framework release and a redeploy. The canvas
+  protocol is unchanged.
+- A page's `data` is the front matter the framework knows. Fields of a
+  project's own are written by `createPage` but read back by nobody until the
+  front matter schema opens to them, which is a later decision.
+- Two blocks moving the same page at once are two commits, and the second is
+  refused because the file is gone.

@@ -496,6 +496,52 @@ describe("setField", () => {
   test("adds the field when the frontmatter has no such line", () => {
     expect(setField("---\ntitle: A\n---\n\nBody\n", "description", "B")).toContain("description: B");
   });
+
+  test("quotes a title YAML would read as a date or a boolean", () => {
+    expect(setField("---\ntitle: A\n---\n", "title", "2026-11-02")).toContain('title: "2026-11-02"');
+    expect(setField("---\ntitle: A\n---\n", "title", "Yes")).toContain('title: "Yes"');
+  });
+});
+
+describe("a page a project's block makes", () => {
+  test("is written with its extra front matter and its starting body, off the site until published", () => {
+    const applied = applyOps(corpus(), [
+      {
+        kind: "create",
+        path: "docs/blog/notes/2026-11-02-hello.mdx",
+        title: "Hello",
+        description: "",
+        data: { date: "2026-11-02", featured: true, order: 3 },
+        body: "<PostMeta />",
+      },
+    ]);
+
+    expect(applied.ok).toBe(true);
+    if (!applied.ok) return;
+
+    expect(written(applied.plan, "docs/blog/notes/2026-11-02-hello.mdx")).toBe(
+      '---\ntitle: Hello\ndescription: ""\ndate: "2026-11-02"\nfeatured: true\norder: 3\nunlisted: true\n---\n\n<PostMeta />\n',
+    );
+  });
+
+  test("is refused over a file already there", () => {
+    const applied = applyOps(corpus(), [
+      { kind: "create", path: "docs/architecture/bff.mdx", title: "Again", description: null, body: "Hi" },
+    ]);
+
+    expect(applied).toEqual({ ok: false, refusals: [{ op: 0, reason: "docs/architecture/bff.mdx already exists." }] });
+  });
+
+  test("is refused at an address another file already serves", () => {
+    const applied = applyOps(corpus(), [
+      { kind: "create", path: "docs/tooling.mdx", title: "Tooling", description: null },
+    ]);
+
+    expect(applied).toEqual({
+      ok: false,
+      refusals: [{ op: 0, reason: "docs/tooling/index.mdx is already served at /tooling." }],
+    });
+  });
 });
 
 describe("moving a whole section", () => {

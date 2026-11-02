@@ -12,11 +12,13 @@ import { createContext, useContext, useMemo, type ComponentType, type ReactNode 
  * write back into the file.
  */
 
-/** The page being drawn: its front matter, and the address a reader opens it at. */
+/** The page being drawn: its front matter, its file, and the address a reader opens it at. */
 export type KitPage = {
   title: string;
   description?: string;
   url: string;
+  /** The page's file from the project's root, `docs/blog/notes/2026-11-02-hello.mdx`. */
+  path: string;
   /** Every front matter field the framework knows, `layout` and `icon` among them. */
   data: Record<string, unknown>;
 };
@@ -31,10 +33,28 @@ export type KitSite = {
   url?: string;
 };
 
-/** One page of the site as a list of pages shows it. */
-export type KitPageSummary = { title: string; description?: string; url: string };
+/** One page of the site as a list of pages shows it: everything `usePage` says about it. */
+export type KitPageSummary = KitPage;
 
-/** How a block drawn in the editing canvas changes the file it was written in. */
+/** A front matter value a new page can be given. */
+export type KitFrontMatterValue = string | number | boolean;
+
+/** A page to create, at a file the block chose. */
+export type KitNewPage = {
+  /** The file from the project's root, a `.md` or `.mdx` under `docs/`: `docs/blog/notes/2026-11-02-hello.mdx`. */
+  path: string;
+  title: string;
+  description?: string;
+  /** More front matter, written after the title and description. */
+  data?: Record<string, KitFrontMatterValue>;
+  /** What the page says below its front matter, `<PostMeta />` say. */
+  body?: string;
+};
+
+/** Where a page now lives, or why it could not be made or moved there. */
+export type KitPageResult = { ok: true; url: string; path: string } | { ok: false; error: string };
+
+/** How a block drawn in the editing canvas changes the file it was written in, and the pages of the site. */
 export type KitEditor = {
   /** Writes one prop of the block written at `stamp`, as a string literal. */
   setProp(stamp: string, prop: string, value: string): void;
@@ -42,6 +62,10 @@ export type KitEditor = {
   fill(stamp: string, text: string): void;
   /** Commits a picture and answers with its address, or with why it could not. */
   upload(file: File): Promise<{ ok: true; url: string } | { ok: false; error: string }>;
+  /** Commits a new page at once and opens it. A file already there is refused. */
+  createPage(page: KitNewPage): Promise<KitPageResult>;
+  /** Commits a page's move at once, recording a redirect. The page that is open is followed to its new address. */
+  movePage(from: string, to: string): Promise<KitPageResult>;
 };
 
 /** How the editing canvas draws the page's own title and description, so a layout can offer them in place. */
@@ -177,7 +201,10 @@ type PagesQuery = {
 /**
  * The site's pages, as the sidebar orders them, narrowed to a folder.
  *
- * @example usePages({ folder: "guides", limit: 3 }); // [{ title: "Setup", url: "/guides/setup" }, …]
+ * Each page carries its file and its front matter, so a list can sort or
+ * group by either.
+ *
+ * @example usePages({ folder: "guides", limit: 3 }); // [{ title: "Setup", url: "/guides/setup", path: "docs/guides/setup.mdx", data: {} }, …]
  */
 export function usePages({ folder, sort = "order", limit }: PagesQuery = {}) {
   const { pages, site } = useKit();

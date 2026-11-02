@@ -1,7 +1,9 @@
 import type { ComponentType, ReactNode } from "react";
 import { blocksOf, KitProvider, type LayoutProps } from "@jotdown/kit";
 import * as project from "@project";
-import { pageList } from "@jotdown/core/lib/page-list";
+import { pageList, type ListedPage } from "@jotdown/core/lib/page-list";
+import { knownFrontMatter } from "@jotdown/core/lib/front-matter";
+import { DOCS_ROOT } from "@jotdown/core/lib/paths";
 import FigureStage from "@jotdown/core/components/blocks/FigureStage";
 import type { Source, SourcePage } from "@jotdown/core/components/CompiledPage";
 import type { publication } from "@/server/project";
@@ -48,14 +50,39 @@ export function ProjectKit({
  * @example kitData({ project, source, page }).page.title; // "Setup"
  */
 export function kitData({ project, source, page }: { project: Project; source: Source; page: SourcePage }) {
-  const { title, description, icon, full, layout } = page.data;
   const { config } = project;
 
   return {
-    page: { title, description, url: page.url, data: { icon, full, layout } },
+    page: { title: page.data.title, description: page.data.description, url: page.url, ...fileOf(page) },
     site: { title: config.title, description: config.description, base: project.base, url: config.url },
-    pages: pageList(source.getPageTree()),
+    pages: pagesOf(source),
   };
+}
+
+const lists = new WeakMap<Source, ListedPage[]>();
+
+/**
+ * The site's pages as a list, worked out once per source rather than once per page built.
+ *
+ * @example pagesOf(source)[0]; // { title: "Welcome", url: "/", path: "docs/index.mdx", data: { title: "Welcome" } }
+ */
+function pagesOf(source: Source) {
+  const known = lists.get(source);
+  if (known) return known;
+
+  const files = new Map(source.getPages().map((page) => [page.url, fileOf(page)]));
+  const listed = pageList(source.getPageTree(), (url) => files.get(url));
+  lists.set(source, listed);
+  return listed;
+}
+
+/**
+ * A page's file from the project's root, and the front matter it was written with.
+ *
+ * @example fileOf(page); // { path: "docs/guides/setup.mdx", data: { title: "Setup", icon: "Wrench" } }
+ */
+function fileOf(page: SourcePage) {
+  return { path: `${DOCS_ROOT}/${page.path}`, data: knownFrontMatter(page.data) };
 }
 
 /**

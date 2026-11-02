@@ -15,7 +15,10 @@ export {
   useSite,
   type KitEditor,
   type KitFields,
+  type KitFrontMatterValue,
+  type KitNewPage,
   type KitPage,
+  type KitPageResult,
   type KitPageSummary,
   type KitSite,
 } from "./context";

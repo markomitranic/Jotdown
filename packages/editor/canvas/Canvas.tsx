@@ -138,12 +138,12 @@ export function Canvas({ project, framework, ...drawing }: Props) {
   }, [studio, theme]);
 
   if (alone) return <Alone title={project.title} />;
-  if (!load) return null;
+  if (!load || !studio) return null;
   return (
     <>
       <WindowTitleBar />
       <Suspense fallback={null}>
-        <CanvasPage load={load} {...drawing} />
+        <CanvasPage load={load} studio={studio} {...drawing} />
       </Suspense>
     </>
   );
@@ -189,8 +189,7 @@ function useStudioHandoffs(studio: string | null, showing: string | undefined) {
       if (!url || (url.hash && url.pathname === location.pathname)) return;
 
       event.preventDefault();
-      if (showing) startTrip(url.pathname, showing);
-      post(window.parent, studio as string, { type: "navigate", url: url.pathname + url.hash });
+      goTo(studio as string, url.pathname + url.hash, showing);
     }
 
     function auxclick(event: MouseEvent) {
@@ -261,7 +260,15 @@ function useStudioHandoffs(studio: string | null, showing: string | undefined) {
  * its folder's, then the site's, and one of the project's own is handed the
  * editors of the page's title and description to draw where it likes.
  */
-function CanvasPage({ load, title, site, layout, blocks, layouts }: { load: CanvasLoad } & Drawing) {
+function CanvasPage({
+  load,
+  studio,
+  title,
+  site,
+  layout,
+  blocks,
+  layouts,
+}: { load: CanvasLoad; studio: string } & Drawing) {
   const config = load.config as LiveEditGlobalData;
   const tree = useMemo(() => deserializeTree(load.tree), [load.tree]);
   const names = useMemo(() => Object.keys(blocks), [blocks]);
@@ -294,9 +301,12 @@ function CanvasPage({ load, title, site, layout, blocks, layouts }: { load: Canv
       Link: SiteLink,
       usePathname: () => load.url,
       useParams: () => ({}),
-      useRouter: () => ({ push: () => {}, refresh: () => {} }),
+      useRouter: () => ({
+        push: (url: string) => goTo(studio, url, load.url),
+        refresh: () => {},
+      }),
     }),
-    [load.url],
+    [load.url, studio],
   );
 
   const kit = useMemo(
@@ -305,12 +315,16 @@ function CanvasPage({ load, title, site, layout, blocks, layouts }: { load: Canv
         title: front?.title ?? load.target.title,
         description: front?.description,
         url: load.url,
-        data: { icon: front?.icon, full: front?.full, layout: front?.layout },
+        path: load.path,
+        data: front ?? {},
       },
       site: { ...site, base: config.base },
-      pages: pageList(tree),
+      pages: pageList(tree, (url) => {
+        const doc = config.docs[url];
+        return doc && { path: doc.source, data: doc.data ?? {} };
+      }),
     }),
-    [front, load.target.title, load.url, site, config.base, tree],
+    [front, load.target.title, load.url, load.path, site, config.base, config.docs, tree],
   );
 
   const reading = useReading();
@@ -411,6 +425,16 @@ function Alone({ title }: { title: string }) {
       </div>
     </main>
   );
+}
+
+/**
+ * Asks the studio for another page, the page showing fading while it is fetched.
+ *
+ * @example goTo("http://127.0.0.1:53041", "/you/notes/guides/setup#install", "/you/notes");
+ */
+function goTo(studio: string, url: string, showing: string | undefined) {
+  if (showing) startTrip(url, showing);
+  post(window.parent, studio, { type: "navigate", url });
 }
 
 /** Posts one message to the studio. */
