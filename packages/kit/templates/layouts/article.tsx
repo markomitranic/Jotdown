@@ -1,11 +1,11 @@
-import { Editable, Link, type LayoutProps } from "@jotdown/kit";
+import { Editable, Link, defineLayout, frameworkBlocks, type LayoutProps } from "@jotdown/kit";
 
 /**
  * A single article: its title and description over one column of prose, for a page that reads on its own.
  *
  * @example layout: article
  */
-export default function Article({ site, children }: LayoutProps) {
+function Article({ site, children }: LayoutProps) {
   return (
     <div className="min-h-dvh bg-background px-6 py-16">
       <article className="prose mx-auto max-w-2xl">
@@ -19,3 +19,5 @@ export default function Article({ site, children }: LayoutProps) {
     </div>
   );
 }
+
+export default defineLayout(Article, { blocks: frameworkBlocks });

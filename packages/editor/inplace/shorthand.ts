@@ -40,6 +40,7 @@
  */
 
 import { Extension, InputRule, type Editor, type JSONContent } from "@tiptap/core";
+import type { FrameworkBlock } from "@jotdown/kit";
 import { blockFor } from "./slash";
 
 /** Puts a block of another kind where the one the caret is in stands. */
@@ -52,27 +53,27 @@ export type Becomes = (editor: Editor, block: JSONContent) => void;
  * above the body and nothing in the body may have a second of, so a single
  * hash asks for the largest heading a page can actually hold.
  */
-const SHORTHAND: Array<{ find: RegExp; block(): JSONContent }> = [
-  { find: /^[-*+]\s$/, block: () => blockFor("bulletList") },
-  { find: /^\d+[.)]\s$/, block: () => blockFor("orderedList") },
-  { find: /^\[ ?\]\s$/, block: () => blockFor("taskList") },
-  { find: /^>\s$/, block: () => blockFor("blockquote") },
-  { find: /^#{1,2}\s$/, block: () => blockFor("heading2") },
-  { find: /^###\s$/, block: () => blockFor("heading3") },
-  { find: /^####\s$/, block: () => blockFor("heading4") },
-  { find: /^```$/, block: () => blockFor("codeBlock") },
-  { find: /^(?:---|\*\*\*|___)$/, block: () => blockFor("horizontalRule") },
+const SHORTHAND: Array<{ find: RegExp; listedAs: FrameworkBlock; block(): JSONContent }> = [
+  { find: /^[-*+]\s$/, listedAs: "bulletList", block: () => blockFor("bulletList") },
+  { find: /^\d+[.)]\s$/, listedAs: "numberedList", block: () => blockFor("orderedList") },
+  { find: /^\[ ?\]\s$/, listedAs: "todoList", block: () => blockFor("taskList") },
+  { find: /^>\s$/, listedAs: "quote", block: () => blockFor("blockquote") },
+  { find: /^#{1,2}\s$/, listedAs: "heading", block: () => blockFor("heading2") },
+  { find: /^###\s$/, listedAs: "heading", block: () => blockFor("heading3") },
+  { find: /^####\s$/, listedAs: "heading", block: () => blockFor("heading4") },
+  { find: /^```$/, listedAs: "code", block: () => blockFor("codeBlock") },
+  { find: /^(?:---|\*\*\*|___)$/, listedAs: "divider", block: () => blockFor("horizontalRule") },
 ];
 
 /**
- * The block one line of shorthand asks for, or null where it asks for nothing.
+ * The block one line of shorthand asks for, or null where it asks for nothing the page's layout lists.
  *
- * @example shorthandFor("- ")?.type; // "bulletList"
- * @example shorthandFor("a - b"); // null
+ * @example shorthandFor("- ", new Set(["bulletList"]))?.type; // "bulletList"
+ * @example shorthandFor("## ", new Set(["text"])); // null, left as typed
  */
-export function shorthandFor(typed: string): JSONContent | null {
-  for (const { find, block } of SHORTHAND) {
-    if (find.test(typed)) return block();
+export function shorthandFor(typed: string, framework: ReadonlySet<FrameworkBlock>): JSONContent | null {
+  for (const { find, listedAs, block } of SHORTHAND) {
+    if (find.test(typed)) return framework.has(listedAs) ? block() : null;
   }
 
   return null;
@@ -81,9 +82,9 @@ export function shorthandFor(typed: string): JSONContent | null {
 /**
  * Adds the markdown shorthands to an inline in-place editor.
  *
- * @example const extension = inplaceShorthand((editor, block) => becomes(part, editor, null, block));
+ * @example const extension = inplaceShorthand(page.framework, (editor, block) => becomes(part, editor, null, block));
  */
-export function inplaceShorthand(becomes: Becomes) {
+export function inplaceShorthand(framework: ReadonlySet<FrameworkBlock>, becomes: Becomes) {
   return Extension.create({
     name: "inplaceShorthand",
     priority: 1100,
@@ -96,7 +97,7 @@ export function inplaceShorthand(becomes: Becomes) {
           new InputRule({
             find,
             handler: ({ state, range, match }) => {
-              const made = shorthandFor(match[0]);
+              const made = shorthandFor(match[0], framework);
               if (made === null || range.from !== 0 || range.to !== state.doc.content.size) {
                 return null;
               }

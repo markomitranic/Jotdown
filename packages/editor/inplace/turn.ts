@@ -9,6 +9,7 @@
  */
 
 import type { JSONContent } from "@tiptap/core";
+import type { FrameworkBlock } from "@jotdown/kit";
 
 export type TurnKind =
   | "paragraph"
@@ -22,19 +23,31 @@ export type TurnKind =
   | "blockquote"
   | "callout";
 
+/** One kind in the Turn into menu, with the name a layout lists it by. */
+export type TurnChoice = { kind: TurnKind; title: string; listedAs: FrameworkBlock };
+
 /** Every kind a block can turn into, in the order the menu lists them. */
-export const TURN_KINDS: Array<{ kind: TurnKind; title: string }> = [
-  { kind: "paragraph", title: "Text" },
-  { kind: "heading2", title: "Heading 2" },
-  { kind: "heading3", title: "Heading 3" },
-  { kind: "heading4", title: "Heading 4" },
-  { kind: "bulletList", title: "Bulleted list" },
-  { kind: "orderedList", title: "Numbered list" },
-  { kind: "taskList", title: "To-do list" },
-  { kind: "codeBlock", title: "Code" },
-  { kind: "blockquote", title: "Quote" },
-  { kind: "callout", title: "Callout" },
+export const TURN_KINDS: TurnChoice[] = [
+  { kind: "paragraph", title: "Text", listedAs: "text" },
+  { kind: "heading2", title: "Heading 2", listedAs: "heading" },
+  { kind: "heading3", title: "Heading 3", listedAs: "heading" },
+  { kind: "heading4", title: "Heading 4", listedAs: "heading" },
+  { kind: "bulletList", title: "Bulleted list", listedAs: "bulletList" },
+  { kind: "orderedList", title: "Numbered list", listedAs: "numberedList" },
+  { kind: "taskList", title: "To-do list", listedAs: "todoList" },
+  { kind: "codeBlock", title: "Code", listedAs: "code" },
+  { kind: "blockquote", title: "Quote", listedAs: "quote" },
+  { kind: "callout", title: "Callout", listedAs: "callout" },
 ];
+
+/**
+ * The kinds a block may turn into on a page whose layout lists these framework blocks.
+ *
+ * @example turnKinds(new Set(["text", "quote"])).map(({ kind }) => kind); // ["paragraph", "blockquote"]
+ */
+export function turnKinds(framework: ReadonlySet<FrameworkBlock>) {
+  return TURN_KINDS.filter(({ listedAs }) => framework.has(listedAs));
+}
 
 type Line = JSONContent[];
 

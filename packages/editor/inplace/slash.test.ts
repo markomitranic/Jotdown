@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { frameworkBlocks, type FrameworkBlock } from "@jotdown/kit";
 import { blockFor, inplaceChoices } from "./slash";
 
-const MDX = { mdx: true };
+const EVERY = new Set(frameworkBlocks);
+const MDX = { mdx: true, framework: EVERY };
 
 describe("the in-place slash menu", () => {
   it("offers the supported blocks in reading order", () => {
@@ -40,11 +42,32 @@ describe("the in-place slash menu", () => {
   });
 
   it("offers nothing that writes a JSX tag on a .md page", () => {
-    const titles = inplaceChoices({ mdx: false }, "").map((item) => item.title);
+    const titles = inplaceChoices({ mdx: false, framework: EVERY }, "").map((item) => item.title);
 
     expect(titles).toContain("Table");
     expect(titles).not.toContain("Steps");
-    expect(inplaceChoices({ mdx: false }, "video")).toEqual([]);
+    expect(inplaceChoices({ mdx: false, framework: EVERY }, "video")).toEqual([]);
+  });
+
+  it("offers only what the page's layout lists, and pasting markdown on every page", () => {
+    const role = { name: "Role", title: "Role", hint: "One job", source: "<Role />" };
+    const titles = (framework: ReadonlySet<FrameworkBlock>) =>
+      inplaceChoices({ mdx: true, framework, inserts: [role] }, "").map((item) => item.title);
+
+    expect(titles(new Set(["heading", "callout"]))).toEqual([
+      "Paste markdown",
+      "Heading 2",
+      "Heading 3",
+      "Heading 4",
+      "Note",
+      "Tip",
+      "Info",
+      "Warning",
+      "Caution",
+      "Danger",
+      "Role",
+    ]);
+    expect(titles(new Set())).toEqual(["Paste markdown", "Role"]);
   });
 
   it("finds choices by their familiar command names", () => {

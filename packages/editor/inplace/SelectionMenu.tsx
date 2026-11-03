@@ -34,7 +34,7 @@ import { Input } from "@jotdown/core/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@jotdown/core/components/ui/tooltip";
 import { useInplace, useTrackedSelection, type Inplace } from "./context";
 import { blockAt, type BlockOps } from "./handles";
-import type { TurnKind } from "./turn";
+import { turnKinds, type TurnChoice, type TurnKind } from "./turn";
 import type { Selected } from "./selection";
 import { TURN_ICONS, TurnIntoItems, turnTitle } from "./TurnInto";
 
@@ -155,7 +155,8 @@ export function InplaceSelectionMenu() {
 
   const block = tracked ? blockOf(page, tracked) : null;
   const kind = block?.kind?.() ?? null;
-  const turn = kind === null ? undefined : block?.turnInto;
+  const kinds = turnKinds(page.framework);
+  const turn = kind === null || kinds.length === 0 ? undefined : block?.turnInto;
   const formattable = editor.schema.marks.bold !== undefined;
   if (linkDraft === null && !turn && !formattable) return null;
 
@@ -178,7 +179,7 @@ export function InplaceSelectionMenu() {
     >
       {linkDraft === null ? (
         <>
-          {turn && kind !== null && <TurnIntoRow kind={kind} editor={editor} onTurn={turn} />}
+          {turn && kind !== null && <TurnIntoRow kind={kind} kinds={kinds} editor={editor} onTurn={turn} />}
 
           {formattable && (
             <>
@@ -260,13 +261,20 @@ export function InplaceSelectionMenu() {
   );
 }
 
+type TurnIntoRowProps = {
+  kind: TurnKind;
+  kinds: TurnChoice[];
+  editor: Editor;
+  onTurn(kind: TurnKind): void;
+};
+
 /**
  * The row naming the block's kind, which opens every kind it can become beside the menu.
  *
  * The choices take focus while open, so the arrow keys walk them, and hand it
  * back to the editor on close, so typing carries on where the selection is.
  */
-function TurnIntoRow({ kind, editor, onTurn }: { kind: TurnKind; editor: Editor; onTurn(kind: TurnKind): void }) {
+function TurnIntoRow({ kind, kinds, editor, onTurn }: TurnIntoRowProps) {
   const Icon = TURN_ICONS[kind];
 
   return (
@@ -295,7 +303,7 @@ function TurnIntoRow({ kind, editor, onTurn }: { kind: TurnKind; editor: Editor;
           if (!editor.isDestroyed) editor.commands.focus();
         }}
       >
-        <TurnIntoItems current={kind} onTurn={onTurn} />
+        <TurnIntoItems current={kind} kinds={kinds} onTurn={onTurn} />
       </DropdownMenuContent>
     </DropdownMenu>
   );

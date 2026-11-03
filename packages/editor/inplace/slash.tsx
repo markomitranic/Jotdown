@@ -9,6 +9,7 @@ import { SizeGrid } from "../editor/menus/SizeGrid";
 import { DIAGRAM_TEMPLATES } from "../editor/nodes/mermaidTemplates";
 import { clampSize, type GridSize } from "../editor/tables";
 import type { PreviewKind } from "./previews";
+import type { FrameworkBlock } from "@jotdown/kit";
 
 /** A block the menu builds out of nothing, named as the reader thinks of it. */
 export type InplaceBlock =
@@ -61,6 +62,8 @@ export type SlashInsert = { name: string; title: string; hint: string; source: s
 type Item = SlashChoice &
   Chosen & {
     keywords: string[];
+    /** The name a layout lists it by, or null for one every page offers. */
+    listedAs: FrameworkBlock | null;
     /** Writes a JSX tag, so the item is withheld from a `.md` page. */
     jsx?: true;
     /** Choosing this opens the size grid, which asks for the block for real. */
@@ -70,8 +73,10 @@ type Item = SlashChoice &
 /**
  * What the menu is allowed to offer where it was opened.
  *
- * `mdx` is the file: a `.md` page compiles no JSX, so an item that writes a tag
- * is withheld from one. `holds` is the place, asked about the caret as it
+ * `framework` is the page's layout, which lists the framework's blocks its
+ * pages may insert; the project's own come already narrowed to its list in
+ * `inserts`. `mdx` is the file: a `.md` page compiles no JSX, so an item that
+ * writes a tag is withheld from one. `holds` is the place, asked about the caret as it
  * stands: a paragraph of the article can be replaced by any block there is,
  * and a paragraph inside a box can only become something that box can hold, so
  * the menu inside one is shorter than the menu beside it, and does not open at
@@ -79,6 +84,7 @@ type Item = SlashChoice &
  */
 export type SlashOptions = {
   mdx: boolean;
+  framework: ReadonlySet<FrameworkBlock>;
   /** The project's own blocks, offered after the framework's. */
   inserts?: SlashInsert[];
   holds?: (chosen: Chosen, state: EditorState) => boolean;
@@ -91,6 +97,7 @@ const slashPluginKey = new PluginKey("inplaceSlash");
 const ITEMS: Item[] = [
   {
     pastes: "markdown",
+    listedAs: null,
     title: "Paste markdown",
     hint: "Copied markdown, as blocks",
     glyph: "M↓",
@@ -98,6 +105,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "paragraph",
+    listedAs: "text",
     title: "Text",
     hint: "Plain paragraph",
     glyph: "P",
@@ -105,6 +113,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "heading2",
+    listedAs: "heading",
     title: "Heading 2",
     hint: "Section heading",
     glyph: "H2",
@@ -112,6 +121,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "heading3",
+    listedAs: "heading",
     title: "Heading 3",
     hint: "Sub-section heading",
     glyph: "H3",
@@ -119,6 +129,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "heading4",
+    listedAs: "heading",
     title: "Heading 4",
     hint: "Small section heading",
     glyph: "H4",
@@ -126,6 +137,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "bulletList",
+    listedAs: "bulletList",
     title: "Bulleted list",
     hint: "Unordered items",
     glyph: "•",
@@ -133,6 +145,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "orderedList",
+    listedAs: "numberedList",
     title: "Numbered list",
     hint: "Ordered steps",
     glyph: "1.",
@@ -140,6 +153,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "taskList",
+    listedAs: "todoList",
     title: "To-do list",
     hint: "Items to tick off",
     glyph: "☐",
@@ -147,6 +161,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "blockquote",
+    listedAs: "quote",
     title: "Quote",
     hint: "Set apart a passage",
     glyph: "“",
@@ -154,6 +169,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "codeBlock",
+    listedAs: "code",
     title: "Code block",
     hint: "Fenced, monospaced",
     glyph: "{ }",
@@ -161,6 +177,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "mermaid",
+    listedAs: "diagram",
     title: "Diagram",
     hint: "Flowchart, drawn not typed",
     glyph: "◇",
@@ -168,6 +185,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "whiteboard",
+    listedAs: "whiteboard",
     title: "Whiteboard",
     hint: "Draw with Excalidraw",
     glyph: "▱",
@@ -176,6 +194,7 @@ const ITEMS: Item[] = [
   },
   {
     picks: "image",
+    listedAs: "image",
     title: "Image",
     hint: "Upload a picture",
     glyph: "▣",
@@ -183,6 +202,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "videoEmbed",
+    listedAs: "video",
     title: "Video embed",
     hint: "Paste a YouTube link",
     glyph: "▶",
@@ -191,6 +211,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "linkEmbed",
+    listedAs: "linkEmbed",
     title: "Link embed",
     hint: "A card with the page's title and picture",
     glyph: "↗",
@@ -199,6 +220,7 @@ const ITEMS: Item[] = [
   },
   {
     picks: "file",
+    listedAs: "file",
     title: "File attachment",
     hint: "Upload a PDF, zip or spreadsheet",
     glyph: "⤓",
@@ -207,6 +229,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "table",
+    listedAs: "table",
     title: "Table",
     hint: "Pick a size",
     glyph: "▦",
@@ -215,6 +238,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "horizontalRule",
+    listedAs: "divider",
     title: "Divider",
     hint: "Horizontal rule",
     glyph: "─",
@@ -222,6 +246,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "note",
+    listedAs: "callout",
     title: "Note",
     hint: "Admonition",
     glyph: "i",
@@ -229,6 +254,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "tip",
+    listedAs: "callout",
     title: "Tip",
     hint: "Admonition",
     glyph: "✓",
@@ -236,6 +262,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "info",
+    listedAs: "callout",
     title: "Info",
     hint: "Admonition",
     glyph: "i",
@@ -243,6 +270,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "warning",
+    listedAs: "callout",
     title: "Warning",
     hint: "Admonition",
     glyph: "!",
@@ -250,6 +278,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "caution",
+    listedAs: "callout",
     title: "Caution",
     hint: "Admonition",
     glyph: "!",
@@ -257,6 +286,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "danger",
+    listedAs: "callout",
     title: "Danger",
     hint: "Admonition",
     glyph: "✕",
@@ -264,6 +294,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "source",
+    listedAs: "source",
     title: "Source",
     hint: "Cite where this comes from",
     glyph: "§",
@@ -271,6 +302,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "accordions",
+    listedAs: "accordion",
     title: "Accordion",
     hint: "Panels a reader unfolds",
     glyph: "⌄",
@@ -279,6 +311,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "steps",
+    listedAs: "steps",
     title: "Steps",
     hint: "A numbered procedure",
     glyph: "①",
@@ -287,6 +320,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "tabs",
+    listedAs: "tabs",
     title: "Tabs",
     hint: "One thing, several ways",
     glyph: "◫",
@@ -295,6 +329,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "cards",
+    listedAs: "cards",
     title: "Cards",
     hint: "A hand-picked set of links",
     glyph: "⊞",
@@ -303,6 +338,7 @@ const ITEMS: Item[] = [
   },
   {
     block: "files",
+    listedAs: "fileTree",
     title: "File tree",
     hint: "A directory, drawn as rows",
     glyph: "└",
@@ -461,14 +497,15 @@ function onlyThingOnTheLine(state: EditorState, range: { from: number; to: numbe
 }
 
 /**
- * The visible choices matching a slash query, narrowed by what the file can render.
+ * The visible choices matching a slash query, narrowed by the page's layout and by what the file can render.
  *
  * A `.md` page compiles without JSX parsing, so an item that writes a tag is
  * dropped rather than shown and left to produce literal angle brackets.
+ * Pasting markdown is offered everywhere, since a paste is never narrowed.
  *
- * @example inplaceChoices({ mdx: true }, "h2").map((item) => item.title); // ["Heading 2"]
+ * @example inplaceChoices({ mdx: true, framework: new Set(["heading"]) }, "h2").map((item) => item.title); // ["Heading 2"]
  */
-export function inplaceChoices({ mdx, inserts = [] }: SlashOptions, query: string): Item[] {
+export function inplaceChoices({ mdx, framework, inserts = [] }: SlashOptions, query: string): Item[] {
   const needle = query.trim().toLowerCase();
   const own = inserts.map(
     (insert): Item => ({
@@ -477,12 +514,14 @@ export function inplaceChoices({ mdx, inserts = [] }: SlashOptions, query: strin
       hint: insert.hint,
       glyph: insert.title.slice(0, 1).toUpperCase(),
       keywords: [insert.name.toLowerCase(), "block", "component"],
+      listedAs: null,
       jsx: true,
     }),
   );
 
   return [...ITEMS, ...own].filter(
     (item) =>
+      (item.listedAs === null || framework.has(item.listedAs)) &&
       (mdx || !item.jsx) &&
       (needle === "" ||
         item.title.toLowerCase().includes(needle) ||
@@ -662,7 +701,7 @@ function renderMenu() {
  * only where at least one choice fits. This makes replacement literal and keeps
  * a slash in prose, a URL or a table cell ordinary text.
  *
- * @example const extension = inplaceSlash({ mdx: true }, (editor, range, chosen) => …);
+ * @example const extension = inplaceSlash({ mdx: true, framework: page.framework }, (editor, range, chosen) => …);
  */
 export function inplaceSlash(options: SlashOptions, replace: Replace) {
   const fitting = (state: EditorState) => (item: Item) => options.holds?.(item, state) ?? true;

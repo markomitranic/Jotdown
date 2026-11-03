@@ -39,7 +39,8 @@ import { WhiteboardWorkspace } from "../whiteboard/Workspace";
 import { UploadNotice } from "./UploadNotice";
 import { useStills } from "./useEditable";
 import type { SlashInsert } from "./slash";
-import { useProjectInserts } from "../project/inserts";
+import type { FrameworkBlock } from "@jotdown/kit";
+import { useInserts } from "../project/inserts";
 
 /** The page as every editable block on it sees it. */
 export type Inplace = {
@@ -65,7 +66,9 @@ export type Inplace = {
   mdx: boolean;
   /** The column this file's author wraps prose at, or null for a file nobody wraps. */
   wrap: number | null;
-  /** The project's own blocks, offered in the `/` menu. */
+  /** The framework blocks the page's layout lists, all the `/` menu, Turn into and shorthand may make. */
+  framework: ReadonlySet<FrameworkBlock>;
+  /** The project's own blocks the page's layout lists, offered in the `/` menu. */
   inserts: SlashInsert[];
   uploading: Uploading;
 };
@@ -88,7 +91,7 @@ export function InplaceEditing({ source, children }: { source: string | null; ch
   const { identity } = useIdentity();
   const { uploadImage, uploadFile } = useUploads(identity);
   const [status, setStatus] = useState(QUIET);
-  const inserts = useProjectInserts();
+  const { framework, project: inserts } = useInserts();
 
   const live = useRef({ uploadImage, uploadFile });
   useEffect(() => {
@@ -119,6 +122,7 @@ export function InplaceEditing({ source, children }: { source: string | null; ch
       blocks: createBlockSelection(handles),
       mdx: isMdx(path),
       wrap: wrapAt(text),
+      framework,
       inserts,
       uploading: {
         uploadImage: (file) => live.current.uploadImage(file),
@@ -127,7 +131,7 @@ export function InplaceEditing({ source, children }: { source: string | null; ch
         onStatus: setStatus,
       },
     };
-  }, [source, state, revision, path, inserts]);
+  }, [source, state, revision, path, framework, inserts]);
 
   useEffect(() => {
     void page?.recovery.start();

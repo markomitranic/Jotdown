@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import type { MDXContent } from "mdx/types";
 import { DocsPage } from "@jotdown/core/components/docs/page";
 import { EDITABLE_FIELDS, getMDXComponents } from "@jotdown/editor/components/mdx";
@@ -7,9 +8,10 @@ import { Article } from "@jotdown/editor/components/Article";
 import { LiveEditConfigProvider } from "@jotdown/editor/client/config";
 import { StructureProvider } from "@jotdown/editor/structure/useStructure";
 import type { LiveEditGlobalData } from "@jotdown/editor/types";
-import { KitProvider, type ProjectBlock } from "@jotdown/kit";
+import { KitProvider, type ProjectBlock, type ProjectLayout } from "@jotdown/kit";
 import { withUnknownBlocks } from "@jotdown/core/components/blocks/UnknownBlock";
 import { editableBlocks } from "@jotdown/editor/project/ProjectBlock";
+import { InsertsProvider, allInserts, layoutInserts } from "@jotdown/editor/project/inserts";
 import { EDITOR, onBranch } from "./studio-api";
 
 /** A `.mdx` file as a story imports it: the compiled article, its front matter and its text. */
@@ -25,6 +27,8 @@ type Props = {
   editing?: boolean;
   /** A project's own blocks, drawn as a site's canvas draws them. */
   blocks?: Record<string, ProjectBlock>;
+  /** A layout of the project's, whose list is all the page offers to insert; every block otherwise, as in docs. */
+  layout?: ProjectLayout;
 };
 
 /**
@@ -36,8 +40,12 @@ type Props = {
  *
  * @example <PageStory page={callout} editing />
  */
-export function PageStory({ page, editing = false, blocks = {} }: Props) {
+export function PageStory({ page, editing = false, blocks = NO_BLOCKS, layout }: Props) {
   const { default: Compiled, frontmatter, source } = page;
+  const inserts = useMemo(
+    () => (layout ? layoutInserts("story", layout, blocks) : allInserts(blocks)),
+    [layout, blocks],
+  );
   const title = frontmatter.title ?? "Untitled";
   const slug = `stories/${slugOf(title)}`;
   const path = `docs/${slug}.mdx`;
@@ -69,20 +77,22 @@ export function PageStory({ page, editing = false, blocks = {} }: Props) {
       <LiveEditConfigProvider config={editing ? studio : PREVIEW}>
         <StructureProvider>
           <DocsPage breadcrumb={false} footer={false} tableOfContent={false}>
-            <Article
-              target={{
-                path,
-                localPath: path,
-                title,
-                markdownUrl: `/llms.mdx/${slug}`,
-                githubUrl: `https://github.com/markomitranic/Jotdown/blob/main/${path}`,
-                publicUrl: `https://handbook.your-org.com/${slug}`,
-                unlisted,
-              }}
-              source={editing ? source : null}
-            >
-              {content}
-            </Article>
+            <InsertsProvider value={inserts}>
+              <Article
+                target={{
+                  path,
+                  localPath: path,
+                  title,
+                  markdownUrl: `/llms.mdx/${slug}`,
+                  githubUrl: `https://github.com/markomitranic/Jotdown/blob/main/${path}`,
+                  publicUrl: `https://handbook.your-org.com/${slug}`,
+                  unlisted,
+                }}
+                source={editing ? source : null}
+              >
+                {content}
+              </Article>
+            </InsertsProvider>
           </DocsPage>
         </StructureProvider>
       </LiveEditConfigProvider>
@@ -91,6 +101,8 @@ export function PageStory({ page, editing = false, blocks = {} }: Props) {
 }
 
 const SITE = { title: "Handbook", description: "How we build", base: "" };
+
+const NO_BLOCKS: Record<string, ProjectBlock> = {};
 
 const PAGES = [
   {

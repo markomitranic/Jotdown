@@ -1,0 +1,46 @@
+---
+title: "ADR 0029: A layout lists what its pages insert"
+icon: ListChecks
+description: Why each layout of a project's own names every block its pages may insert, the framework's included, and why one without a list stops the build.
+---
+
+**Accepted** · 2026-11-03 · Extends [ADR 0026](./0026-blocks-edited-from-inside.mdx)
+
+## Context
+
+The editor offered one list everywhere: every framework block, then every
+block the project registered with `defineBlock`. A personal site with a CV, a
+board of short notes and a homepage built from drifting paper had all three
+pages offering each other's blocks, so the CV's `/` menu held the homepage's
+desk and the board's jots. Each of those pages is made of its own handful of
+blocks, and the layout is what already knows which page is which.
+
+## Decision
+
+**A layout names its blocks with `defineLayout(Layout, { blocks })`.** The
+list holds project blocks by their component and framework blocks by name, and
+it is everything the editor offers on the layout's pages: `/`, Turn into and
+the markdown shortcuts. Headings of every level are one `heading`, and every
+kind of callout one `callout`. `frameworkBlocks` is the whole framework list,
+for a layout to spread into its own.
+
+**Every layout of a project's own has a list, and an empty one is a list.**
+The canvas's layouts are typed so that a bare default export fails the site's
+typecheck, and the canvas throws when it opens a page whose layout has no list,
+or lists a block no file in `.jotdown/components` exports. Docs and blank are
+the framework's own layouts and offer everything, as before.
+
+**The list narrows what is offered, never what renders.** A block already on a
+page draws and edits whether listed or not, and pasting is never narrowed, so
+Paste markdown is on every page.
+
+## Consequences
+
+- A layout written before this release fails the next build until it is wrapped
+  in `defineLayout`, so a project upgrades its layouts with the framework.
+- `jotdown add layout` hands out templates listing `frameworkBlocks`; a project
+  adds its own blocks to the list.
+- A container block cannot narrow what goes inside it. Inside a block's slot,
+  `/` offers the layout's list.
+- The editor's menus each carry the name a layout lists them by, and the kit's
+  `frameworkBlocks` is the one place those names are declared.

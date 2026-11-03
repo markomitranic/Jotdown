@@ -26,4 +26,11 @@ export { Editable } from "./Editable";
 export { Slot } from "./Slot";
 export { default as Link } from "fumadocs-core/link";
 export { blockMeta, blocksOf, defineBlock, type BlockField, type BlockMeta, type ProjectBlock } from "./define";
-export type { LayoutProps } from "./layout";
+export {
+  defineLayout,
+  frameworkBlocks,
+  type FrameworkBlock,
+  type LayoutBlock,
+  type LayoutProps,
+  type ProjectLayout,
+} from "./layout";

@@ -57,7 +57,7 @@ What a block draws through the kit's primitives is what the canvas lets you chan
 - `Editable.Image` is a picture whose address is a prop. In the canvas it offers **Replace picture**, which uploads the file you pick and writes its address.
 - `Slot` is where the prose between the tags goes. Each paragraph in it edits like any other on the page, and an empty slot offers a first line to type.
 
-Every block also gets a grip, so it moves, copies and deletes like any block, and **Settings…** in the grip's menu edits its source. Register it with `defineBlock` and the settings become a field per prop, and `/` offers it by name:
+Every block also gets a grip, so it moves, copies and deletes like any block, and **Settings…** in the grip's menu edits its source. Register it with `defineBlock` and the settings become a field per prop, and `/` offers it by name on every page whose layout [lists it](#choosing-what-its-pages-insert), which the docs shell always does:
 
 ```tsx
 import { defineBlock } from "@jotdown/kit";
@@ -145,12 +145,13 @@ layout: landing
 ---
 ```
 
-`blank` is the page and nothing around it. Any other name is a file in `.jotdown/layouts`, whose default export gets the page, the site and the page's content to place:
+`blank` is the page and nothing around it. Any other name is a file in `.jotdown/layouts`, whose default export gets the page, the site and the page's content to place, and says which blocks its pages may insert:
 
 ```tsx title=".jotdown/layouts/landing.tsx"
-import { Link, type LayoutProps } from "@jotdown/kit";
+import { Link, defineLayout, frameworkBlocks, type LayoutProps } from "@jotdown/kit";
+import { Hero } from "../components/Hero";
 
-export default function Landing({ site, children }: LayoutProps) {
+function Landing({ site, children }: LayoutProps) {
   return (
     <div className="min-h-dvh">
       <header className="mx-auto max-w-5xl px-6 py-5">
@@ -160,6 +161,8 @@ export default function Landing({ site, children }: LayoutProps) {
     </div>
   );
 }
+
+export default defineLayout(Landing, { blocks: [...frameworkBlocks, Hero] });
 ```
 
 To change the layout of every page that names none, set `"layout"` in `.jotdown/config.json`.
@@ -171,9 +174,9 @@ In the canvas a block's root is placed by your layout exactly as on the site, so
 A layout that draws its own heading gets the page's title and description through `Editable.Title` and `Editable.Description`. On the site they are plain text. In the canvas they are written back into the page's front matter, and an empty description still shows, so it can be written:
 
 ```tsx title=".jotdown/layouts/post.tsx"
-import { Editable, type LayoutProps } from "@jotdown/kit";
+import { Editable, defineLayout, frameworkBlocks, type LayoutProps } from "@jotdown/kit";
 
-export default function Post({ children }: LayoutProps) {
+function Post({ children }: LayoutProps) {
   return (
     <article className="prose mx-auto max-w-2xl py-16">
       <Editable.Title className="text-4xl" />
@@ -182,9 +185,50 @@ export default function Post({ children }: LayoutProps) {
     </article>
   );
 }
+
+export default defineLayout(Post, { blocks: frameworkBlocks });
 ```
 
 `as` picks the tag, `h1` and `p` unless you say otherwise.
+
+### Choosing what its pages insert
+
+Register a few blocks and every one of them turns up in `/` on every page: the CV offers the homepage's hero, and a blog post offers the CV's job entries. A layout puts a stop to that by listing what its pages may insert, and the editor offers nothing else there, in `/`, in **Turn into** and in the markdown shortcuts like `## `:
+
+```tsx title=".jotdown/layouts/profile.tsx"
+import { defineLayout, type LayoutProps } from "@jotdown/kit";
+import { Role } from "../components/Cv";
+
+function Profile({ children }: LayoutProps) {
+  return <main className="prose mx-auto max-w-3xl">{children}</main>;
+}
+
+export default defineLayout(Profile, { blocks: ["text", "heading", "bulletList", Role] });
+```
+
+- **Your own blocks** are listed by the component, imported from `.jotdown/components`, and `/` offers them in the order you list them.
+- **The framework's blocks** are listed by name. `frameworkBlocks` is all of them, the list the docs shell offers, so `[...frameworkBlocks, Hero]` is everything plus your hero.
+- **An empty list is a list.** `defineLayout(Home, { blocks: [] })` suits a page made of blocks you placed by hand, where `/` offers nothing but Paste markdown, since a paste is never narrowed.
+
+The list only decides what is offered. A block already on the page draws and edits whether its layout lists it or not, so changing a list never breaks a page.
+
+| Name | What `/` offers |
+| --- | --- |
+| `text` | Text |
+| `heading` | Heading 2, 3 and 4 |
+| `bulletList`, `numberedList`, `todoList` | Bulleted, numbered and to-do lists |
+| `quote` | Quote |
+| `code` | Code block |
+| `diagram` | Diagram |
+| `whiteboard` | Whiteboard |
+| `image`, `video`, `linkEmbed`, `file` | Image, video embed, link embed and file attachment |
+| `table` | Table |
+| `divider` | Divider |
+| `callout` | Note, tip, info, warning, caution and danger |
+| `source` | Source |
+| `accordion`, `steps`, `tabs`, `cards`, `fileTree` | Accordion, steps, tabs, cards and file tree |
+
+Every layout needs its list. One exported without `defineLayout` stops the site's build with a type error, and in the dev server the canvas throws, naming the layout's file, as soon as you open one of its pages. So does a list naming a block that no file in `.jotdown/components` exports.
 
 ### A layout for a whole folder
 

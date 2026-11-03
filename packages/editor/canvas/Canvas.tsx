@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  Suspense,
-  startTransition,
-  useEffect,
-  useEffectEvent,
-  useMemo,
-  useRef,
-  useState,
-  type ComponentType,
-  type ReactNode,
-} from "react";
+import { Suspense, startTransition, useEffect, useEffectEvent, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTheme } from "next-themes";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { FrameworkProvider } from "fumadocs-core/framework";
@@ -44,11 +34,11 @@ import { sendRequestsThrough } from "@jotdown/editor/client/api";
 import { canvasTransport } from "@jotdown/editor/client/canvas";
 import { setReading, useReading } from "@jotdown/editor/client/reading";
 import type { LiveEditGlobalData } from "@jotdown/editor/types";
-import { KitProvider, type KitSite, type LayoutProps, type ProjectBlock } from "@jotdown/kit";
+import { KitProvider, type KitSite, type ProjectBlock, type ProjectLayout } from "@jotdown/kit";
 import { withUnknownBlocks } from "@jotdown/core/components/blocks/UnknownBlock";
 import { pageList } from "@jotdown/core/lib/page-list";
 import { editableBlocks } from "@jotdown/editor/project/ProjectBlock";
-import { ProjectInserts } from "@jotdown/editor/project/inserts";
+import { InsertsProvider, allInserts, layoutInserts } from "@jotdown/editor/project/inserts";
 
 type Props = {
   /** The site's logo and title, as its sidebar draws them. */
@@ -63,8 +53,8 @@ type Props = {
   layout: string;
   /** The project's own blocks, which win over the framework's by name. */
   blocks: Record<string, ProjectBlock>;
-  /** The project's own layouts, by name. */
-  layouts: Record<string, ComponentType<LayoutProps>>;
+  /** The project's own layouts, by name, each with the blocks its pages may insert. */
+  layouts: Record<string, ProjectLayout>;
 };
 
 type Drawing = Omit<Props, "project" | "framework">;
@@ -258,7 +248,9 @@ function useStudioHandoffs(studio: string | null, showing: string | undefined) {
  * components and edited from inside, and a tag nobody draws gets a labelled
  * stand-in rather than stopping the page. The layout is the page's own, then
  * its folder's, then the site's, and one of the project's own is handed the
- * editors of the page's title and description to draw where it likes.
+ * editors of the page's title and description to draw where it likes. The
+ * layout also decides what its editors offer to insert: docs and blank offer
+ * every block, and a project's own only the blocks it lists.
  */
 function CanvasPage({
   load,
@@ -331,6 +323,11 @@ function CanvasPage({
   const editable = config.editable && !load.target.generated && !reading;
   const named = front?.layout ?? load.folderLayout ?? layout;
   const Layout = layouts[named];
+  const listing = front && named !== "docs" && named !== "blank" ? Layout : undefined;
+  const inserts = useMemo(
+    () => (listing ? layoutInserts(named, listing, blocks) : allInserts(blocks)),
+    [named, listing, blocks],
+  );
   const body = "problem" in page ? <Problem>{page.problem}</Problem> : <page.body components={components} />;
   const article = (children: ReactNode) => (
     <Article source={load.target.generated ? null : load.text} target={load.target}>
@@ -342,7 +339,7 @@ function CanvasPage({
     <FrameworkProvider {...framework}>
       <NavigationTracker />
       <KitProvider {...kit} inStudio fields={editable ? EDITABLE_FIELDS : null}>
-        <ProjectInserts blocks={blocks}>
+        <InsertsProvider value={inserts}>
           <LiveEditRoot config={config}>
             {named === "docs" || !front ? (
               <DocsShell
@@ -398,7 +395,7 @@ function CanvasPage({
               </main>
             )}
           </LiveEditRoot>
-        </ProjectInserts>
+        </InsertsProvider>
       </KitProvider>
     </FrameworkProvider>
   );

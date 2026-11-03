@@ -1,12 +1,13 @@
 "use client";
 
-import type { ComponentProps, ComponentType } from "react";
-import { blocksOf, type LayoutProps } from "@jotdown/kit";
+import type { ComponentProps } from "react";
+import { blocksOf, type ProjectLayout } from "@jotdown/kit";
 import * as project from "@project";
 import { Canvas } from "@jotdown/editor/canvas/Canvas";
 
 const blocks = blocksOf(project);
-const layouts: Record<string, ComponentType<LayoutProps>> = project.layouts;
+/** The project's layouts, typed so that one exported without `defineLayout` fails the site's build. */
+const layouts: Record<string, ProjectLayout> = project.layouts;
 
 /**
  * The editing canvas with the project's own blocks and layouts, which only the browser bundle can hand it.

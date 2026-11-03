@@ -478,10 +478,10 @@ export function mountBlock(
       ...(part.block.type === "bulletList" || part.block.type === "orderedList" ? [listIndent(part.block.type)] : []),
       ...(!part.solo && part.holds === INLINE
         ? [
-            inplaceSlash({ mdx: page.mdx, inserts: page.inserts }, (editor, range, chosen) =>
+            inplaceSlash({ mdx: page.mdx, framework: page.framework, inserts: page.inserts }, (editor, range, chosen) =>
               replace(part, editor, range, chosen),
             ),
-            inplaceShorthand((editor, block) => becomes(part, editor, null, block)),
+            inplaceShorthand(page.framework, (editor, block) => becomes(part, editor, null, block)),
             blockPaste({
               place: (editor, blocks) => void pasteArriving(part, editor, blocks),
               upload: (editor, files) => void pasteFiles(part, editor, files),
@@ -491,7 +491,7 @@ export function mountBlock(
         : [blockPaste()]),
       ...(part.solo || part.holds !== INLINE
         ? [
-            inplaceSlash({ mdx: page.mdx, holds: fitsInside }, (editor, _range, chosen) =>
+            inplaceSlash({ mdx: page.mdx, framework: page.framework, holds: fitsInside }, (editor, _range, chosen) =>
               replaceInside(editor, chosen),
             ),
           ]

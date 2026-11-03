@@ -38,7 +38,7 @@ import { useInplace } from "./context";
 import { blockAt, moveBlocks, type BlockOps, type BlockSnapshot, type Handles } from "./handles";
 import { markdownOf, plainHtml } from "./clipboard";
 import { blockBounds, gripOf, handleAt, HANDLE_GAP } from "./handleGeometry";
-import type { TurnKind } from "./turn";
+import { turnKinds, type TurnKind } from "./turn";
 import { TurnIntoItems } from "./TurnInto";
 import { WIDTH_HANDLE, WIDTH_NAMES, WIDTH_REACH, WidthHandles } from "./WidthHandles";
 import type { BlockWidth } from "@jotdown/core/lib/block-width";
@@ -198,6 +198,7 @@ export function InplaceBlockHandle({ container }: { container: RefObject<HTMLEle
 
   const targets = hovered === null ? [] : group.includes(hovered) ? group : [hovered];
   const kind = targets.length === 1 ? (targets[0]?.kind?.() ?? null) : null;
+  const kinds = turnKinds(page.framework);
   const settings = targets.length === 1 && targets[0] ? settingsOf(targets[0].dom) : undefined;
 
   const copyMarkdown = () => {
@@ -319,14 +320,14 @@ export function InplaceBlockHandle({ container }: { container: RefObject<HTMLEle
                   <DropdownMenuSeparator />
                 </>
               )}
-              {kind !== null && (
+              {kind !== null && kinds.length > 0 && (
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
                     <Repeat2 />
                     Turn into
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent sideOffset={6} className="w-52">
-                    <TurnIntoItems current={kind} onTurn={turn} />
+                    <TurnIntoItems current={kind} kinds={kinds} onTurn={turn} />
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
               )}

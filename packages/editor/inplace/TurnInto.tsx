@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { DropdownMenuItem } from "@jotdown/core/components/ui/dropdown-menu";
 import { BlockPreview } from "./previews";
-import { TURN_KINDS, type TurnKind } from "./turn";
+import { TURN_KINDS, type TurnChoice, type TurnKind } from "./turn";
 
 export const TURN_ICONS: Record<TurnKind, typeof Type> = {
   paragraph: Type,
@@ -41,17 +41,24 @@ export const TURN_ICONS: Record<TurnKind, typeof Type> = {
 
 type Previewing = { kind: TurnKind; row: HTMLElement };
 
+type Props = {
+  current: TurnKind | null;
+  /** The kinds the page's layout lets a block become. */
+  kinds: TurnChoice[];
+  onTurn(kind: TurnKind): void;
+};
+
 /**
  * One menu item per kind, the current one ticked, for inside a dropdown's content or sub-content.
  *
- * @example <TurnIntoItems current="paragraph" onTurn={(kind) => ops.turnInto?.(kind)} />
+ * @example <TurnIntoItems current="paragraph" kinds={turnKinds(page.framework)} onTurn={(kind) => ops.turnInto?.(kind)} />
  */
-export function TurnIntoItems({ current, onTurn }: { current: TurnKind | null; onTurn(kind: TurnKind): void }) {
+export function TurnIntoItems({ current, kinds, onTurn }: Props) {
   const [previewing, setPreviewing] = useState<Previewing | null>(null);
 
   return (
     <>
-      {TURN_KINDS.map(({ kind, title }) => {
+      {kinds.map(({ kind, title }) => {
         const Icon = TURN_ICONS[kind];
 
         return (

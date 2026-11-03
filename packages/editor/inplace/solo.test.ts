@@ -2,6 +2,7 @@ import { getSchema } from "@tiptap/core";
 import { describe, expect, it } from "vitest";
 import { printBlock } from "../markdown/fromProseMirror";
 import { bodyExtensions, holdsFor } from "./editor";
+import { frameworkBlocks } from "@jotdown/kit";
 import { blockFor, inplaceChoices, type InplaceBlock } from "./slash";
 import { isSolo, soloExtensions } from "./solo";
 
@@ -85,7 +86,7 @@ describe("what an inserted block says in the file", () => {
 
 describe("every item on the menu", () => {
   it("builds a block, picks a file or pastes markdown, and nothing else", () => {
-    for (const item of inplaceChoices({ mdx: true }, "")) {
+    for (const item of inplaceChoices({ mdx: true, framework: new Set(frameworkBlocks) }, "")) {
       if ("pastes" in item || "writes" in item) continue;
       if ("picks" in item) {
         expect(item.picks).toMatch(/^(image|file)$/);
