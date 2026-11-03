@@ -53,6 +53,22 @@ paste it, which is the whole content model either way.
 ## Releases
 
 
+## [0.7.0](https://github.com/markomitranic/Jotdown/compare/v0.6.0...v0.7.0) (2026-11-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* **kit:** a layout in .jotdown/layouts must be exported through
+defineLayout with a blocks list, an empty one included. A layout without one
+fails the site's typecheck, and the canvas throws when it opens one of its
+pages.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### Features
+
+* **kit:** let a layout list the blocks its pages may insert ([f660ce1](https://github.com/markomitranic/Jotdown/commit/f660ce1919cdf3a3bc57768fde696264543d44f8))
+
 ## [0.6.0](https://github.com/markomitranic/Jotdown/compare/v0.5.10...v0.6.0) (2026-11-02)
 
 
